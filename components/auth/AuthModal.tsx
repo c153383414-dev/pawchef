@@ -49,13 +49,20 @@ export default function AuthModal({ open, tab, onClose, onSuccess }: Props) {
           onSuccess(profile as Profile)
         } else {
           onSuccess({
-            id: data.user.id,
-            email: data.user.email || '',
-            display_name: data.user.user_metadata?.display_name || data.user.email?.split('@')[0] || '',
-            is_pro: false,
-            pro_expires_at: null,
-            points: 50,
-            created_at: new Date().toISOString()
+           id: data.user.id,
+           email: data.user.email || '',
+           display_name: data.user.user_metadata?.display_name || data.user.email?.split('@')[0] || '',
+           is_pro: false,
+           pro_expires_at: null,
+           points: 0,
+           free_points: 20,
+           paid_points: 0,
+           gift_ai_points: 0,
+           monthly_ai_count: 0,
+           count_reset_at: null,
+           last_checkin_date: null,
+           created_at: new Date().toISOString()
+
           })
         }
       }
