@@ -171,7 +171,7 @@ export default function RecipeDemo({ user, onAuthRequired }: Props) {
             )}
 
             <button
-              onClick={generate}
+              onClick={() => user ? generate() : onAuthRequired()}
               disabled={loading}
               style={{
                 padding: '12px 24px', borderRadius: 8,
