@@ -4,10 +4,19 @@ export interface Profile {
   display_name: string
   is_pro: boolean
   pro_expires_at: string | null
+  // 旧字段（兼容保留）
   points: number
+  // 新积分字段
+  free_points: number       // 免费积分：签到/分享/邀请
+  paid_points: number       // AI积分：购买积分包
+  gift_ai_points: number    // 会员赠送AI积分（月底清零）
+  // 使用次数
+  monthly_ai_count: number  // 当月已用AI次数
+  count_reset_at: string | null
+  last_checkin_date: string | null
   created_at: string
 }
-
+ 
 export interface Pet {
   id: string
   user_id: string
@@ -22,7 +31,7 @@ export interface Pet {
   allergens: string[]
   created_at: string
 }
-
+ 
 export interface Recipe {
   id: string
   user_id: string
@@ -33,20 +42,20 @@ export interface Recipe {
   is_saved: boolean
   created_at: string
 }
-
+ 
 export interface RecipeContent {
   ingredients: Ingredient[]
   steps: string[]
   warnings?: string[]
   notes?: string
 }
-
+ 
 export interface Ingredient {
   emoji: string
   name: string
   amount: string
 }
-
+ 
 export interface NutritionInfo {
   calories: string
   protein: string
@@ -54,7 +63,7 @@ export interface NutritionInfo {
   carbs: string
   standard: string
 }
-
+ 
 export interface PointTransaction {
   id: string
   user_id: string
@@ -63,7 +72,7 @@ export interface PointTransaction {
   description: string
   created_at: string
 }
-
+ 
 export type HealthCondition =
   | 'healthy'
   | 'kidney'
