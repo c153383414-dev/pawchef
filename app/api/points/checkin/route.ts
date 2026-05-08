@@ -6,23 +6,25 @@ export async function POST() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: '未登录' }, { status: 401 })
 
-  // Check if already checked in today
-  const today = new Date().toISOString().split('T')[0]
-  const { data: existing } = await supabase
-    .from('point_transactions')
-    .select('id')
-    .eq('user_id', user.id)
-    .eq('type', 'checkin')
-    .gte('created_at', today)
-    .single()
+  // 调用数据库原子函数，防止重复签到
+  const { data, error } = await supabase.rpc('daily_checkin', {
+    p_user_id: user.id
+  })
 
-  if (existing) return NextResponse.json({ message: '今日已签到' }, { status: 400 })
+  if (error) {
+    return NextResponse.json({ error: '系统错误' }, { status: 500 })
+  }
 
-  const { data: profile } = await supabase.from('profiles').select('points').eq('id', user.id).single()
-  const newPoints = (profile?.points || 0) + 10
+  if (!data?.ok) {
+    return NextResponse.json(
+      { message: '今日已签到，明天再来' },
+      { status: 400 }
+    )
+  }
 
-  await supabase.from('profiles').update({ points: newPoints }).eq('id', user.id)
-  await supabase.from('point_transactions').insert({ user_id: user.id, amount: 10, type: 'checkin', description: '每日签到' })
-
-  return NextResponse.json({ points: newPoints })
+  return NextResponse.json({
+    success: true,
+    free_points: data.free_points,
+    message: '签到成功！+5 免费积分'
+  })
 }
