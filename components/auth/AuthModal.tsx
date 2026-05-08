@@ -44,7 +44,11 @@ export default function AuthModal({ open, tab, onClose, onSuccess }: Props) {
       if (error) { setMsg({ type: 'error', text: '邮箱或密码错误' }); setLoading(false); return }
       if (data.user) {
         const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user.id).single()
-        if (profile) onSuccess(profile as Profile)
+        if (profile) {
+          onSuccess(profile as Profile)
+        } else {
+          // Profile不存在时也关闭弹窗
+          onSuccess({ id: data.user.id, email: data.user.email || '', display_name: data.user.email?.split('@')[0] || '', is_pro: false, pro_expires_at: null, points: 50, created_at: new Date().toISOString() })
       }
     }
     setLoading(false)
