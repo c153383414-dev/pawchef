@@ -5,7 +5,7 @@ import type { Profile } from '@/types'
 interface Props {
   user: Profile | null
   onAuthRequired: () => void
-  onPointsUpdated: (pts: number) => void
+  onPointsUpdated: (freePoints: number, paidPoints: number) => void
 }
 
 const EARN = [
