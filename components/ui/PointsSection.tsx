@@ -54,7 +54,7 @@ export default function PointsSection({ user, onAuthRequired, onPointsUpdated }:
       const res = await fetch('/api/points/checkin', { method: 'POST' })
       const data = await res.json()
       if (data.points !== undefined) {
-        onPointsUpdated(data.points)
+        onPointsUpdated(data.free_points, user?.paid_points ?? 0)
         showToast('✓ 签到成功！+10 积分')
       } else {
         showToast(data.message || '今日已签到')
