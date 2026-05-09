@@ -66,7 +66,15 @@
     "noCreditsMsg": "AI 积分不足，请购买积分包或订阅 Pro。",
     "sickPetDisclaimer": "⚕️ 健康状况参考模式：以下食谱仅为营养参考信息，不构成医疗建议，请在执业兽医指导下使用。",
     "freeRecipeNote": "来自数据库的免费食谱 · 升级获取个性化 AI 食谱",
-    "upgradeHint": "🟠 升级 Pro 或购买 AI 积分，即可根据宠物具体情况生成个性化食谱"
+    "upgradeHint": "🟠 升级 Pro 或购买 AI 积分，即可根据宠物具体情况生成个性化食谱",
+    "healthLockedHint": "🔒 健康状况功能需要登录 ·",
+    "healthLockedLogin": "登录 / 注册",
+    "freePresetAvailable": "📚 可免费使用预置食谱",
+    "databaseBadge": "📚 数据库",
+    "nutriCalories": "热量",
+    "nutriProtein": "蛋白质",
+    "nutriFat": "脂肪",
+    "nutriCarbs": "碳水"
   },
   "safety": {
     "sectionLabel": "食材安全查询",
@@ -84,7 +92,12 @@
     "unknownTitle": "需进一步确认",
     "unknownMsg": "数据库中没有\"{name}\"的记录，喂食前请查阅 ASPCA 官网或咨询执业兽医。",
     "kidneyWarning": "🫘 肾病注意事项：",
-    "pancreatitisWarning": "🔥 胰腺炎注意事项："
+    "pancreatitisWarning": "🔥 胰腺炎注意事项：",
+    "qi": {
+      "chicken": "鸡肉", "salmon": "三文鱼", "broccoli": "西兰花",
+      "onion": "洋葱", "grapes": "葡萄", "blueberry": "蓝莓",
+      "xylitol": "木糖醇", "pumpkin": "南瓜", "egg": "鸡蛋", "chocolate": "巧克力"
+    }
   },
   "pricing": {
     "sectionLabel": "透明定价",

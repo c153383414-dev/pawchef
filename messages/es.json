@@ -66,7 +66,15 @@
     "noCreditsMsg": "Créditos de IA insuficientes. Por favor, compra un paquete de créditos o suscríbete a Pro.",
     "sickPetDisclaimer": "⚕️ Modo de Referencia por Condición de Salud: La siguiente receta es solo información de referencia nutricional, no asesoramiento médico. Úsala bajo la orientación de un veterinario con licencia.",
     "freeRecipeNote": "Receta gratuita de nuestra base de datos · Actualiza para recetas de IA personalizadas",
-    "upgradeHint": "🟠 Actualiza a Pro o compra créditos de IA para recetas personalizadas según el perfil exacto de tu mascota"
+    "upgradeHint": "🟠 Actualiza a Pro o compra créditos de IA para recetas personalizadas según el perfil exacto de tu mascota",
+    "healthLockedHint": "🔒 Las condiciones de salud requieren inicio de sesión ·",
+    "healthLockedLogin": "Iniciar sesión / Registrarse",
+    "freePresetAvailable": "📚 Receta preestablecida gratuita disponible",
+    "databaseBadge": "📚 Base de datos",
+    "nutriCalories": "Calorías",
+    "nutriProtein": "Proteína",
+    "nutriFat": "Grasa",
+    "nutriCarbs": "Carbohidratos"
   },
   "safety": {
     "sectionLabel": "Verificador de Seguridad Alimentaria",
@@ -84,7 +92,12 @@
     "unknownTitle": "Requiere verificación adicional",
     "unknownMsg": "No hay registro de \"{name}\" en la base de datos. Consulta el sitio web oficial de ASPCA o a un veterinario con licencia antes de alimentar.",
     "kidneyWarning": "🫘 Nota sobre Enfermedad Renal:",
-    "pancreatitisWarning": "🔥 Nota sobre Pancreatitis:"
+    "pancreatitisWarning": "🔥 Nota sobre Pancreatitis:",
+    "qi": {
+      "chicken": "Pollo", "salmon": "Salmón", "broccoli": "Brócoli",
+      "onion": "Cebolla", "grapes": "Uvas", "blueberry": "Arándano",
+      "xylitol": "Xilitol", "pumpkin": "Calabaza", "egg": "Huevo", "chocolate": "Chocolate"
+    }
   },
   "pricing": {
     "sectionLabel": "Precios Transparentes",
