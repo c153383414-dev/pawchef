@@ -21,7 +21,7 @@ export default function HomePage() {
         if (data) setUser(data)
       }
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
       if (session?.user) {
         const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
         if (data) setUser(data)
