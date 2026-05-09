@@ -90,6 +90,7 @@
     "cautionTitle": "注意して使用",
     "dangerTitle": "与えてはいけません",
     "unknownTitle": "追加確認が必要",
+    "searchedAs": "検索ワード",
     "unknownMsg": "データベースに「{name}」の記録がありません。給与前にASPCA公式サイトを確認するか、獣医師にご相談ください。",
     "kidneyWarning": "🫘 腎臓病に関する注意:",
     "pancreatitisWarning": "🔥 膵炎に関する注意:",

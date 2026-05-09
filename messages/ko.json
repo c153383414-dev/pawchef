@@ -90,6 +90,7 @@
     "cautionTitle": "주의하여 사용",
     "dangerTitle": "급여 금지",
     "unknownTitle": "추가 확인 필요",
+    "searchedAs": "검색어",
     "unknownMsg": "데이터베이스에 \"{name}\"에 대한 기록이 없습니다. 급여 전 ASPCA 공식 웹사이트를 확인하거나 수의사에게 문의해 주세요.",
     "kidneyWarning": "🫘 신장 질환 주의 사항:",
     "pancreatitisWarning": "🔥 췌장염 주의 사항:",
