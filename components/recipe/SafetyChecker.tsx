@@ -1,89 +1,129 @@
 'use client'
 import { useState } from 'react'
+import { safetyDB } from '@/lib/safety-db'
 
-const QUICK = ['洋葱','葡萄','鸡胸肉','巧克力','胡萝卜','大蒜','蓝莓','木糖醇','三文鱼','南瓜']
+interface Props {
+  t: (key: string, params?: Record<string, string | number>) => string
+}
 
-export default function SafetyChecker() {
+export default function SafetyChecker({ t }: Props) {
   const [query, setQuery] = useState('')
   const [result, setResult] = useState<any>(null)
-  const [loading, setLoading] = useState(false)
 
-  const check = async (q?: string) => {
-    const term = q || query.trim()
-    if (!term) return
-    setQuery(term)
-    setLoading(true)
-    try {
-      const res = await fetch(`/api/check-ingredient?q=${encodeURIComponent(term)}`)
-      const data = await res.json()
-      setResult(data)
-    } catch {
-      setResult({ level: 'caution', title: '查询失败', message: '请稍后重试' })
-    } finally {
-      setLoading(false)
+  const check = () => {
+    if (!query.trim()) return
+    const key = query.trim().toLowerCase()
+    const found = safetyDB.find(item =>
+      item.name.toLowerCase().includes(key) ||
+      item.aliases?.some((a: string) => a.toLowerCase().includes(key))
+    )
+    if (found) {
+      setResult(found)
+    } else {
+      setResult({ name: query, level: 'unknown' })
     }
   }
 
-  const levelStyle = (level: string) => ({
-    safe: { bg: '#EBF2EC', color: '#7A9E7E', icon: '✅' },
-    caution: { bg: '#FBF0E4', color: '#C8813A', icon: '⚠️' },
-    danger: { bg: '#FAE8E8', color: '#C45C5C', icon: '🚫' },
-  }[level] || { bg: '#FBF0E4', color: '#C8813A', icon: '🔍' })
+  const levelConfig = {
+    safe: { color: '#3B6D11', bg: '#EAF3DE', label: t('safety.safe'), icon: '✅' },
+    caution: { color: '#854F0B', bg: '#FBF0E4', label: t('safety.caution'), icon: '⚠️' },
+    danger: { color: '#A32D2D', bg: '#FCEBEB', label: t('safety.danger'), icon: '❌' },
+    unknown: { color: '#185FA5', bg: '#E6F1FB', label: t('safety.unknownTitle'), icon: '❓' },
+  }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 48, alignItems: 'start' }}>
-      <div>
-        <div style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A9E7E', marginBottom: 12 }}>食材安全速查</div>
-        <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(26px,3.5vw,38px)', fontWeight: 700, lineHeight: 1.2, marginBottom: 16 }}>
-          任何食材，<br />3秒知道安不安全
-        </h2>
-        <p style={{ fontSize: 15, color: 'rgba(28,26,22,0.6)', fontWeight: 300, lineHeight: 1.7, marginBottom: 24 }}>
-          无需登录，直接查询。<br />基于 ASPCA 官方毒物数据库，实时返回安全等级
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {[['#7A9E7E','安全 · 可正常喂食'],['#C8813A','慎用 · 需控量或处理'],['#C45C5C','禁止 · 有毒严禁喂食']].map(([c,l]) => (
-            <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'rgba(28,26,22,0.6)' }}>
-              <span style={{ color: c, fontSize: 10 }}>●</span> {l}
-            </div>
-          ))}
+    <div>
+      <div style={{ textAlign: 'center', marginBottom: 40 }}>
+        <div style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A9E7E', marginBottom: 12 }}>
+          {t('safety.sectionLabel')}
         </div>
+        <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(26px,4vw,38px)', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 12 }}>
+          {t('safety.title')}
+        </h2>
+        <p style={{ fontSize: 15, color: 'rgba(28,26,22,0.6)', fontWeight: 300, maxWidth: 500, margin: '0 auto' }}>
+          {t('safety.subtitle')}
+        </p>
       </div>
 
-      <div style={{ background: '#FDFAF5', borderRadius: 16, border: '1px solid rgba(28,26,22,0.12)', padding: 24, boxShadow: '0 2px 16px rgba(28,26,22,0.04)' }}>
-        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 12 }}>快速查询</div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
-          {QUICK.map(q => (
-            <button key={q} onClick={() => check(q)} style={{ padding: '5px 12px', borderRadius: 6, fontSize: 12, cursor: 'pointer', border: '1px solid rgba(28,26,22,0.12)', background: '#F7F3EC', fontFamily: 'inherit', transition: '0.2s' }}>
-              {q}
-            </button>
-          ))}
-        </div>
-        <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-          <input
-            value={query} onChange={e => setQuery(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && check()}
-            placeholder="输入食材名称…"
-            style={{ flex: 1, padding: '10px 16px', borderRadius: 8, border: '1px solid rgba(28,26,22,0.12)', fontFamily: 'inherit', fontSize: 14, background: '#F7F3EC', outline: 'none' }}
-          />
-          <button onClick={() => check()} disabled={loading} style={{ padding: '10px 18px', borderRadius: 8, background: '#1C1A16', color: '#FDFAF5', border: 'none', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
-            {loading ? '…' : '查询'}
-          </button>
-        </div>
+      {/* Legend */}
+      <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginBottom: 28, flexWrap: 'wrap' }}>
+        {(['safe', 'caution', 'danger'] as const).map(level => (
+          <div key={level} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: levelConfig[level].bg, fontSize: 12, fontWeight: 500, color: levelConfig[level].color }}>
+            {levelConfig[level].icon} {levelConfig[level].label.split('·')[0].trim()}
+          </div>
+        ))}
+      </div>
 
-        {result && (() => {
-          const s = levelStyle(result.level)
-          return (
-            <div style={{ padding: 14, borderRadius: 10, background: s.bg, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-              <div style={{ fontSize: 24, flexShrink: 0, marginTop: 2 }}>{s.icon}</div>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 500, marginBottom: 4, color: '#1C1A16' }}>{query} · {result.title}</div>
-                <p style={{ fontSize: 13, color: 'rgba(28,26,22,0.7)', lineHeight: 1.55, margin: 0 }}>{result.message}</p>
-                {result.kidneyWarning && <p style={{ fontSize: 12, color: '#C8813A', marginTop: 6, margin: 0 }}>🫘 肾病提示：{result.kidneyWarning}</p>}
-                {result.pancreatitisWarning && <p style={{ fontSize: 12, color: '#C45C5C', marginTop: 4, margin: 0 }}>🔥 胰腺炎提示：{result.pancreatitisWarning}</p>}
+      {/* Search */}
+      <div style={{ display: 'flex', gap: 10, maxWidth: 480, margin: '0 auto 28px' }}>
+        <input
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && check()}
+          placeholder={t('safety.placeholder')}
+          style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: '1px solid rgba(28,26,22,0.15)', background: '#FDFAF5', fontFamily: 'inherit', fontSize: 15, outline: 'none' }}
+        />
+        <button onClick={check} style={{ padding: '12px 24px', borderRadius: 10, background: '#1C1A16', color: '#FDFAF5', border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 500, fontFamily: 'inherit' }}>
+          {t('safety.checkBtn')}
+        </button>
+      </div>
+
+      {/* Result */}
+      {result && (
+        <div style={{ maxWidth: 480, margin: '0 auto', padding: 20, borderRadius: 16, background: levelConfig[result.level as keyof typeof levelConfig]?.bg || '#F7F3EC', border: `1px solid ${levelConfig[result.level as keyof typeof levelConfig]?.color || '#ccc'}30` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <span style={{ fontSize: 28 }}>{levelConfig[result.level as keyof typeof levelConfig]?.icon || '❓'}</span>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 600 }}>{result.name}</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: levelConfig[result.level as keyof typeof levelConfig]?.color }}>
+                {result.level === 'unknown'
+                  ? t('safety.unknownTitle')
+                  : result.level === 'safe'
+                  ? t('safety.safeTitle')
+                  : result.level === 'caution'
+                  ? t('safety.cautionTitle')
+                  : t('safety.dangerTitle')}
               </div>
             </div>
-          )
-        })()}
+          </div>
+
+          {result.level === 'unknown' ? (
+            <p style={{ fontSize: 13, color: 'rgba(28,26,22,0.6)', lineHeight: 1.6 }}>
+              {t('safety.unknownMsg', { name: result.name })}
+            </p>
+          ) : (
+            <>
+              {result.notes && <p style={{ fontSize: 13, color: 'rgba(28,26,22,0.7)', lineHeight: 1.6, marginBottom: 8 }}>{result.notes}</p>}
+              {result.kidneyNote && (
+                <p style={{ fontSize: 12, color: '#854F0B', lineHeight: 1.6 }}>
+                  {t('safety.kidneyWarning')} {result.kidneyNote}
+                </p>
+              )}
+              {result.pancreatitisNote && (
+                <p style={{ fontSize: 12, color: '#A32D2D', lineHeight: 1.6 }}>
+                  {t('safety.pancreatitisWarning')} {result.pancreatitisNote}
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Quick check grid */}
+      <div style={{ marginTop: 40 }}>
+        <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(28,26,22,0.5)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', marginBottom: 16 }}>
+          {t('safety.quickCheck')}
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
+          {['Chicken', 'Salmon', 'Broccoli', 'Onion', 'Grapes', 'Blueberry', 'Xylitol', 'Pumpkin', 'Egg', 'Chocolate'].map(item => (
+            <button key={item} onClick={() => { setQuery(item); setTimeout(check, 100) }} style={{
+              padding: '6px 14px', borderRadius: 20, fontSize: 13,
+              border: '1px solid rgba(28,26,22,0.12)', background: '#FDFAF5',
+              cursor: 'pointer', fontFamily: 'inherit', color: 'rgba(28,26,22,0.7)',
+              transition: 'all 0.2s'
+            }}>{item}</button>
+          ))}
+        </div>
       </div>
     </div>
   )
