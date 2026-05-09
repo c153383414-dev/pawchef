@@ -17,23 +17,39 @@ export default function HomePage() {
   const { locale, t, loading } = useLocale()
   const supabase = createClient()
 
-  useEffect(() => {
-    supabase.auth.getUser().then(async ({ data: { user: u } }: { data: { user: any } }) => {
-      if (u) {
-        const { data } = await supabase.from('profiles').select('*').eq('id', u.id).single()
-        if (data) setUser(data)
-      }
-    })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
+useEffect(() => {
+  const supabaseClient = createClient()
+
+  // 先从 session 读取（比 getUser 更快）
+  supabaseClient.auth.getSession().then(async ({ data: { session } }) => {
+    if (session?.user) {
+      const { data } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single()
+      if (data) setUser(data)
+    }
+  })
+
+  const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
+    async (event: string, session: any) => {
       if (session?.user) {
-        const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+        const { data } = await supabaseClient
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
         if (data) setUser(data)
       } else {
         setUser(null)
       }
-    })
-    return () => subscription.unsubscribe()
-  }, [])
+    }
+  )
+  return () => subscription.unsubscribe()
+}, [])
+
+  
 
   const openAuth = (tab: 'login' | 'signup') => {
     setAuthTab(tab)
