@@ -12,7 +12,7 @@ export default function ResetPasswordPage() {
   const supabase = createClient()
 
   useEffect(() => {
-    supabase.auth.onAuthStateChange((event) => {
+    supabase.auth.onAuthStateChange((event: string) => {
       if (event === 'PASSWORD_RECOVERY') {
         setMsg({ type: 'success', text: '请设置你的新密码' })
       }
