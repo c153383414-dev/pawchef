@@ -39,13 +39,16 @@ export default function HomePage() {
 
     // onAuthStateChange fires INITIAL_SESSION immediately from localStorage
     // without waiting for a network call, so the user is set right away on refresh.
-    const { data: authData } = sb.auth.onAuthStateChange(async (event: string, session: any) => {
+    const { data: authData } = sb.auth.onAuthStateChange((event: string, session: any) => {
       if (session?.user) {
-        const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single()
-        setUser(profileFromAuth(session.user, profile))
+        // Set user immediately from session so the page shows logged-in state
+        // without waiting for any network call.
+        setUser(prev => prev?.id === session.user.id ? prev : profileFromAuth(session.user, null))
+        // Then update with DB profile data in the background.
+        sb.from('profiles').select('*').eq('id', session.user.id).single().then(({ data: profile }) => {
+          if (profile) setUser(profileFromAuth(session.user, profile))
+        })
       } else if (event === 'SIGNED_OUT' && explicitSignOut.current) {
-        // Only clear user on explicit logout, not on token refresh failures
-        // (which also emit SIGNED_OUT when the Supabase server is unreachable)
         explicitSignOut.current = false
         setUser(null)
       }
