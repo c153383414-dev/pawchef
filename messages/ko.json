@@ -114,7 +114,27 @@
     "subscribePro": "Pro 구독",
     "upgradeNote": "월간 쿼터 초과? 🟠 AI 크레딧을 사용하여 계속하세요",
     "comparisonNote": "크레딧 팩 1회당: $0.55~$0.69\nPro 월간 1회당: $0.50 (30회)\nPro 연간 1회당: $0.14 (60회)\n→ 헤비 유저는 구독이 더 절약됩니다",
-    "disclaimer": "⚠️ 모든 콘텐츠는 AI 생성 참고 정보이며, 전문 수의사의 조언을 대체하지 않습니다\n모든 가격 포함 · Visa / Mastercard · Stripe 안전 결제"
+    "disclaimer": "⚠️ 모든 콘텐츠는 AI 생성 참고 정보이며, 전문 수의사의 조언을 대체하지 않습니다\n모든 가격 포함 · Visa / Mastercard · Stripe 안전 결제",
+    "feat": {
+      "mostPopular": "🔥 가장 인기",
+      "presetRecipes": "100개 이상 프리셋 레시피",
+      "safetyChecker": "식재료 안전 검사기 (무제한)",
+      "dangerAlerts": "위험 식재료 알림",
+      "earnFree": "💙 무료 크레딧 획득",
+      "unlockSlots": "추가 레시피 슬롯 잠금 해제",
+      "exportLog": "식이 일지 PDF 내보내기",
+      "aiGenNeeds": "AI 생성에는 🟠 AI 크레딧 필요",
+      "aiGenCount": "AI 레시피 생성 {n}회/월",
+      "substCount": "식재료 대체 {n}회/월",
+      "mealPlanCount": "7일 식단 계획 {n}회/월",
+      "healthMode": "건강 상태별 영양 조절 모드",
+      "petProfiles": "5개 반려동물 프로필",
+      "unlimitedBookmarks": "무제한 레시피 즐겨찾기",
+      "unlimitedExports": "무제한 식이 일지 내보내기",
+      "aiCreditsGift": "매월 {n} 🟠 AI 크레딧 제공 (매월 초기화)",
+      "freeNoAi": "💙 무료 크레딧은 AI 기능에 사용할 수 없습니다",
+      "aiNeverExpire": "🟠 AI 크레딧은 만료되지 않음 · 실패 시 자동 환불"
+    }
   },
   "points": {
     "sectionLabel": "크레딧 시스템",
