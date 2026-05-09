@@ -82,7 +82,7 @@
     "cautionTitle": "谨慎使用",
     "dangerTitle": "禁止喂食",
     "unknownTitle": "需进一步确认",
-    "unknownMsg": "数据库中没有"{name}"的记录，喂食前请查阅 ASPCA 官网或咨询执业兽医。",
+    "unknownMsg": "数据库中没有\"{name}\"的记录，喂食前请查阅 ASPCA 官网或咨询执业兽医。",
     "kidneyWarning": "🫘 肾病注意事项：",
     "pancreatitisWarning": "🔥 胰腺炎注意事项："
   },
