@@ -1,12 +1,20 @@
 'use client'
 import { useState } from 'react'
-import type { Profile, RecipeContent, NutritionInfo } from '@/types'
+import type { Profile, RecipeContent, NutritionInfo, Ingredient } from '@/types'
 
 interface Props {
   user: Profile | null
   onAuthRequired: () => void
   locale: string
   t: (key: string, params?: Record<string, string | number>) => string
+}
+
+interface SubstituteItem {
+  name: string
+  amount: string
+  emoji: string
+  reason: string
+  nutrition_note: string
 }
 
 const HEALTH_OPTIONS = [
@@ -50,6 +58,11 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' | 'warn' } | null>(null)
   const [isPreset, setIsPreset] = useState(false)
 
+  // Substitute state
+  const [substituting, setSubstituting] = useState<number | null>(null)
+  const [substitutes, setSubstitutes] = useState<Record<number, SubstituteItem[]>>({})
+  const [expandedSub, setExpandedSub] = useState<number | null>(null)
+
   const showToast = (msg: string, type: 'success' | 'error' | 'warn' = 'success') => {
     setToast({ msg, type })
     setTimeout(() => setToast(null), 4000)
@@ -70,7 +83,6 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
     (user.paid_points ?? 0) > 0
   )
 
-  // Free users or healthy-only: use preset recipes
   const shouldUsePreset = isHealthOnly && !canUseAI
 
   const getButtonLabel = () => {
@@ -93,24 +105,21 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
   const fetchPresetRecipe = async () => {
     const weightRange = getWeightRange(parseFloat(weight) || 5, species)
     const ageRange = getAgeRange(age)
-
     const res = await fetch(`/api/preset-recipe?species=${species}&weight_range=${weightRange}&age_range=${ageRange}`)
     const data = await res.json()
-    if (data.title) {
-      setIsPreset(true)
-      return data
-    }
+    if (data.title) { setIsPreset(true); return data }
     return null
   }
 
   const generate = async () => {
-    // Free user / healthy only → use preset
     if (shouldUsePreset) {
       setLoading(true)
       try {
         const preset = await fetchPresetRecipe()
         if (preset) {
           setRecipe(preset)
+          setSubstitutes({})
+          setExpandedSub(null)
           showToast('✓ ' + t('recipe.aafcoLabel'), 'success')
         } else {
           showToast('No matching recipe found', 'error')
@@ -123,10 +132,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
       return
     }
 
-    // Need login for non-healthy conditions
     if (!user) { onAuthRequired(); return }
-
-    // Need credits for AI generation
     if (!canUseAI) {
       showToast(t('recipe.noCreditsMsg'), 'error')
       setTimeout(() => document.getElementById('points')?.scrollIntoView({ behavior: 'smooth' }), 1000)
@@ -138,11 +144,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
       const res = await fetch('/api/generate-recipe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          species, petName, locale,
-          weight: parseFloat(weight) || 5,
-          age, healthConditions: health
-        })
+        body: JSON.stringify({ species, petName, locale, weight: parseFloat(weight) || 5, age, healthConditions: health })
       })
       const data = await res.json()
       if (!res.ok) {
@@ -152,12 +154,63 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
       }
       setIsPreset(false)
       setRecipe(data)
+      setSubstitutes({})
+      setExpandedSub(null)
       showToast('✓ ' + t('recipe.aafcoLabel'), 'success')
     } catch {
       showToast('Network error, please retry', 'error')
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleSubstitute = async (ing: Ingredient, index: number) => {
+    if (!user) { onAuthRequired(); return }
+    if (!canUseAI) { showToast(t('substitute.needCredits'), 'warn'); return }
+
+    // Toggle off if already expanded
+    if (expandedSub === index) { setExpandedSub(null); return }
+
+    // Already fetched — just show
+    if (substitutes[index]) { setExpandedSub(index); return }
+
+    setSubstituting(index)
+    try {
+      const res = await fetch('/api/substitute-ingredient', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ingredient: ing.name,
+          amount: ing.amount,
+          species,
+          healthConditions: health,
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        if (res.status === 402) showToast('🟠 ' + (data.detail || t('substitute.needCredits')), 'error')
+        else showToast(data.error || 'Failed', 'error')
+        return
+      }
+      setSubstitutes(prev => ({ ...prev, [index]: data.substitutes }))
+      setExpandedSub(index)
+      showToast(t('substitute.creditUsed'), 'success')
+    } catch {
+      showToast('Network error', 'error')
+    } finally {
+      setSubstituting(null)
+    }
+  }
+
+  const applySubstitute = (ingredientIndex: number, sub: SubstituteItem) => {
+    if (!recipe) return
+    const newIngredients = recipe.content.ingredients.map((ing, i) =>
+      i === ingredientIndex ? { emoji: sub.emoji, name: sub.name, amount: sub.amount } : ing
+    )
+    setRecipe({ ...recipe, content: { ...recipe.content, ingredients: newIngredients } })
+    setExpandedSub(null)
+    setSubstitutes(prev => { const next = { ...prev }; delete next[ingredientIndex]; return next })
+    showToast(t('substitute.applied'), 'success')
   }
 
   const toastColors = {
@@ -194,16 +247,14 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
               </select>
             </div>
 
-            {/* Health conditions */}
             <div>
               <div style={{ fontSize: 12, color: 'rgba(28,26,22,0.6)', marginBottom: 8, fontWeight: 500 }}>
                 {t('recipe.healthLabel')}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {HEALTH_OPTIONS.map(({ key, labelKey }) => {
-                  const isHealthy = key === 'healthy'
-                  const isSick = !isHealthy
-                  const needsAuth = isSick && !user
+                  const isHealthyOpt = key === 'healthy'
+                  const needsAuth = !isHealthyOpt && !user
                   const selected = health.includes(key)
                   return (
                     <button
@@ -230,7 +281,6 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
               )}
             </div>
 
-            {/* Credits status */}
             {user && (
               <div style={{ padding: '10px 14px', borderRadius: 10, background: '#F7F3EC', fontSize: 12, color: 'rgba(28,26,22,0.6)', lineHeight: 1.6 }}>
                 {user.is_pro
@@ -243,7 +293,6 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
               </div>
             )}
 
-            {/* Generate button */}
             <button onClick={generate} disabled={loading || (!shouldUsePreset && !!user && !canUseAI)} style={{
               padding: '12px 24px', borderRadius: 8, fontSize: 15, fontWeight: 500,
               border: 'none', fontFamily: 'inherit', transition: 'opacity 0.2s',
@@ -253,14 +302,12 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
               {getButtonLabel()}
             </button>
 
-            {/* Preset note */}
             {shouldUsePreset && (
               <div style={{ padding: '8px 12px', borderRadius: 8, background: '#EBF2EC', fontSize: 12, color: '#3B6D11', lineHeight: 1.5 }}>
                 ✓ {t('recipe.freeRecipeNote')}
               </div>
             )}
 
-            {/* No credits warning */}
             {user && !canUseAI && !isHealthOnly && (
               <div style={{ padding: '10px 14px', borderRadius: 10, background: '#FAE8E8', fontSize: 12, color: '#C45C5C', lineHeight: 1.6 }}>
                 {t('recipe.noCreditsMsg')}<br />
@@ -268,7 +315,6 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
               </div>
             )}
 
-            {/* Sick pet disclaimer */}
             {health.some(h => ['kidney', 'pancreatitis', 'diabetes'].includes(h)) && (
               <div style={{ padding: '10px 14px', borderRadius: 10, background: '#FBF0E4', fontSize: 12, color: '#854F0B', lineHeight: 1.6, border: '1px solid #FAC775' }}>
                 ⚕️ {t('recipe.sickPetDisclaimer')}
@@ -300,12 +346,86 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
               <>
                 <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(28,26,22,0.5)', marginBottom: 8 }}>
                   {t('recipe.ingredientsLabel')}
+                  {!isPreset && (
+                    <span style={{ fontWeight: 400, marginLeft: 6, color: 'rgba(28,26,22,0.35)' }}>
+                      · {t('substitute.btn')} {t('substitute.needCredits').toLowerCase()}
+                    </span>
+                  )}
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 16 }}>
+
+                {/* Ingredient list with substitute buttons */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 16 }}>
                   {recipe.content.ingredients.map((ing, i) => (
-                    <div key={i} style={{ padding: '8px 12px', borderRadius: 8, background: '#F7F3EC', display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                      <span>{ing.emoji} {ing.name}</span>
-                      <span style={{ color: 'rgba(28,26,22,0.6)', fontWeight: 500 }}>{ing.amount}</span>
+                    <div key={i}>
+                      <div style={{
+                        padding: '8px 12px',
+                        borderRadius: expandedSub === i ? '8px 8px 0 0' : 8,
+                        background: expandedSub === i ? '#EBF2EC' : '#F7F3EC',
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        border: expandedSub === i ? '1px solid rgba(122,158,126,0.3)' : '1px solid transparent',
+                        borderBottom: expandedSub === i ? 'none' : undefined,
+                        transition: 'background 0.15s'
+                      }}>
+                        <span style={{ fontSize: 13, flex: 1 }}>{ing.emoji} {ing.name}</span>
+                        <span style={{ color: 'rgba(28,26,22,0.6)', fontWeight: 500, fontSize: 13, flexShrink: 0 }}>{ing.amount}</span>
+                        {!isPreset && (
+                          <button
+                            onClick={() => handleSubstitute(ing, i)}
+                            disabled={substituting === i}
+                            title={t('substitute.suggestions', { name: ing.name })}
+                            style={{
+                              padding: '2px 7px', borderRadius: 5, fontSize: 11,
+                              cursor: substituting === i ? 'wait' : 'pointer',
+                              border: '1px solid rgba(28,26,22,0.15)',
+                              background: expandedSub === i ? '#7A9E7E' : '#FDFAF5',
+                              color: expandedSub === i ? '#fff' : 'rgba(28,26,22,0.5)',
+                              fontFamily: 'inherit', flexShrink: 0, lineHeight: 1.6
+                            }}>
+                            {substituting === i ? '…' : t('substitute.btn')}
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Expanded substitute panel */}
+                      {expandedSub === i && substitutes[i] && (
+                        <div style={{
+                          border: '1px solid rgba(122,158,126,0.3)', borderTop: 'none',
+                          borderRadius: '0 0 8px 8px', background: '#F7FCF8', padding: '10px 12px'
+                        }}>
+                          <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.5)', marginBottom: 8, fontWeight: 500 }}>
+                            {t('substitute.suggestions', { name: ing.name })} · <span style={{ color: '#C8813A' }}>{t('substitute.creditUsed')}</span>
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            {substitutes[i].map((sub, si) => (
+                              <div key={si} style={{ padding: '8px 10px', borderRadius: 8, background: '#FDFAF5', border: '1px solid rgba(28,26,22,0.08)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
+                                  <span style={{ fontSize: 13, fontWeight: 500 }}>
+                                    {sub.emoji} {sub.name} <span style={{ color: 'rgba(28,26,22,0.5)', fontWeight: 400 }}>{sub.amount}</span>
+                                  </span>
+                                  <button
+                                    onClick={() => applySubstitute(i, sub)}
+                                    style={{
+                                      padding: '2px 8px', borderRadius: 5, fontSize: 11,
+                                      cursor: 'pointer', border: 'none',
+                                      background: '#1C1A16', color: '#FDFAF5', fontFamily: 'inherit'
+                                    }}>
+                                    {t('substitute.apply')}
+                                  </button>
+                                </div>
+                                <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.5)', lineHeight: 1.4 }}>{sub.reason}</div>
+                                {sub.nutrition_note && (
+                                  <div style={{ fontSize: 11, color: '#854F0B', marginTop: 2 }}>{sub.nutrition_note}</div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          <button
+                            onClick={() => setExpandedSub(null)}
+                            style={{ marginTop: 8, fontSize: 11, color: 'rgba(28,26,22,0.4)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                            {t('substitute.collapse')}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -328,7 +448,6 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   ))}
                 </div>
 
-                {/* Upgrade hint for preset */}
                 {isPreset && (
                   <div style={{ padding: '10px 12px', borderRadius: 10, background: '#FBF0E4', fontSize: 12, color: '#854F0B', lineHeight: 1.5, marginBottom: 12, cursor: 'pointer' }} onClick={onAuthRequired}>
                     ⭐ {t('recipe.upgradeHint')}

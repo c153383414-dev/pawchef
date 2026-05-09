@@ -85,6 +85,24 @@ export default function DashboardPage() {
           )}
         </div>
 
+        {/* Quick links */}
+        <div style={{ display: 'flex', gap: 12, marginBottom: 40, flexWrap: 'wrap' }}>
+          <a href="/dashboard/nutrition-log" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 20px', borderRadius: 14, background: '#EBF2EC', border: '1px solid rgba(122,158,126,0.2)', textDecoration: 'none', color: '#1C1A16', flex: 1, minWidth: 200 }}>
+            <div style={{ fontSize: 28 }}>📊</div>
+            <div>
+              <div style={{ fontWeight: 500, fontSize: 15 }}>营养饮食日志</div>
+              <div style={{ fontSize: 12, color: 'rgba(28,26,22,0.5)', marginTop: 2 }}>记录每餐 · 追踪营养摄入</div>
+            </div>
+          </a>
+          <a href="/#meal-plan" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 20px', borderRadius: 14, background: '#FBF0E4', border: '1px solid rgba(200,129,58,0.2)', textDecoration: 'none', color: '#1C1A16', flex: 1, minWidth: 200 }}>
+            <div style={{ fontSize: 28 }}>📅</div>
+            <div>
+              <div style={{ fontWeight: 500, fontSize: 15 }}>7天膳食周计划</div>
+              <div style={{ fontSize: 12, color: 'rgba(28,26,22,0.5)', marginTop: 2 }}>AI生成一周菜单 · 含购物清单</div>
+            </div>
+          </a>
+        </div>
+
         {/* Recent Recipes */}
         <div>
           <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, fontWeight: 700, marginBottom: 16 }}>最近食谱</h2>

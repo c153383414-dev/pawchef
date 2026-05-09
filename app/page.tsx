@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import AuthModal from '@/components/auth/AuthModal'
 import RecipeDemo from '@/components/recipe/RecipeDemo'
+import MealPlan from '@/components/recipe/MealPlan'
 import SafetyChecker from '@/components/recipe/SafetyChecker'
 import PricingSection from '@/components/ui/PricingSection'
 import PointsSection from '@/components/ui/PointsSection'
@@ -224,6 +225,11 @@ export default function HomePage() {
       {/* DEMO */}
       <div id="demo" style={{ background: '#F7F3EC', borderRadius: 24, margin: '0 max(24px,5vw)' }}>
         <RecipeDemo user={user} onAuthRequired={() => openAuth('signup')} locale={locale} t={t} />
+      </div>
+
+      {/* MEAL PLAN */}
+      <div id="meal-plan" style={{ background: '#F7F3EC', borderRadius: 24, margin: '0 max(24px,5vw) 40px' }}>
+        <MealPlan user={user} onAuthRequired={() => openAuth('signup')} t={t} />
       </div>
 
       {/* SAFETY */}
