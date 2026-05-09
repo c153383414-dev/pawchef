@@ -38,38 +38,43 @@ export default function AuthModal({ open, tab, onClose, onSuccess, t }: Props) {
         email, password,
         options: { data: { display_name: name } }
       })
-      if (error) { setMsg({ type: 'error', text: error.message }); setLoading(false); return }
+      setLoading(false)
+      if (error) return setMsg({ type: 'error', text: error.message })
       setMsg({ type: 'success', text: t('auth.success.signupOk', { email }) })
-      setLoading(false)
     } else {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) { setMsg({ type: 'error', text: t('auth.errors.loginFailed') }); setLoading(false); return }
-      if (data.user) {
-        const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user.id).single()
-        if (profile) {
-          onSuccess(profile as Profile)
-        } else {
-          onSuccess({
-            id: data.user.id,
-            email: data.user.email || '',
-            display_name: data.user.user_metadata?.display_name || data.user.email?.split('@')[0] || '',
-            is_pro: false,
-            pro_expires_at: null,
-            points: 0,
-            free_points: 20,
-            paid_points: 0,
-            gift_ai_points: 0,
-            monthly_ai_count: 0,
-            count_reset_at: null,
-            last_checkin_date: null,
-            created_at: new Date().toISOString()
-          })
-        }
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+        setLoading(false)
+        if (error) return setMsg({ type: 'error', text: t('auth.errors.loginFailed') })
+        if (!data?.user) return setMsg({ type: 'error', text: t('auth.errors.loginFailed') })
+        
+        // 直接关闭弹窗，让 onAuthStateChange 处理 profile 读取
+        onSuccess({
+          id: data.user.id,
+          email: data.user.email || '',
+          display_name: data.user.user_metadata?.display_name || data.user.email?.split('@')[0] || '',
+          is_pro: false,
+          pro_expires_at: null,
+          points: 0,
+          free_points: 20,
+          paid_points: 0,
+          gift_ai_points: 0,
+          monthly_ai_count: 0,
+          count_reset_at: null,
+          last_checkin_date: null,
+          created_at: new Date().toISOString()
+        })
+      } catch (e) {
+        setLoading(false)
+        setMsg({ type: 'error', text: 'Network error, please retry' })
       }
-      setLoading(false)
     }
   }
 
+
+
+
+  
   const handleReset = async () => {
     if (!resetEmail.includes('@')) return setMsg({ type: 'error', text: t('auth.errors.validEmail') })
     setLoading(true)
