@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { safetyDB } from '@/lib/safety-db'
+import { SAFETY_DB as safetyDB } from '@/lib/safety-db'
 
 interface Props {
   t: (key: string, params?: Record<string, string | number>) => string
