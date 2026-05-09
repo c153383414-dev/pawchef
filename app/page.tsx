@@ -19,18 +19,28 @@ export default function HomePage() {
 
 useEffect(() => {
   const supabaseClient = createClient()
-
-  // 先从 session 读取（比 getUser 更快）
-  supabaseClient.auth.getSession().then(async ({ data: { session } }) => {
-    if (session?.user) {
+  supabaseClient.auth.getUser().then(async ({ data: { user: u } }: any) => {
+    if (u) {
       const { data } = await supabaseClient
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single()
+        .from('profiles').select('*')
+        .eq('id', u.id).single()
       if (data) setUser(data)
     }
   })
+  const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
+    async (event: string, session: any) => {
+      if (session?.user) {
+        const { data } = await supabaseClient
+          .from('profiles').select('*')
+          .eq('id', session.user.id).single()
+        if (data) setUser(data)
+      } else {
+        setUser(null)
+      }
+    }
+  )
+  return () => subscription.unsubscribe()
+}, [])
 
   const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
     async (event: string, session: any) => {
