@@ -51,15 +51,15 @@ export default function PricingSection({ onSignup, t }: Props) {
           <div style={perStyle}>{t('pricing.freePermanent')}</div>
           <div style={divStyle} />
           <div style={secLabel}>{t('pricing.staticContent')}</div>
-          <Feature text="100+ preset recipes" />
-          <Feature text="Food safety checker (unlimited)" />
-          <Feature text="Dangerous ingredient alerts" />
+          <Feature text={t('pricing.feat.presetRecipes')} />
+          <Feature text={t('pricing.feat.safetyChecker')} />
+          <Feature text={t('pricing.feat.dangerAlerts')} />
           <div style={secLabel}>{t('pricing.freeCreditsSection')}</div>
-          <Feature text="Earn 💙 free credits" color="#185FA5" />
-          <Feature text="Unlock extra recipe slots" color="#185FA5" />
-          <Feature text="Export diet log PDF" color="#185FA5" />
+          <Feature text={t('pricing.feat.earnFree')} color="#185FA5" />
+          <Feature text={t('pricing.feat.unlockSlots')} color="#185FA5" />
+          <Feature text={t('pricing.feat.exportLog')} color="#185FA5" />
           <div style={secLabel}>{t('pricing.aiSection')}</div>
-          <Feature text="AI generation needs 🟠 AI credits" color="#854F0B" />
+          <Feature text={t('pricing.feat.aiGenNeeds')} color="#854F0B" />
           <button onClick={onSignup} style={{ ...btnStyle, background: 'transparent', color: '#1C1A16', border: '1px solid rgba(28,26,22,0.15)', marginTop: 24 }}>
             {t('pricing.startFree')}
           </button>
@@ -68,7 +68,7 @@ export default function PricingSection({ onSignup, t }: Props) {
         {/* Pro */}
         <div style={{ ...cardStyle, background: '#1C1A16', color: '#FDFAF5', position: 'relative', border: '1.5px solid #1C1A16' }}>
           <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: '#C8813A', color: '#fff', padding: '4px 14px', borderRadius: 20, fontSize: 12, fontWeight: 500, whiteSpace: 'nowrap' }}>
-            🔥 Most Popular
+            {t('pricing.feat.mostPopular')}
           </div>
           <div style={{ ...tierStyle, color: 'rgba(253,250,245,0.5)' }}>
             {billing === 'monthly' ? t('pricing.proMonthly') : t('pricing.proAnnual')}
@@ -85,15 +85,15 @@ export default function PricingSection({ onSignup, t }: Props) {
           )}
           <div style={{ ...divStyle, background: 'rgba(253,250,245,0.15)' }} />
           <div style={{ ...secLabel, color: 'rgba(253,250,245,0.4)' }}>{t('pricing.aiSection')}</div>
-          <Feature text={`AI recipe generation ${billing === 'monthly' ? '30' : '60'}/mo`} featured />
-          <Feature text={`Ingredient substitution ${billing === 'monthly' ? '20' : '40'}/mo`} featured />
-          <Feature text={`7-day meal plan ${billing === 'monthly' ? '2' : '4'}/mo`} featured />
-          <Feature text="Health-condition nutrition mode" featured />
+          <Feature text={t('pricing.feat.aiGenCount', { n: billing === 'monthly' ? '30' : '60' })} featured />
+          <Feature text={t('pricing.feat.substCount', { n: billing === 'monthly' ? '20' : '40' })} featured />
+          <Feature text={t('pricing.feat.mealPlanCount', { n: billing === 'monthly' ? '2' : '4' })} featured />
+          <Feature text={t('pricing.feat.healthMode')} featured />
           <div style={{ ...secLabel, color: 'rgba(253,250,245,0.4)' }}>{t('pricing.valueSection')}</div>
-          <Feature text="5 pet profiles" featured />
-          <Feature text="Unlimited recipe bookmarks" featured />
-          <Feature text="Unlimited diet log exports" featured />
-          <Feature text={`${billing === 'monthly' ? '50' : '100'} 🟠 AI credits/mo (monthly reset)`} featured />
+          <Feature text={t('pricing.feat.petProfiles')} featured />
+          <Feature text={t('pricing.feat.unlimitedBookmarks')} featured />
+          <Feature text={t('pricing.feat.unlimitedExports')} featured />
+          <Feature text={t('pricing.feat.aiCreditsGift', { n: billing === 'monthly' ? '50' : '100' })} featured />
           <button onClick={onSignup} style={{ ...btnStyle, background: '#FDFAF5', color: '#1C1A16', marginTop: 24 }}>
             {t('pricing.subscribePro')}
           </button>
@@ -134,8 +134,8 @@ export default function PricingSection({ onSignup, t }: Props) {
             </div>
           ))}
           <div style={{ padding: '10px 12px', background: '#E6F1FB', borderRadius: 10, fontSize: 12, color: '#185FA5', marginTop: 8, lineHeight: 1.7 }}>
-            💙 Free credits cannot be used for AI features<br />
-            🟠 AI credits never expire · Auto refund on failure
+            {t('pricing.feat.freeNoAi')}<br />
+            {t('pricing.feat.aiNeverExpire')}
           </div>
           <button onClick={onSignup} style={{ ...btnStyle, background: 'transparent', color: '#1C1A16', border: '1px solid rgba(28,26,22,0.15)', marginTop: 20 }}>
             {t('pricing.loginToBuy')}

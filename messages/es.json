@@ -114,7 +114,27 @@
     "subscribePro": "Suscribirse a Pro",
     "upgradeNote": "¿Superaste la cuota mensual? Usa 🟠 créditos de IA para continuar",
     "comparisonNote": "Paquete de créditos por uso: $0.55~$0.69\nPro mensual por uso: $0.50 (30 usos)\nPro anual por uso: $0.14 (60 usos)\n→ Los usuarios frecuentes ahorran más con suscripción",
-    "disclaimer": "⚠️ Todo el contenido es generado por IA solo como referencia, no sustituye el consejo veterinario profesional\nTodos los precios incluidos · Visa / Mastercard · Pago seguro con Stripe"
+    "disclaimer": "⚠️ Todo el contenido es generado por IA solo como referencia, no sustituye el consejo veterinario profesional\nTodos los precios incluidos · Visa / Mastercard · Pago seguro con Stripe",
+    "feat": {
+      "mostPopular": "🔥 Más Popular",
+      "presetRecipes": "100+ recetas preestablecidas",
+      "safetyChecker": "Verificador de seguridad alimentaria (ilimitado)",
+      "dangerAlerts": "Alertas de ingredientes peligrosos",
+      "earnFree": "Ganar 💙 créditos gratis",
+      "unlockSlots": "Desbloquear espacios adicionales",
+      "exportLog": "Exportar diario de dieta PDF",
+      "aiGenNeeds": "Generación IA requiere 🟠 créditos IA",
+      "aiGenCount": "Generación de recetas IA {n}/mes",
+      "substCount": "Sustitución de ingredientes {n}/mes",
+      "mealPlanCount": "Plan de 7 días {n}/mes",
+      "healthMode": "Modo de nutrición por condición de salud",
+      "petProfiles": "5 perfiles de mascotas",
+      "unlimitedBookmarks": "Favoritos ilimitados",
+      "unlimitedExports": "Exportaciones ilimitadas del diario",
+      "aiCreditsGift": "{n} 🟠 créditos IA/mes (se reinician mensualmente)",
+      "freeNoAi": "💙 Los créditos gratis no se pueden usar en funciones IA",
+      "aiNeverExpire": "🟠 Los créditos IA no expiran · Reembolso automático en caso de error"
+    }
   },
   "points": {
     "sectionLabel": "Sistema de Créditos",

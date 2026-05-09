@@ -114,7 +114,27 @@
     "subscribePro": "Subscribe to Pro",
     "upgradeNote": "Exceeding monthly quota? Use 🟠 AI credits to continue",
     "comparisonNote": "Credits pack per use: $0.55~$0.69\nPro monthly per use: $0.50 (30 uses)\nPro annual per use: $0.14 (60 uses)\n→ Heavy users save more with subscription",
-    "disclaimer": "⚠️ All content is AI-generated for reference only, not a substitute for professional veterinary advice\nAll prices inclusive · Visa / Mastercard · Secure Stripe payment"
+    "disclaimer": "⚠️ All content is AI-generated for reference only, not a substitute for professional veterinary advice\nAll prices inclusive · Visa / Mastercard · Secure Stripe payment",
+    "feat": {
+      "mostPopular": "🔥 Most Popular",
+      "presetRecipes": "100+ preset recipes",
+      "safetyChecker": "Food safety checker (unlimited)",
+      "dangerAlerts": "Dangerous ingredient alerts",
+      "earnFree": "Earn 💙 free credits",
+      "unlockSlots": "Unlock extra recipe slots",
+      "exportLog": "Export diet log PDF",
+      "aiGenNeeds": "AI generation needs 🟠 AI credits",
+      "aiGenCount": "AI recipe generation {n}/mo",
+      "substCount": "Ingredient substitution {n}/mo",
+      "mealPlanCount": "7-day meal plan {n}/mo",
+      "healthMode": "Health-condition nutrition mode",
+      "petProfiles": "5 pet profiles",
+      "unlimitedBookmarks": "Unlimited recipe bookmarks",
+      "unlimitedExports": "Unlimited diet log exports",
+      "aiCreditsGift": "{n} 🟠 AI credits/mo (monthly reset)",
+      "freeNoAi": "💙 Free credits cannot be used for AI features",
+      "aiNeverExpire": "🟠 AI credits never expire · Auto refund on failure"
+    }
   },
   "points": {
     "sectionLabel": "Credits System",

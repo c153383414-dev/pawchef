@@ -114,7 +114,27 @@
     "subscribePro": "S'abonner à Pro",
     "upgradeNote": "Quota mensuel dépassé ? Utilisez les 🟠 crédits IA pour continuer",
     "comparisonNote": "Pack de crédits par utilisation : $0.55~$0.69\nPro mensuel par utilisation : $0.50 (30 utilisations)\nPro annuel par utilisation : $0.14 (60 utilisations)\n→ Les gros utilisateurs économisent plus avec l'abonnement",
-    "disclaimer": "⚠️ Tout le contenu est généré par IA à titre de référence uniquement, et ne remplace pas les conseils vétérinaires professionnels\nTous les prix sont inclusifs · Visa / Mastercard · Paiement sécurisé par Stripe"
+    "disclaimer": "⚠️ Tout le contenu est généré par IA à titre de référence uniquement, et ne remplace pas les conseils vétérinaires professionnels\nTous les prix sont inclusifs · Visa / Mastercard · Paiement sécurisé par Stripe",
+    "feat": {
+      "mostPopular": "🔥 Le Plus Populaire",
+      "presetRecipes": "100+ recettes prédéfinies",
+      "safetyChecker": "Vérificateur de sécurité alimentaire (illimité)",
+      "dangerAlerts": "Alertes ingrédients dangereux",
+      "earnFree": "Gagner 💙 crédits gratuits",
+      "unlockSlots": "Débloquer des emplacements supplémentaires",
+      "exportLog": "Exporter le journal alimentaire PDF",
+      "aiGenNeeds": "La génération IA nécessite 🟠 crédits IA",
+      "aiGenCount": "Génération de recettes IA {n}/mois",
+      "substCount": "Substitution d'ingrédients {n}/mois",
+      "mealPlanCount": "Plan de 7 jours {n}/mois",
+      "healthMode": "Mode nutrition selon condition de santé",
+      "petProfiles": "5 profils d'animaux",
+      "unlimitedBookmarks": "Favoris illimités",
+      "unlimitedExports": "Exportations illimitées du journal",
+      "aiCreditsGift": "{n} 🟠 crédits IA/mois (remis à zéro mensuellement)",
+      "freeNoAi": "💙 Les crédits gratuits ne peuvent pas être utilisés pour les fonctions IA",
+      "aiNeverExpire": "🟠 Les crédits IA n'expirent jamais · Remboursement automatique en cas d'échec"
+    }
   },
   "points": {
     "sectionLabel": "Système de Crédits",

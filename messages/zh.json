@@ -114,7 +114,27 @@
     "subscribePro": "订阅 Pro",
     "upgradeNote": "超出月度配额？使用 🟠 AI 积分继续",
     "comparisonNote": "积分包每次：$0.55~$0.69\nPro 月付每次：$0.50（30次）\nPro 年付每次：$0.14（60次）\n→ 高频用户订阅更划算",
-    "disclaimer": "⚠️ 所有内容均由 AI 生成，仅供参考，不替代专业兽医建议\n价格含税 · 支持 Visa / Mastercard · Stripe 安全支付"
+    "disclaimer": "⚠️ 所有内容均由 AI 生成，仅供参考，不替代专业兽医建议\n价格含税 · 支持 Visa / Mastercard · Stripe 安全支付",
+    "feat": {
+      "mostPopular": "🔥 最受欢迎",
+      "presetRecipes": "100+ 预置食谱",
+      "safetyChecker": "食材安全查询（无限次）",
+      "dangerAlerts": "危险食材实时预警",
+      "earnFree": "获取 💙 免费积分",
+      "unlockSlots": "解锁额外食谱槽位",
+      "exportLog": "导出饮食日志 PDF",
+      "aiGenNeeds": "AI 生成需要 🟠 AI 积分",
+      "aiGenCount": "AI 食谱生成 {n} 次/月",
+      "substCount": "食材替换 {n} 次/月",
+      "mealPlanCount": "7 天膳食计划 {n} 次/月",
+      "healthMode": "疾病营养调节模式",
+      "petProfiles": "5 个宠物档案",
+      "unlimitedBookmarks": "无限食谱收藏",
+      "unlimitedExports": "无限饮食日志导出",
+      "aiCreditsGift": "每月赠送 {n} 🟠 AI 积分（月底清零）",
+      "freeNoAi": "💙 免费积分不可用于 AI 功能",
+      "aiNeverExpire": "🟠 AI 积分永不过期 · 失败自动退回"
+    }
   },
   "points": {
     "sectionLabel": "积分系统",

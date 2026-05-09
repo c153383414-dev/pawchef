@@ -114,7 +114,27 @@
     "subscribePro": "Proに登録",
     "upgradeNote": "月間クォータを超過しましたか？🟠 AIクレジットを使って続けましょう",
     "comparisonNote": "クレジットパック1回あたり: $0.55~$0.69\nPro月払い1回あたり: $0.50（30回）\nPro年払い1回あたり: $0.14（60回）\n→ ヘビーユーザーはサブスクの方がお得",
-    "disclaimer": "⚠️ すべてのコンテンツはAI生成であり参考情報のみです。専門的な獣医師のアドバイスに代わるものではありません\n全て税込 · Visa / Mastercard · Stripeによる安全な決済"
+    "disclaimer": "⚠️ すべてのコンテンツはAI生成であり参考情報のみです。専門的な獣医師のアドバイスに代わるものではありません\n全て税込 · Visa / Mastercard · Stripeによる安全な決済",
+    "feat": {
+      "mostPopular": "🔥 最も人気",
+      "presetRecipes": "100以上のプリセットレシピ",
+      "safetyChecker": "食材安全チェッカー（無制限）",
+      "dangerAlerts": "危険食材アラート",
+      "earnFree": "💙 無料クレジットを獲得",
+      "unlockSlots": "追加レシピスロットを解放",
+      "exportLog": "食事日記PDFエクスポート",
+      "aiGenNeeds": "AI生成には 🟠 AIクレジットが必要",
+      "aiGenCount": "AIレシピ生成 {n}回/月",
+      "substCount": "食材置換 {n}回/月",
+      "mealPlanCount": "7日間食事プラン {n}回/月",
+      "healthMode": "疾患別栄養調整モード",
+      "petProfiles": "5つのペットプロフィール",
+      "unlimitedBookmarks": "無制限レシピブックマーク",
+      "unlimitedExports": "無制限食事日記エクスポート",
+      "aiCreditsGift": "毎月 {n} 🟠 AIクレジット贈呈（月末リセット）",
+      "freeNoAi": "💙 無料クレジットはAI機能に使用できません",
+      "aiNeverExpire": "🟠 AIクレジットは無期限 · 失敗時は自動返還"
+    }
   },
   "points": {
     "sectionLabel": "クレジットシステム",
