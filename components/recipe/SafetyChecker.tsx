@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { SAFETY_DB as safetyDB } from '@/lib/safety-db'
+import { searchIngredient } from '@/lib/safety-db'
 
 interface Props {
   t: (key: string, params?: Record<string, string | number>) => string
@@ -10,18 +10,11 @@ export default function SafetyChecker({ t }: Props) {
   const [query, setQuery] = useState('')
   const [result, setResult] = useState<any>(null)
 
-  const check = () => {
-    if (!query.trim()) return
-    const key = query.trim().toLowerCase()
-    const entries = Object.values(safetyDB)
-    const found = entries.find((item: any) =>
-      item.name.toLowerCase().includes(key)
-    )
-    if (found) {
-      setResult(found)
-    } else {
-      setResult({ name: query, level: 'unknown' })
-    }
+  const check = (overrideQuery?: string) => {
+    const q = (overrideQuery ?? query).trim()
+    if (!q) return
+    const found = searchIngredient(q)
+    setResult(found ?? { name: q, level: 'unknown' })
   }
 
   const levelConfig = {
@@ -59,11 +52,11 @@ export default function SafetyChecker({ t }: Props) {
         <input
           value={query}
           onChange={e => setQuery(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && check()}
+          onKeyDown={e => e.key === 'Enter' && check(query)}
           placeholder={t('safety.placeholder')}
           style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: '1px solid rgba(28,26,22,0.15)', background: '#FDFAF5', fontFamily: 'inherit', fontSize: 15, outline: 'none' }}
         />
-        <button onClick={check} style={{ padding: '12px 24px', borderRadius: 10, background: '#1C1A16', color: '#FDFAF5', border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 500, fontFamily: 'inherit' }}>
+        <button onClick={() => check(query)} style={{ padding: '12px 24px', borderRadius: 10, background: '#1C1A16', color: '#FDFAF5', border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 500, fontFamily: 'inherit' }}>
           {t('safety.checkBtn')}
         </button>
       </div>
@@ -116,7 +109,7 @@ export default function SafetyChecker({ t }: Props) {
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
           {['Chicken', 'Salmon', 'Broccoli', 'Onion', 'Grapes', 'Blueberry', 'Xylitol', 'Pumpkin', 'Egg', 'Chocolate'].map(item => (
-            <button key={item} onClick={() => { setQuery(item); setTimeout(check, 100) }} style={{
+            <button key={item} onClick={() => { setQuery(item); check(item) }} style={{
               padding: '6px 14px', borderRadius: 20, fontSize: 13,
               border: '1px solid rgba(28,26,22,0.12)', background: '#FDFAF5',
               cursor: 'pointer', fontFamily: 'inherit', color: 'rgba(28,26,22,0.7)',
