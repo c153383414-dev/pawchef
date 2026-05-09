@@ -1,3 +1,5 @@
+import { transliterate } from 'transliteration'
+
 export type SafetyLevel = 'safe' | 'caution' | 'danger'
 
 interface LocaleText {
@@ -969,20 +971,56 @@ export const SAFETY_DB: Record<string, IngredientSafety> = {
 
 /* ─── Search ─────────────────────────────────────────────────────────────── */
 
-export function searchIngredient(query: string): IngredientSafety | null {
-  const q = query.trim().toLowerCase()
-  if (!q) return null
+/**
+ * Normalize to a stable ASCII-ish form for accent/ligature/script-insensitive matching.
+ *   bœuf → boeuf   jalapeño → jalapeno   café → cafe
+ *   ぶどう → budou   포도 → podo   葡萄 → pu tao
+ */
+function normalizeForSearch(s: string): string {
+  return transliterate(s)        // CJK / special chars → Latin approximation
+    .normalize('NFD')            // decompose accented chars
+    .replace(/[̀-ͯ]/g, '') // strip combining diacritics
+    .toLowerCase()
+    .trim()
+}
 
+/** Pre-built normalized index: normalizedForm → entry (built once at module load) */
+const _normIdx = new Map<string, IngredientSafety>()
+for (const entry of Object.values(SAFETY_DB)) {
+  _normIdx.set(normalizeForSearch(entry.name), entry)
+  for (const alias of entry.aliases) {
+    _normIdx.set(normalizeForSearch(alias), entry)
+  }
+}
+
+export function searchIngredient(query: string): IngredientSafety | null {
+  if (!query.trim()) return null
+  const q  = query.trim().toLowerCase()
+  const nq = normalizeForSearch(q)
+
+  // 1. Chinese DB key exact match (fast path)
   if (SAFETY_DB[q]) return SAFETY_DB[q]
 
+  // 2. Exact name / alias match (original)
   for (const entry of Object.values(SAFETY_DB)) {
     if (entry.name.toLowerCase() === q) return entry
     if (entry.aliases.some(a => a.toLowerCase() === q)) return entry
   }
+
+  // 3. Normalized exact match — handles bœuf, jalapeño, ぶどう, café, etc.
+  if (_normIdx.has(nq)) return _normIdx.get(nq)!
+
+  // 4. Partial match (original)
   for (const entry of Object.values(SAFETY_DB)) {
     if (entry.name.toLowerCase().includes(q) || q.includes(entry.name.toLowerCase())) return entry
     if (entry.aliases.some(a => a.toLowerCase().includes(q) || q.includes(a.toLowerCase()))) return entry
   }
+
+  // 5. Partial normalized match
+  for (const [norm, entry] of Array.from(_normIdx)) {
+    if (norm.includes(nq) || nq.includes(norm)) return entry
+  }
+
   return null
 }
 
