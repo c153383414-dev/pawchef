@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import AuthModal from '@/components/auth/AuthModal'
 import RecipeDemo from '@/components/recipe/RecipeDemo'
@@ -15,53 +15,29 @@ export default function HomePage() {
   const [authOpen, setAuthOpen] = useState(false)
   const [authTab, setAuthTab] = useState<'login' | 'signup'>('login')
   const { locale, t, loading } = useLocale()
-  const supabase = createClient()
+  const supabaseRef = useRef(createClient())
 
-useEffect(() => {
-  const supabaseClient = createClient()
-  
-  supabaseClient.auth.getUser().then(async ({ data }: any) => {
-    const u = data?.user
-    if (u) {
-      const { data: profile } = await supabaseClient
-        .from('profiles').select('*').eq('id', u.id).single()
-      if (profile) setUser(profile)
-    }
-  })
+  useEffect(() => {
+    const sb = supabaseRef.current
 
-  const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
-    async (event: string, session: any) => {
+    sb.auth.getUser().then(async ({ data }: any) => {
+      if (data?.user) {
+        const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single()
+        if (profile) setUser(profile)
+      }
+    })
+
+    const { data: authData } = sb.auth.onAuthStateChange(async (event: string, session: any) => {
       if (session?.user) {
-        const { data: profile } = await supabaseClient
-          .from('profiles').select('*').eq('id', session.user.id).single()
+        const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single()
         if (profile) setUser(profile)
       } else {
         setUser(null)
       }
-    }
-  )
+    })
 
-  return () => subscription.unsubscribe()
-}, [])
-
-  const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
-    async (event: string, session: any) => {
-      if (session?.user) {
-        const { data } = await supabaseClient
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-        if (data) setUser(data)
-      } else {
-        setUser(null)
-      }
-    }
-  )
-  return () => subscription.unsubscribe()
-}, [])
-
-  
+    return () => authData.subscription.unsubscribe()
+  }, [])
 
   const openAuth = (tab: 'login' | 'signup') => {
     setAuthTab(tab)
@@ -69,7 +45,7 @@ useEffect(() => {
   }
 
   const logout = async () => {
-    await supabase.auth.signOut()
+    await supabaseRef.current.auth.signOut()
     setUser(null)
   }
 
@@ -106,7 +82,6 @@ useEffect(() => {
           <button onClick={() => scrollTo('safety')} style={navLinkStyle}>{t('nav.safety')}</button>
           <button onClick={() => scrollTo('pricing')} style={navLinkStyle}>{t('nav.pricing')}</button>
 
-          {/* Language Switcher */}
           <LanguageSwitcher currentLocale={locale} />
 
           {user ? (
@@ -156,7 +131,6 @@ useEffect(() => {
 
       {/* HERO */}
       <section style={{
-        paddingTop: 140, paddingBottom: 80,
         padding: '140px max(24px,5vw) 80px',
         textAlign: 'center', position: 'relative', overflow: 'hidden'
       }}>
@@ -173,9 +147,7 @@ useEffect(() => {
             {t('hero.subtitle')}
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => user ? scrollTo('demo') : openAuth('signup')}
-              style={{ padding: '14px 32px', borderRadius: 10, background: '#1C1A16', color: '#FDFAF5', fontSize: 16, fontWeight: 500, border: 'none', cursor: 'pointer' }}>
+            <button onClick={() => user ? scrollTo('demo') : openAuth('signup')} style={{ padding: '14px 32px', borderRadius: 10, background: '#1C1A16', color: '#FDFAF5', fontSize: 16, fontWeight: 500, border: 'none', cursor: 'pointer' }}>
               {t('hero.ctaMain')}
             </button>
             <button onClick={() => scrollTo('demo')} style={{ padding: '14px 32px', borderRadius: 10, background: '#FDFAF5', color: '#1C1A16', fontSize: 16, fontWeight: 500, border: '1px solid rgba(28,26,22,0.12)', cursor: 'pointer' }}>
@@ -183,12 +155,7 @@ useEffect(() => {
             </button>
           </div>
           <div style={{ display: 'flex', gap: 40, justifyContent: 'center', marginTop: 60, flexWrap: 'wrap' }}>
-            {[
-              ['60+', t('hero.stat1Label')],
-              ['100+', t('hero.stat2Label')],
-              ['100%', t('hero.stat3Label')],
-              ['$0', t('hero.stat4Label')]
-            ].map(([n, l]) => (
+            {[['60+', t('hero.stat1Label')], ['100+', t('hero.stat2Label')], ['100%', t('hero.stat3Label')], ['$0', t('hero.stat4Label')]].map(([n, l]) => (
               <div key={l} style={{ textAlign: 'center' }}>
                 <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 28, fontWeight: 700 }}>{n}</div>
                 <div style={{ fontSize: 12, color: 'rgba(28,26,22,0.6)', marginTop: 2 }}>{l}</div>
@@ -201,11 +168,11 @@ useEffect(() => {
       {/* MARQUEE */}
       <div style={{ background: '#1C1A16', color: '#FDFAF5', padding: '14px 0', overflow: 'hidden' }}>
         <div style={{ display: 'flex', gap: 48, animation: 'marquee 20s linear infinite', whiteSpace: 'nowrap' }}>
-          {['AAFCO', 'ASPCA', 'FEDIAF', t('hero.stat2Label'), 'AI', 'GDPR',
-            'AAFCO', 'ASPCA', 'FEDIAF', t('hero.stat2Label'), 'AI', 'GDPR'].map((t2, i) => (
+          {['AAFCO', 'ASPCA', 'FEDIAF', 'AI Recipes', 'Kidney Disease', 'Pancreatitis', 'GDPR', 'Multi-language',
+            'AAFCO', 'ASPCA', 'FEDIAF', 'AI Recipes', 'Kidney Disease', 'Pancreatitis', 'GDPR', 'Multi-language'].map((item, i) => (
             <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, opacity: 0.85 }}>
               <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#C8813A', display: 'inline-block' }} />
-              {t2}
+              {item}
             </span>
           ))}
         </div>
@@ -214,12 +181,8 @@ useEffect(() => {
       {/* FEATURES */}
       <section id="features" style={{ padding: '80px max(24px,5vw)' }}>
         <div style={{ textAlign: 'center', marginBottom: 56 }}>
-          <div style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A9E7E', marginBottom: 12 }}>
-            {t('features.sectionLabel')}
-          </div>
-          <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(28px,4vw,42px)', fontWeight: 700, letterSpacing: '-0.02em' }}>
-            {t('features.sectionTitle')}
-          </h2>
+          <div style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A9E7E', marginBottom: 12 }}>{t('features.sectionLabel')}</div>
+          <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(28px,4vw,42px)', fontWeight: 700, letterSpacing: '-0.02em' }}>{t('features.sectionTitle')}</h2>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 16 }}>
           {[
@@ -256,12 +219,7 @@ useEffect(() => {
 
       {/* POINTS */}
       <div id="points" style={{ background: '#F7F3EC', borderRadius: 24, margin: '0 max(24px,5vw) 80px' }}>
-        <PointsSection
-          user={user}
-          onAuthRequired={() => openAuth('signup')}
-          onPointsUpdated={handlePointsUpdated}
-          t={t}
-        />
+        <PointsSection user={user} onAuthRequired={() => openAuth('signup')} onPointsUpdated={handlePointsUpdated} t={t} />
       </div>
 
       {/* FOOTER */}
