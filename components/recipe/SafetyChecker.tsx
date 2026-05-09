@@ -13,9 +13,9 @@ export default function SafetyChecker({ t }: Props) {
   const check = () => {
     if (!query.trim()) return
     const key = query.trim().toLowerCase()
-    const found = safetyDB.find(item =>
-      item.name.toLowerCase().includes(key) ||
-      item.aliases?.some((a: string) => a.toLowerCase().includes(key))
+    const entries = Object.values(safetyDB)
+    const found = entries.find((item: any) =>
+      item.name.toLowerCase().includes(key)
     )
     if (found) {
       setResult(found)
