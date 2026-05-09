@@ -45,7 +45,7 @@ export default function HomePage() {
         // without waiting for any network call.
         setUser(prev => prev?.id === session.user.id ? prev : profileFromAuth(session.user, null))
         // Then update with DB profile data in the background.
-        sb.from('profiles').select('*').eq('id', session.user.id).single().then(({ data: profile }) => {
+        sb.from('profiles').select('*').eq('id', session.user.id).single().then(({ data: profile }: { data: any }) => {
           if (profile) setUser(profileFromAuth(session.user, profile))
         })
       } else if (event === 'SIGNED_OUT' && explicitSignOut.current) {
