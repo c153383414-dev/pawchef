@@ -15,7 +15,7 @@ export default function HomePage() {
   const supabase = createClient()
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data: { user: u } }) => {
+    supabase.auth.getUser().then(async ({ data: { user: u } }: { data: { user: any } }) => {
       if (u) {
         const { data } = await supabase.from('profiles').select('*').eq('id', u.id).single()
         if (data) setUser(data)
