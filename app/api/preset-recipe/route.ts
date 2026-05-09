@@ -52,12 +52,22 @@ ${JSON.stringify(recipe)}`
   }
 }
 
+// Module-level translation cache: key = "species:weight_range:age_range:locale"
+// Translations are computed at most once per combination per server instance
+const translationCache = new Map<string, any>()
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const species = searchParams.get('species') || 'dog'
   const weight_range = searchParams.get('weight_range') || 'medium'
   const age_range = searchParams.get('age_range') || 'adult'
   const locale = searchParams.get('locale') || 'en'
+
+  // Return cached translation immediately — no DB or AI call needed
+  const cacheKey = `${species}:${weight_range}:${age_range}:${locale}`
+  if (translationCache.has(cacheKey)) {
+    return NextResponse.json(translationCache.get(cacheKey))
+  }
 
   const supabase = await createServerSupabaseClient()
 
@@ -75,8 +85,12 @@ export async function GET(req: NextRequest) {
   const recipe = exact ?? null
 
   if (recipe) {
-    if (locale === 'en' || !LANGUAGE_MAP[locale]) return NextResponse.json(recipe)
-    return NextResponse.json(await translateRecipe(recipe, locale))
+    let result = recipe
+    if (locale !== 'en' && LANGUAGE_MAP[locale]) {
+      result = await translateRecipe(recipe, locale)
+    }
+    translationCache.set(cacheKey, result)
+    return NextResponse.json(result)
   }
 
   // 没有精确匹配，退而求其次只匹配 species
@@ -90,6 +104,10 @@ export async function GET(req: NextRequest) {
 
   if (!fallback) return NextResponse.json({ error: 'No recipe found' }, { status: 404 })
 
-  if (locale === 'en' || !LANGUAGE_MAP[locale]) return NextResponse.json(fallback)
-  return NextResponse.json(await translateRecipe(fallback, locale))
+  let result = fallback
+  if (locale !== 'en' && LANGUAGE_MAP[locale]) {
+    result = await translateRecipe(fallback, locale)
+  }
+  translationCache.set(cacheKey, result)
+  return NextResponse.json(result)
 }
