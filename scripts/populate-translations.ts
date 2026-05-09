@@ -1,16 +1,6 @@
 /**
- * ONE-TIME setup script — run once to pre-bake Chinese (and other locale)
- * translations into the preset_recipes.translations column.
- *
- * After this runs, the API serves translations directly from DB with zero AI cost.
- *
- * Usage:
- *   npx tsx scripts/populate-translations.ts
- *
- * Requirements:
- *   - NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY in .env.local
- *   - OPENROUTER_API_KEY in .env.local  (used ONLY for this one-time run)
- *   - Run the SQL migration first:  supabase/add-translations-column.sql
+ * ONE-TIME setup script — run once to pre-bake translations into preset_recipes.translations
+ * Usage: npx tsx scripts/populate-translations.ts
  */
 
 import * as fs from 'fs'
@@ -18,19 +8,33 @@ import * as path from 'path'
 import { createClient } from '@supabase/supabase-js'
 import OpenAI from 'openai'
 
-// ── Load env from .env.local ────────────────────────────────────────────────
-const envPath = path.resolve(__dirname, '../.env.local')
-const env: Record<string, string> = {}
-fs.readFileSync(envPath, 'utf8').split('\n').forEach(line => {
-  const [k, ...rest] = line.split('=')
-  if (k) env[k.trim()] = rest.join('=').trim()
-})
+// ── Load env: system env vars > .env.local ───────────────────────────────────
+const env: Record<string, string> = { ...(process.env as Record<string, string>) }
+const envCandidates = [
+  path.resolve(__dirname, '../.env.local'),
+  path.resolve(__dirname, '../../../../.env.local'),
+  path.resolve(__dirname, '../../../.env.local'),
+]
+const envPath = envCandidates.find(p => fs.existsSync(p))
+if (envPath) {
+  fs.readFileSync(envPath, 'utf8').split('\n').forEach(line => {
+    const eq = line.indexOf('=')
+    if (eq < 1) return
+    const k = line.slice(0, eq).trim()
+    const v = line.slice(eq + 1).trim()
+    if (!env[k]) env[k] = v
+  })
+}
 
+const OPENROUTER_KEY = env['OPENROUTER_API_KEY'] || ''
 const supabase = createClient(env['NEXT_PUBLIC_SUPABASE_URL'], env['SUPABASE_SECRET_KEY'])
-const openai   = new OpenAI({
+
+// Use openai SDK (undici-based, Windows-compatible)
+// Do NOT set HTTP-Referer — passing undefined as a header value causes 500s
+const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
-  apiKey:  env['OPENROUTER_API_KEY'],
-  defaultHeaders: { 'HTTP-Referer': env['NEXT_PUBLIC_SITE_URL'], 'X-Title': 'PawChef' },
+  apiKey: OPENROUTER_KEY,
+  defaultHeaders: { 'X-Title': 'PawChef' },
 })
 
 const LOCALES: Record<string, string> = {
@@ -41,15 +45,15 @@ const LOCALES: Record<string, string> = {
   ko: 'Korean',
 }
 
-async function translateRecipe(recipe: any, langCode: string, langName: string) {
-  const payload = {
-    title:     recipe.title,
-    content:   recipe.content,
-    nutrition: recipe.nutrition,
-  }
+function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)) }
+
+async function translateRecipe(recipe: any, langName: string): Promise<any> {
+  const payload = { title: recipe.title, content: recipe.content, nutrition: recipe.nutrition }
 
   const resp = await openai.chat.completions.create({
-    model: 'anthropic/claude-haiku-4-5',   // cheapest model — translation only
+    model: 'anthropic/claude-3-haiku-20240307',
+    temperature: 0.1,
+    max_tokens: 1500,
     messages: [{
       role: 'user',
       content: `Translate this pet food recipe JSON to ${langName}. Rules:
@@ -61,54 +65,55 @@ async function translateRecipe(recipe: any, langCode: string, langName: string) 
 
 ${JSON.stringify(payload)}`,
     }],
-    max_tokens: 1500,
-    temperature: 0.1,
   })
 
-  const text = resp.choices[0]?.message?.content || ''
+  const text = resp.choices?.[0]?.message?.content || ''
   const match = text.match(/\{[\s\S]*\}/)
-  if (!match) throw new Error(`No JSON in response for ${langCode}`)
+  if (!match) throw new Error(`No JSON in response: ${text.substring(0, 100)}`)
   return JSON.parse(match[0])
 }
 
 async function main() {
+  console.log('OPENROUTER_KEY prefix:', OPENROUTER_KEY.substring(0, 20) + '...')
+
   const { data: recipes, error } = await supabase
     .from('preset_recipes')
     .select('id, title, content, nutrition, translations')
 
   if (error || !recipes) { console.error('DB error:', error?.message); process.exit(1) }
 
-  const todo = recipes.filter(r => !r.translations || Object.keys(r.translations).length < Object.keys(LOCALES).length)
-  console.log(`Total: ${recipes.length}  |  Need translation: ${todo.length}`)
+  const todo = recipes.filter(r =>
+    !r.translations || Object.keys(r.translations).length < Object.keys(LOCALES).length
+  )
+  console.log(`Total: ${recipes.length}  |  Need translation: ${todo.length}\n`)
 
-  let done = 0
+  let idx = 0
   for (const recipe of todo) {
-    const existing: Record<string, any> = recipe.translations ?? {}
-    const translations: Record<string, any> = { ...existing }
+    const translations: Record<string, any> = { ...(recipe.translations ?? {}) }
 
     for (const [code, name] of Object.entries(LOCALES)) {
-      if (translations[code]) { console.log(`  [${recipe.id}] ${code} already done, skip`); continue }
+      if (translations[code]) { console.log(`  skip ${code} (already done)`); continue }
+      idx++
       try {
-        console.log(`  Translating [${++done}/${todo.length}] "${recipe.title.substring(0, 40)}" → ${code}`)
-        translations[code] = await translateRecipe(recipe, code, name)
-        // Small delay to respect rate limits
-        await new Promise(r => setTimeout(r, 300))
+        console.log(`  [${idx}] "${recipe.title.substring(0, 45)}" → ${code}`)
+        translations[code] = await translateRecipe(recipe, name)
+        await sleep(300)
       } catch (e: any) {
-        console.error(`  ✗ ${code}: ${e.message}`)
+        const detail = e.status
+          ? `HTTP ${e.status}: ${JSON.stringify(e.error ?? e.message)}`
+          : (e.cause ? `${e.message} → ${e.cause}` : e.message)
+        console.error(`  ✗ ${code}: ${detail}`)
+        await sleep(1000)
       }
     }
 
-    const { error: updateErr } = await supabase
-      .from('preset_recipes')
-      .update({ translations })
-      .eq('id', recipe.id)
-
-    if (updateErr) console.error(`  ✗ DB update failed for ${recipe.id}:`, updateErr.message)
-    else console.log(`  ✓ Saved translations for "${recipe.title.substring(0, 40)}"`)
+    const { error: upErr } = await supabase
+      .from('preset_recipes').update({ translations }).eq('id', recipe.id)
+    if (upErr) console.error(`  ✗ DB save failed:`, upErr.message)
+    else console.log(`  ✓ saved\n`)
   }
 
-  console.log('\n✅ Done. All recipes now have pre-baked translations in DB.')
-  console.log('The API will serve them at zero AI cost from now on.')
+  console.log('✅ Done — all translations stored in DB, zero runtime AI cost from now on.')
 }
 
 main().catch(console.error)
