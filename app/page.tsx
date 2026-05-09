@@ -19,26 +19,28 @@ export default function HomePage() {
 
 useEffect(() => {
   const supabaseClient = createClient()
-  supabaseClient.auth.getUser().then(async ({ data: { user: u } }: any) => {
+  
+  supabaseClient.auth.getUser().then(async ({ data }: any) => {
+    const u = data?.user
     if (u) {
-      const { data } = await supabaseClient
-        .from('profiles').select('*')
-        .eq('id', u.id).single()
-      if (data) setUser(data)
+      const { data: profile } = await supabaseClient
+        .from('profiles').select('*').eq('id', u.id).single()
+      if (profile) setUser(profile)
     }
   })
+
   const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
     async (event: string, session: any) => {
       if (session?.user) {
-        const { data } = await supabaseClient
-          .from('profiles').select('*')
-          .eq('id', session.user.id).single()
-        if (data) setUser(data)
+        const { data: profile } = await supabaseClient
+          .from('profiles').select('*').eq('id', session.user.id).single()
+        if (profile) setUser(profile)
       } else {
         setUser(null)
       }
     }
   )
+
   return () => subscription.unsubscribe()
 }, [])
 
