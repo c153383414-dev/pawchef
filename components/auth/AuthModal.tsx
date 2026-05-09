@@ -43,12 +43,17 @@ export default function AuthModal({ open, tab, onClose, onSuccess, t }: Props) {
       setMsg({ type: 'success', text: t('auth.success.signupOk', { email }) })
     } else {
       try {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+        const timeout = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('timeout')), 15000)
+        )
+        const { data, error } = await Promise.race([
+          supabase.auth.signInWithPassword({ email, password }),
+          timeout
+        ])
         setLoading(false)
         if (error) return setMsg({ type: 'error', text: t('auth.errors.loginFailed') })
         if (!data?.user) return setMsg({ type: 'error', text: t('auth.errors.loginFailed') })
-        
-        // 直接关闭弹窗，让 onAuthStateChange 处理 profile 读取
+
         onSuccess({
           id: data.user.id,
           email: data.user.email || '',
@@ -64,9 +69,10 @@ export default function AuthModal({ open, tab, onClose, onSuccess, t }: Props) {
           last_checkin_date: null,
           created_at: new Date().toISOString()
         })
-      } catch (e) {
+      } catch (e: any) {
         setLoading(false)
-        setMsg({ type: 'error', text: 'Network error, please retry' })
+        const isTimeout = e?.message === 'timeout'
+        setMsg({ type: 'error', text: isTimeout ? t('auth.errors.loginFailed') + ' (timeout)' : 'Network error, please retry' })
       }
     }
   }
