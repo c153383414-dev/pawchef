@@ -114,8 +114,16 @@ export default function SafetyChecker({ t, locale }: Props) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                 <span style={{ fontSize: 28 }}>{cfg.icon}</span>
                 <div>
-                  {/* Show user's search term, NOT the Chinese DB name */}
-                  <div style={{ fontSize: 18, fontWeight: 600 }}>{displayName}</div>
+                  {/* Show matched DB name; fall back to user's input for unknown */}
+                  <div style={{ fontSize: 18, fontWeight: 600 }}>
+                    {result.level !== 'unknown' && result.name ? result.name : displayName}
+                  </div>
+                  {/* If user typed something different, show it as a hint */}
+                  {result.level !== 'unknown' && result.name && result.name !== displayName && (
+                    <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.4)', marginBottom: 2 }}>
+                      {t('safety.searchedAs')} "{displayName}"
+                    </div>
+                  )}
                   <div style={{ fontSize: 13, fontWeight: 500, color: cfg.color }}>
                     {result.level === 'unknown'   ? t('safety.unknownTitle')
                      : result.level === 'safe'    ? t('safety.safeTitle')

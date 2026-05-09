@@ -90,6 +90,7 @@
     "cautionTitle": "Use with Caution",
     "dangerTitle": "Do NOT Feed",
     "unknownTitle": "Needs Further Verification",
+    "searchedAs": "Searched as",
     "unknownMsg": "No record for \"{name}\" in database. Please check ASPCA official website or consult a licensed vet before feeding.",
     "kidneyWarning": "🫘 Kidney Disease Note:",
     "pancreatitisWarning": "🔥 Pancreatitis Note:",

@@ -90,6 +90,7 @@
     "cautionTitle": "À utiliser avec précaution",
     "dangerTitle": "NE PAS donner",
     "unknownTitle": "Nécessite une vérification supplémentaire",
+    "searchedAs": "Recherché comme",
     "unknownMsg": "Aucun enregistrement pour \"{name}\" dans la base de données. Consultez le site officiel de l'ASPCA ou un vétérinaire agréé avant de donner.",
     "kidneyWarning": "🫘 Note sur la Maladie Rénale :",
     "pancreatitisWarning": "🔥 Note sur la Pancréatite :",

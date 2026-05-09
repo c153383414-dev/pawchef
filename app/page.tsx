@@ -141,7 +141,7 @@ export default function HomePage() {
                 ...btnStyle, background: 'transparent',
                 border: '1px solid rgba(28,26,22,0.12)', color: '#1C1A16'
               }}>{t('nav.login')}</button>
-              <button onClick={() => openAuth('signup')} style={{
+              <button onClick={() => scrollTo('demo')} style={{
                 ...btnStyle, background: '#1C1A16', color: '#FDFAF5'
               }}>{t('nav.signup')}</button>
             </>
