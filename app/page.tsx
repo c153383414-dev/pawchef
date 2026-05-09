@@ -17,20 +17,36 @@ export default function HomePage() {
   const { locale, t, loading } = useLocale()
   const supabaseRef = useRef(createClient())
 
+  const profileFromAuth = (authUser: any, dbProfile: any): Profile => ({
+    id: authUser.id,
+    email: authUser.email || '',
+    display_name: dbProfile?.display_name || authUser.user_metadata?.display_name || authUser.email?.split('@')[0] || '',
+    is_pro: dbProfile?.is_pro ?? false,
+    pro_expires_at: dbProfile?.pro_expires_at ?? null,
+    points: dbProfile?.points ?? 0,
+    free_points: dbProfile?.free_points ?? 20,
+    paid_points: dbProfile?.paid_points ?? 0,
+    gift_ai_points: dbProfile?.gift_ai_points ?? 0,
+    monthly_ai_count: dbProfile?.monthly_ai_count ?? 0,
+    count_reset_at: dbProfile?.count_reset_at ?? null,
+    last_checkin_date: dbProfile?.last_checkin_date ?? null,
+    created_at: dbProfile?.created_at ?? new Date().toISOString(),
+  })
+
   useEffect(() => {
     const sb = supabaseRef.current
 
     sb.auth.getUser().then(async ({ data }: any) => {
       if (data?.user) {
         const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single()
-        if (profile) setUser(profile)
+        setUser(profileFromAuth(data.user, profile))
       }
     })
 
     const { data: authData } = sb.auth.onAuthStateChange(async (event: string, session: any) => {
       if (session?.user) {
         const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single()
-        if (profile) setUser(profile)
+        setUser(profileFromAuth(session.user, profile))
       } else {
         setUser(null)
       }
