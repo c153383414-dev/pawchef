@@ -17,36 +17,20 @@ export default function HomePage() {
   const { locale, t, loading } = useLocale()
   const supabaseRef = useRef(createClient())
 
-  const buildUserFromSession = (u: any, profile: any): Profile => ({
-    id: u.id,
-    email: u.email || '',
-    display_name: profile?.display_name || u.user_metadata?.display_name || u.email?.split('@')[0] || '',
-    is_pro: profile?.is_pro ?? false,
-    pro_expires_at: profile?.pro_expires_at ?? null,
-    points: profile?.points ?? 0,
-    free_points: profile?.free_points ?? 20,
-    paid_points: profile?.paid_points ?? 0,
-    gift_ai_points: profile?.gift_ai_points ?? 0,
-    monthly_ai_count: profile?.monthly_ai_count ?? 0,
-    count_reset_at: profile?.count_reset_at ?? null,
-    last_checkin_date: profile?.last_checkin_date ?? null,
-    created_at: profile?.created_at ?? new Date().toISOString(),
-  })
-
   useEffect(() => {
     const sb = supabaseRef.current
 
     sb.auth.getUser().then(async ({ data }: any) => {
       if (data?.user) {
         const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single()
-        setUser(buildUserFromSession(data.user, profile))
+        if (profile) setUser(profile)
       }
     })
 
     const { data: authData } = sb.auth.onAuthStateChange(async (event: string, session: any) => {
       if (session?.user) {
         const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single()
-        setUser(buildUserFromSession(session.user, profile))
+        if (profile) setUser(profile)
       } else {
         setUser(null)
       }
