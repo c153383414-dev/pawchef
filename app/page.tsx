@@ -167,7 +167,7 @@ export default function HomePage() {
             {t('hero.subtitle')}
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button onClick={() => user ? scrollTo('demo') : openAuth('signup')} style={{ padding: '14px 32px', borderRadius: 10, background: '#1C1A16', color: '#FDFAF5', fontSize: 16, fontWeight: 500, border: 'none', cursor: 'pointer' }}>
+            <button onClick={() => scrollTo('demo')} style={{ padding: '14px 32px', borderRadius: 10, background: '#1C1A16', color: '#FDFAF5', fontSize: 16, fontWeight: 500, border: 'none', cursor: 'pointer' }}>
               {t('hero.ctaMain')}
             </button>
             <button onClick={() => scrollTo('demo')} style={{ padding: '14px 32px', borderRadius: 10, background: '#FDFAF5', color: '#1C1A16', fontSize: 16, fontWeight: 500, border: '1px solid rgba(28,26,22,0.12)', cursor: 'pointer' }}>
@@ -234,7 +234,7 @@ export default function HomePage() {
 
       {/* SAFETY */}
       <section id="safety" style={{ padding: '80px max(24px,5vw)' }}>
-        <SafetyChecker t={t} />
+        <SafetyChecker t={t} locale={locale} />
       </section>
 
       {/* PRICING */}

@@ -1,12 +1,12 @@
 'use client'
 import { useState } from 'react'
-import { searchIngredient } from '@/lib/safety-db'
 
 interface Props {
   t: (key: string, params?: Record<string, string | number>) => string
+  locale: string
 }
 
-// Each quick item: English search key (matches DB aliases) + translation key for the label
+// Quick items: English search key (matches DB aliases) + translation key for displayed label
 const QUICK_ITEMS = [
   { search: 'Chicken',   labelKey: 'safety.qi.chicken' },
   { search: 'Salmon',    labelKey: 'safety.qi.salmon' },
@@ -20,18 +20,32 @@ const QUICK_ITEMS = [
   { search: 'Chocolate', labelKey: 'safety.qi.chocolate' },
 ]
 
-export default function SafetyChecker({ t }: Props) {
-  const [query, setQuery] = useState('')
-  const [displayName, setDisplayName] = useState('')  // what the user searched (shown in result)
-  const [result, setResult] = useState<any>(null)
+export default function SafetyChecker({ t, locale }: Props) {
+  const [query, setQuery]           = useState('')
+  const [displayName, setDisplayName] = useState('')  // shown in result card
+  const [result, setResult]         = useState<any>(null)
+  const [loading, setLoading]       = useState(false)
 
-  const check = (searchTerm: string, label?: string) => {
+  /** Call the server-side API which handles multilingual aliases + translation */
+  const check = async (searchTerm: string, label?: string) => {
     const q = searchTerm.trim()
     if (!q) return
-    const found = searchIngredient(q)
-    // Show the user-visible label (localized) or fall back to the raw input
+
     setDisplayName(label ?? q)
-    setResult(found ?? { level: 'unknown' })
+    setLoading(true)
+    setResult(null)
+
+    try {
+      const res = await fetch(
+        `/api/safety-check?q=${encodeURIComponent(q)}&locale=${encodeURIComponent(locale)}`
+      )
+      const data = await res.json()
+      setResult(data ?? { level: 'unknown' })
+    } catch {
+      setResult({ level: 'unknown' })
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleManualCheck = () => check(query)
@@ -43,7 +57,9 @@ export default function SafetyChecker({ t }: Props) {
     unknown: { color: '#185FA5', bg: '#E6F1FB', icon: '❓' },
   }
 
-  const cfg = result ? (levelConfig[result.level as keyof typeof levelConfig] ?? levelConfig.unknown) : null
+  const cfg = result
+    ? (levelConfig[result.level as keyof typeof levelConfig] ?? levelConfig.unknown)
+    : null
 
   return (
     <div>
@@ -77,51 +93,60 @@ export default function SafetyChecker({ t }: Props) {
           placeholder={t('safety.placeholder')}
           style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: '1px solid rgba(28,26,22,0.15)', background: '#FDFAF5', fontFamily: 'inherit', fontSize: 15, outline: 'none' }}
         />
-        <button onClick={handleManualCheck} style={{ padding: '12px 24px', borderRadius: 10, background: '#1C1A16', color: '#FDFAF5', border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 500, fontFamily: 'inherit' }}>
-          {t('safety.checkBtn')}
+        <button
+          onClick={handleManualCheck}
+          disabled={loading}
+          style={{ padding: '12px 24px', borderRadius: 10, background: loading ? 'rgba(28,26,22,0.3)' : '#1C1A16', color: '#FDFAF5', border: 'none', cursor: loading ? 'wait' : 'pointer', fontSize: 15, fontWeight: 500, fontFamily: 'inherit' }}>
+          {loading ? '…' : t('safety.checkBtn')}
         </button>
       </div>
 
       {/* Result */}
-      {result && cfg && (
-        <div style={{ maxWidth: 480, margin: '0 auto', padding: 20, borderRadius: 16, background: cfg.bg, border: `1px solid ${cfg.color}30` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <span style={{ fontSize: 28 }}>{cfg.icon}</span>
-            <div>
-              {/* Show what the user searched — NOT the Chinese DB name */}
-              <div style={{ fontSize: 18, fontWeight: 600 }}>{displayName}</div>
-              <div style={{ fontSize: 13, fontWeight: 500, color: cfg.color }}>
-                {result.level === 'unknown'   ? t('safety.unknownTitle')
-                 : result.level === 'safe'    ? t('safety.safeTitle')
-                 : result.level === 'caution' ? t('safety.cautionTitle')
-                 :                              t('safety.dangerTitle')}
-              </div>
+      {(result || loading) && (
+        <div style={{ maxWidth: 480, margin: '0 auto', padding: 20, borderRadius: 16, background: cfg?.bg ?? '#F7F3EC', border: `1px solid ${cfg?.color ?? '#ccc'}30`, minHeight: 80 }}>
+          {loading ? (
+            <div style={{ textAlign: 'center', color: 'rgba(28,26,22,0.4)', paddingTop: 12 }}>
+              <div style={{ fontSize: 22, marginBottom: 6 }}>🔍</div>
+              <div style={{ fontSize: 13 }}>{displayName} …</div>
             </div>
-          </div>
-
-          {result.level === 'unknown' ? (
-            <p style={{ fontSize: 13, color: 'rgba(28,26,22,0.6)', lineHeight: 1.6 }}>
-              {t('safety.unknownMsg', { name: displayName })}
-            </p>
-          ) : (
+          ) : result && cfg && (
             <>
-              {/* DB field is `message`, not `notes` */}
-              {result.message && (
-                <p style={{ fontSize: 13, color: 'rgba(28,26,22,0.7)', lineHeight: 1.6, marginBottom: 8 }}>
-                  {result.message}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                <span style={{ fontSize: 28 }}>{cfg.icon}</span>
+                <div>
+                  {/* Show user's search term, NOT the Chinese DB name */}
+                  <div style={{ fontSize: 18, fontWeight: 600 }}>{displayName}</div>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: cfg.color }}>
+                    {result.level === 'unknown'   ? t('safety.unknownTitle')
+                     : result.level === 'safe'    ? t('safety.safeTitle')
+                     : result.level === 'caution' ? t('safety.cautionTitle')
+                     :                              t('safety.dangerTitle')}
+                  </div>
+                </div>
+              </div>
+
+              {result.level === 'unknown' ? (
+                <p style={{ fontSize: 13, color: 'rgba(28,26,22,0.6)', lineHeight: 1.6 }}>
+                  {t('safety.unknownMsg', { name: displayName })}
                 </p>
-              )}
-              {/* DB field is `kidneyWarning`, not `kidneyNote` */}
-              {result.kidneyWarning && (
-                <p style={{ fontSize: 12, color: '#854F0B', lineHeight: 1.6 }}>
-                  {t('safety.kidneyWarning')} {result.kidneyWarning}
-                </p>
-              )}
-              {/* DB field is `pancreatitisWarning`, not `pancreatitisNote` */}
-              {result.pancreatitisWarning && (
-                <p style={{ fontSize: 12, color: '#A32D2D', lineHeight: 1.6 }}>
-                  {t('safety.pancreatitisWarning')} {result.pancreatitisWarning}
-                </p>
+              ) : (
+                <>
+                  {result.message && (
+                    <p style={{ fontSize: 13, color: 'rgba(28,26,22,0.7)', lineHeight: 1.6, marginBottom: 8 }}>
+                      {result.message}
+                    </p>
+                  )}
+                  {result.kidneyWarning && (
+                    <p style={{ fontSize: 12, color: '#854F0B', lineHeight: 1.6 }}>
+                      {t('safety.kidneyWarning')} {result.kidneyWarning}
+                    </p>
+                  )}
+                  {result.pancreatitisWarning && (
+                    <p style={{ fontSize: 12, color: '#A32D2D', lineHeight: 1.6 }}>
+                      {t('safety.pancreatitisWarning')} {result.pancreatitisWarning}
+                    </p>
+                  )}
+                </>
               )}
             </>
           )}
@@ -140,11 +165,12 @@ export default function SafetyChecker({ t }: Props) {
               <button
                 key={search}
                 onClick={() => { setQuery(label); check(search, label) }}
+                disabled={loading}
                 style={{
                   padding: '6px 14px', borderRadius: 20, fontSize: 13,
                   border: '1px solid rgba(28,26,22,0.12)', background: '#FDFAF5',
-                  cursor: 'pointer', fontFamily: 'inherit', color: 'rgba(28,26,22,0.7)',
-                  transition: 'all 0.2s'
+                  cursor: loading ? 'wait' : 'pointer', fontFamily: 'inherit',
+                  color: 'rgba(28,26,22,0.7)', transition: 'all 0.2s'
                 }}>
                 {label}
               </button>
