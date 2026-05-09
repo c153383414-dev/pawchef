@@ -66,7 +66,15 @@
     "noCreditsMsg": "AIクレジットが不足しています。クレジットパックを購入するか、Proに登録してください。",
     "sickPetDisclaimer": "⚕️ 健康状態参照モード: 以下のレシピは栄養参考情報のみであり、医療アドバイスではありません。必ず獣医師の指導のもとでご利用ください。",
     "freeRecipeNote": "データベースからの無料レシピ · パーソナライズAIレシピにアップグレード",
-    "upgradeHint": "🟠 Proにアップグレードするか、AIクレジットを購入して、ペットの正確なプロフィールに基づくパーソナライズドレシピを生成しましょう"
+    "upgradeHint": "🟠 Proにアップグレードするか、AIクレジットを購入して、ペットの正確なプロフィールに基づくパーソナライズドレシピを生成しましょう",
+    "healthLockedHint": "🔒 健康状態機能にはログインが必要です ·",
+    "healthLockedLogin": "ログイン / 登録",
+    "freePresetAvailable": "📚 無料プリセットレシピが利用可能",
+    "databaseBadge": "📚 データベース",
+    "nutriCalories": "カロリー",
+    "nutriProtein": "タンパク質",
+    "nutriFat": "脂質",
+    "nutriCarbs": "炭水化物"
   },
   "safety": {
     "sectionLabel": "食材安全チェッカー",
@@ -84,7 +92,12 @@
     "unknownTitle": "追加確認が必要",
     "unknownMsg": "データベースに「{name}」の記録がありません。給与前にASPCA公式サイトを確認するか、獣医師にご相談ください。",
     "kidneyWarning": "🫘 腎臓病に関する注意:",
-    "pancreatitisWarning": "🔥 膵炎に関する注意:"
+    "pancreatitisWarning": "🔥 膵炎に関する注意:",
+    "qi": {
+      "chicken": "鶏肉", "salmon": "サーモン", "broccoli": "ブロッコリー",
+      "onion": "玉ねぎ", "grapes": "ぶどう", "blueberry": "ブルーベリー",
+      "xylitol": "キシリトール", "pumpkin": "かぼちゃ", "egg": "卵", "chocolate": "チョコレート"
+    }
   },
   "pricing": {
     "sectionLabel": "透明な料金体系",

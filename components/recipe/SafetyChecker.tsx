@@ -6,23 +6,44 @@ interface Props {
   t: (key: string, params?: Record<string, string | number>) => string
 }
 
+// Each quick item: English search key (matches DB aliases) + translation key for the label
+const QUICK_ITEMS = [
+  { search: 'Chicken',   labelKey: 'safety.qi.chicken' },
+  { search: 'Salmon',    labelKey: 'safety.qi.salmon' },
+  { search: 'Broccoli',  labelKey: 'safety.qi.broccoli' },
+  { search: 'Onion',     labelKey: 'safety.qi.onion' },
+  { search: 'Grapes',    labelKey: 'safety.qi.grapes' },
+  { search: 'Blueberry', labelKey: 'safety.qi.blueberry' },
+  { search: 'Xylitol',   labelKey: 'safety.qi.xylitol' },
+  { search: 'Pumpkin',   labelKey: 'safety.qi.pumpkin' },
+  { search: 'Egg',       labelKey: 'safety.qi.egg' },
+  { search: 'Chocolate', labelKey: 'safety.qi.chocolate' },
+]
+
 export default function SafetyChecker({ t }: Props) {
   const [query, setQuery] = useState('')
+  const [displayName, setDisplayName] = useState('')  // what the user searched (shown in result)
   const [result, setResult] = useState<any>(null)
 
-  const check = (overrideQuery?: string) => {
-    const q = (overrideQuery ?? query).trim()
+  const check = (searchTerm: string, label?: string) => {
+    const q = searchTerm.trim()
     if (!q) return
     const found = searchIngredient(q)
-    setResult(found ?? { name: q, level: 'unknown' })
+    // Show the user-visible label (localized) or fall back to the raw input
+    setDisplayName(label ?? q)
+    setResult(found ?? { level: 'unknown' })
   }
 
+  const handleManualCheck = () => check(query)
+
   const levelConfig = {
-    safe: { color: '#3B6D11', bg: '#EAF3DE', label: t('safety.safe'), icon: '✅' },
-    caution: { color: '#854F0B', bg: '#FBF0E4', label: t('safety.caution'), icon: '⚠️' },
-    danger: { color: '#A32D2D', bg: '#FCEBEB', label: t('safety.danger'), icon: '❌' },
-    unknown: { color: '#185FA5', bg: '#E6F1FB', label: t('safety.unknownTitle'), icon: '❓' },
+    safe:    { color: '#3B6D11', bg: '#EAF3DE', icon: '✅' },
+    caution: { color: '#854F0B', bg: '#FBF0E4', icon: '⚠️' },
+    danger:  { color: '#A32D2D', bg: '#FCEBEB', icon: '❌' },
+    unknown: { color: '#185FA5', bg: '#E6F1FB', icon: '❓' },
   }
+
+  const cfg = result ? (levelConfig[result.level as keyof typeof levelConfig] ?? levelConfig.unknown) : null
 
   return (
     <div>
@@ -42,7 +63,7 @@ export default function SafetyChecker({ t }: Props) {
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginBottom: 28, flexWrap: 'wrap' }}>
         {(['safe', 'caution', 'danger'] as const).map(level => (
           <div key={level} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: levelConfig[level].bg, fontSize: 12, fontWeight: 500, color: levelConfig[level].color }}>
-            {levelConfig[level].icon} {levelConfig[level].label.split('·')[0].trim()}
+            {levelConfig[level].icon} {t(`safety.${level}`).split('·')[0].trim()}
           </div>
         ))}
       </div>
@@ -52,49 +73,54 @@ export default function SafetyChecker({ t }: Props) {
         <input
           value={query}
           onChange={e => setQuery(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && check(query)}
+          onKeyDown={e => e.key === 'Enter' && handleManualCheck()}
           placeholder={t('safety.placeholder')}
           style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: '1px solid rgba(28,26,22,0.15)', background: '#FDFAF5', fontFamily: 'inherit', fontSize: 15, outline: 'none' }}
         />
-        <button onClick={() => check(query)} style={{ padding: '12px 24px', borderRadius: 10, background: '#1C1A16', color: '#FDFAF5', border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 500, fontFamily: 'inherit' }}>
+        <button onClick={handleManualCheck} style={{ padding: '12px 24px', borderRadius: 10, background: '#1C1A16', color: '#FDFAF5', border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 500, fontFamily: 'inherit' }}>
           {t('safety.checkBtn')}
         </button>
       </div>
 
       {/* Result */}
-      {result && (
-        <div style={{ maxWidth: 480, margin: '0 auto', padding: 20, borderRadius: 16, background: levelConfig[result.level as keyof typeof levelConfig]?.bg || '#F7F3EC', border: `1px solid ${levelConfig[result.level as keyof typeof levelConfig]?.color || '#ccc'}30` }}>
+      {result && cfg && (
+        <div style={{ maxWidth: 480, margin: '0 auto', padding: 20, borderRadius: 16, background: cfg.bg, border: `1px solid ${cfg.color}30` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <span style={{ fontSize: 28 }}>{levelConfig[result.level as keyof typeof levelConfig]?.icon || '❓'}</span>
+            <span style={{ fontSize: 28 }}>{cfg.icon}</span>
             <div>
-              <div style={{ fontSize: 18, fontWeight: 600 }}>{result.name}</div>
-              <div style={{ fontSize: 13, fontWeight: 500, color: levelConfig[result.level as keyof typeof levelConfig]?.color }}>
-                {result.level === 'unknown'
-                  ? t('safety.unknownTitle')
-                  : result.level === 'safe'
-                  ? t('safety.safeTitle')
-                  : result.level === 'caution'
-                  ? t('safety.cautionTitle')
-                  : t('safety.dangerTitle')}
+              {/* Show what the user searched — NOT the Chinese DB name */}
+              <div style={{ fontSize: 18, fontWeight: 600 }}>{displayName}</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: cfg.color }}>
+                {result.level === 'unknown'   ? t('safety.unknownTitle')
+                 : result.level === 'safe'    ? t('safety.safeTitle')
+                 : result.level === 'caution' ? t('safety.cautionTitle')
+                 :                              t('safety.dangerTitle')}
               </div>
             </div>
           </div>
 
           {result.level === 'unknown' ? (
             <p style={{ fontSize: 13, color: 'rgba(28,26,22,0.6)', lineHeight: 1.6 }}>
-              {t('safety.unknownMsg', { name: result.name })}
+              {t('safety.unknownMsg', { name: displayName })}
             </p>
           ) : (
             <>
-              {result.notes && <p style={{ fontSize: 13, color: 'rgba(28,26,22,0.7)', lineHeight: 1.6, marginBottom: 8 }}>{result.notes}</p>}
-              {result.kidneyNote && (
-                <p style={{ fontSize: 12, color: '#854F0B', lineHeight: 1.6 }}>
-                  {t('safety.kidneyWarning')} {result.kidneyNote}
+              {/* DB field is `message`, not `notes` */}
+              {result.message && (
+                <p style={{ fontSize: 13, color: 'rgba(28,26,22,0.7)', lineHeight: 1.6, marginBottom: 8 }}>
+                  {result.message}
                 </p>
               )}
-              {result.pancreatitisNote && (
+              {/* DB field is `kidneyWarning`, not `kidneyNote` */}
+              {result.kidneyWarning && (
+                <p style={{ fontSize: 12, color: '#854F0B', lineHeight: 1.6 }}>
+                  {t('safety.kidneyWarning')} {result.kidneyWarning}
+                </p>
+              )}
+              {/* DB field is `pancreatitisWarning`, not `pancreatitisNote` */}
+              {result.pancreatitisWarning && (
                 <p style={{ fontSize: 12, color: '#A32D2D', lineHeight: 1.6 }}>
-                  {t('safety.pancreatitisWarning')} {result.pancreatitisNote}
+                  {t('safety.pancreatitisWarning')} {result.pancreatitisWarning}
                 </p>
               )}
             </>
@@ -102,20 +128,28 @@ export default function SafetyChecker({ t }: Props) {
         </div>
       )}
 
-      {/* Quick check grid */}
+      {/* Quick check grid — labels translated, search always uses English alias */}
       <div style={{ marginTop: 40 }}>
         <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(28,26,22,0.5)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', marginBottom: 16 }}>
           {t('safety.quickCheck')}
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-          {['Chicken', 'Salmon', 'Broccoli', 'Onion', 'Grapes', 'Blueberry', 'Xylitol', 'Pumpkin', 'Egg', 'Chocolate'].map(item => (
-            <button key={item} onClick={() => { setQuery(item); check(item) }} style={{
-              padding: '6px 14px', borderRadius: 20, fontSize: 13,
-              border: '1px solid rgba(28,26,22,0.12)', background: '#FDFAF5',
-              cursor: 'pointer', fontFamily: 'inherit', color: 'rgba(28,26,22,0.7)',
-              transition: 'all 0.2s'
-            }}>{item}</button>
-          ))}
+          {QUICK_ITEMS.map(({ search, labelKey }) => {
+            const label = t(labelKey)
+            return (
+              <button
+                key={search}
+                onClick={() => { setQuery(label); check(search, label) }}
+                style={{
+                  padding: '6px 14px', borderRadius: 20, fontSize: 13,
+                  border: '1px solid rgba(28,26,22,0.12)', background: '#FDFAF5',
+                  cursor: 'pointer', fontFamily: 'inherit', color: 'rgba(28,26,22,0.7)',
+                  transition: 'all 0.2s'
+                }}>
+                {label}
+              </button>
+            )
+          })}
         </div>
       </div>
     </div>

@@ -66,7 +66,15 @@
     "noCreditsMsg": "Crédits IA insuffisants. Veuillez acheter un pack de crédits ou vous abonner à Pro.",
     "sickPetDisclaimer": "⚕️ Mode Référence par Condition de Santé : La recette suivante est une information nutritionnelle de référence uniquement, pas un avis médical. Veuillez l'utiliser sous la guidance d'un vétérinaire agréé.",
     "freeRecipeNote": "Recette gratuite de notre base de données · Passez à Pro pour des recettes IA personnalisées",
-    "upgradeHint": "🟠 Passez à Pro ou achetez des crédits IA pour des recettes personnalisées selon le profil exact de votre animal"
+    "upgradeHint": "🟠 Passez à Pro ou achetez des crédits IA pour des recettes personnalisées selon le profil exact de votre animal",
+    "healthLockedHint": "🔒 Les conditions de santé nécessitent une connexion ·",
+    "healthLockedLogin": "Connexion / Inscription",
+    "freePresetAvailable": "📚 Recette préétablie gratuite disponible",
+    "databaseBadge": "📚 Base de données",
+    "nutriCalories": "Calories",
+    "nutriProtein": "Protéines",
+    "nutriFat": "Lipides",
+    "nutriCarbs": "Glucides"
   },
   "safety": {
     "sectionLabel": "Vérificateur de Sécurité Alimentaire",
@@ -84,7 +92,12 @@
     "unknownTitle": "Nécessite une vérification supplémentaire",
     "unknownMsg": "Aucun enregistrement pour \"{name}\" dans la base de données. Consultez le site officiel de l'ASPCA ou un vétérinaire agréé avant de donner.",
     "kidneyWarning": "🫘 Note sur la Maladie Rénale :",
-    "pancreatitisWarning": "🔥 Note sur la Pancréatite :"
+    "pancreatitisWarning": "🔥 Note sur la Pancréatite :",
+    "qi": {
+      "chicken": "Poulet", "salmon": "Saumon", "broccoli": "Brocoli",
+      "onion": "Oignon", "grapes": "Raisins", "blueberry": "Myrtille",
+      "xylitol": "Xylitol", "pumpkin": "Courge", "egg": "Œuf", "chocolate": "Chocolat"
+    }
   },
   "pricing": {
     "sectionLabel": "Tarification Transparente",

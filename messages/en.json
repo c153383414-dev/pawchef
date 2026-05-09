@@ -66,7 +66,15 @@
     "noCreditsMsg": "AI credits insufficient. Please purchase a credits pack or subscribe to Pro.",
     "sickPetDisclaimer": "⚕️ Health Condition Reference Mode: The following recipe is nutritional reference information only, not medical advice. Please use under the guidance of a licensed veterinarian.",
     "freeRecipeNote": "Free recipe from our database · Upgrade for personalized AI recipes",
-    "upgradeHint": "🟠 Upgrade to Pro or purchase AI credits for personalized recipes based on your pet's exact profile"
+    "upgradeHint": "🟠 Upgrade to Pro or purchase AI credits for personalized recipes based on your pet's exact profile",
+    "healthLockedHint": "🔒 Health conditions require login ·",
+    "healthLockedLogin": "Login / Sign up",
+    "freePresetAvailable": "📚 Free preset recipe available",
+    "databaseBadge": "📚 Database",
+    "nutriCalories": "Calories",
+    "nutriProtein": "Protein",
+    "nutriFat": "Fat",
+    "nutriCarbs": "Carbs"
   },
   "safety": {
     "sectionLabel": "Food Safety Checker",
@@ -84,7 +92,12 @@
     "unknownTitle": "Needs Further Verification",
     "unknownMsg": "No record for \"{name}\" in database. Please check ASPCA official website or consult a licensed vet before feeding.",
     "kidneyWarning": "🫘 Kidney Disease Note:",
-    "pancreatitisWarning": "🔥 Pancreatitis Note:"
+    "pancreatitisWarning": "🔥 Pancreatitis Note:",
+    "qi": {
+      "chicken": "Chicken", "salmon": "Salmon", "broccoli": "Broccoli",
+      "onion": "Onion", "grapes": "Grapes", "blueberry": "Blueberry",
+      "xylitol": "Xylitol", "pumpkin": "Pumpkin", "egg": "Egg", "chocolate": "Chocolate"
+    }
   },
   "pricing": {
     "sectionLabel": "Transparent Pricing",

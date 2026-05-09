@@ -105,7 +105,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
   const fetchPresetRecipe = async () => {
     const weightRange = getWeightRange(parseFloat(weight) || 5, species)
     const ageRange = getAgeRange(age)
-    const res = await fetch(`/api/preset-recipe?species=${species}&weight_range=${weightRange}&age_range=${ageRange}`)
+    const res = await fetch(`/api/preset-recipe?species=${species}&weight_range=${weightRange}&age_range=${ageRange}&locale=${locale}`)
     const data = await res.json()
     if (data.title) { setIsPreset(true); return data }
     return null
@@ -276,7 +276,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
               </div>
               {!user && (
                 <div style={{ fontSize: 11, color: '#C8813A', marginTop: 6 }}>
-                  🔒 Health conditions for paying users · <span style={{ cursor: 'pointer', textDecoration: 'underline' }} onClick={onAuthRequired}>Login / Signup</span>
+                  {t('recipe.healthLockedHint')} <span style={{ cursor: 'pointer', textDecoration: 'underline' }} onClick={onAuthRequired}>{t('recipe.healthLockedLogin')}</span>
                 </div>
               )}
             </div>
@@ -332,7 +332,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               {isPreset && recipe && (
                 <div style={{ fontSize: 11, fontWeight: 500, color: '#185FA5', background: '#E6F1FB', padding: '3px 8px', borderRadius: 5 }}>
-                  📚 Database
+                  {t('recipe.databaseBadge')}
                 </div>
               )}
               <div style={{ fontSize: 12, fontWeight: 500, color: '#7A9E7E', background: '#EBF2EC', padding: '4px 10px', borderRadius: 6 }}>
@@ -455,7 +455,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                 )}
 
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', paddingTop: 14, borderTop: '1px solid rgba(28,26,22,0.08)' }}>
-                  {[['Calories', recipe.nutrition.calories], ['Protein', recipe.nutrition.protein], ['Fat', recipe.nutrition.fat], ['Carbs', recipe.nutrition.carbs]].map(([k, v]) => (
+                  {[[t('recipe.nutriCalories'), recipe.nutrition.calories], [t('recipe.nutriProtein'), recipe.nutrition.protein], [t('recipe.nutriFat'), recipe.nutrition.fat], [t('recipe.nutriCarbs'), recipe.nutrition.carbs]].map(([k, v]) => (
                     <div key={k} style={{ padding: '4px 10px', borderRadius: 6, fontSize: 12, background: '#F7F3EC' }}>
                       <strong style={{ color: '#1C1A16' }}>{k}</strong> <span style={{ color: 'rgba(28,26,22,0.6)' }}>{v}</span>
                     </div>
@@ -467,7 +467,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                 <div style={{ fontSize: 40, marginBottom: 12 }}>🍽️</div>
                 <p style={{ fontSize: 14 }}>{t('recipe.sectionSubtitle')}</p>
                 <p style={{ fontSize: 12, marginTop: 8, color: 'rgba(28,26,22,0.25)' }}>
-                  {isHealthOnly ? '📚 Free preset recipe available' : '🟠 ' + t('recipe.needCredits')}
+                  {isHealthOnly ? t('recipe.freePresetAvailable') : '🟠 ' + t('recipe.needCredits')}
                 </p>
               </div>
             )}

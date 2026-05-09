@@ -66,7 +66,15 @@
     "noCreditsMsg": "AI 크레딧이 부족합니다. 크레딧 팩을 구매하거나 Pro에 구독해 주세요.",
     "sickPetDisclaimer": "⚕️ 건강 상태 참조 모드: 다음 레시피는 영양 참고 정보일 뿐이며 의학적 조언이 아닙니다. 반드시 수의사의 지도하에 사용해 주세요.",
     "freeRecipeNote": "데이터베이스의 무료 레시피 · 개인화 AI 레시피를 원하시면 업그레이드하세요",
-    "upgradeHint": "🟠 Pro로 업그레이드하거나 AI 크레딧을 구매하여 반려동물의 정확한 프로필에 맞는 맞춤 레시피를 받아보세요"
+    "upgradeHint": "🟠 Pro로 업그레이드하거나 AI 크레딧을 구매하여 반려동물의 정확한 프로필에 맞는 맞춤 레시피를 받아보세요",
+    "healthLockedHint": "🔒 건강 상태 기능은 로그인이 필요합니다 ·",
+    "healthLockedLogin": "로그인 / 회원가입",
+    "freePresetAvailable": "📚 무료 프리셋 레시피 이용 가능",
+    "databaseBadge": "📚 데이터베이스",
+    "nutriCalories": "칼로리",
+    "nutriProtein": "단백질",
+    "nutriFat": "지방",
+    "nutriCarbs": "탄수화물"
   },
   "safety": {
     "sectionLabel": "식재료 안전 검사기",
@@ -84,7 +92,12 @@
     "unknownTitle": "추가 확인 필요",
     "unknownMsg": "데이터베이스에 \"{name}\"에 대한 기록이 없습니다. 급여 전 ASPCA 공식 웹사이트를 확인하거나 수의사에게 문의해 주세요.",
     "kidneyWarning": "🫘 신장 질환 주의 사항:",
-    "pancreatitisWarning": "🔥 췌장염 주의 사항:"
+    "pancreatitisWarning": "🔥 췌장염 주의 사항:",
+    "qi": {
+      "chicken": "닭고기", "salmon": "연어", "broccoli": "브로콜리",
+      "onion": "양파", "grapes": "포도", "blueberry": "블루베리",
+      "xylitol": "자일리톨", "pumpkin": "호박", "egg": "달걀", "chocolate": "초콜릿"
+    }
   },
   "pricing": {
     "sectionLabel": "투명한 요금제",
