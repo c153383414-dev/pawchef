@@ -1016,9 +1016,12 @@ export function searchIngredient(query: string): IngredientSafety | null {
     if (entry.aliases.some(a => a.toLowerCase().includes(q) || q.includes(a.toLowerCase()))) return entry
   }
 
-  // 5. Partial normalized match
-  for (const [norm, entry] of Array.from(_normIdx)) {
-    if (norm.includes(nq) || nq.includes(norm)) return entry
+  // 5. Partial normalized match — only when nq is long enough to avoid false positives
+  //    e.g. transliterate('鸭')='ya' (2 chars) must NOT match '洋葱'→'yang cong'
+  if (nq.length >= 4) {
+    for (const [norm, entry] of Array.from(_normIdx)) {
+      if (norm.includes(nq) || nq.includes(norm)) return entry
+    }
   }
 
   return null
