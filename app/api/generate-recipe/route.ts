@@ -210,24 +210,29 @@ Return ONLY valid JSON, no other text:
       if (!jsonMatch) throw new Error('AI response format error')
       recipe = JSON.parse(jsonMatch[0])
 
-    } catch (aiError) {
-      console.error('AI call failed:', aiError)
+    } catch (aiError: any) {
+      // Log detailed error for debugging
+      const errMsg = aiError?.message || String(aiError)
+      const errStatus = aiError?.status || aiError?.response?.status || 'unknown'
+      console.error('[generate-recipe] AI call failed:', {
+        model: selectedModel,
+        status: errStatus,
+        message: errMsg,
+        keyPrefix: process.env.OPENROUTER_API_KEY?.slice(0, 12) + '...',
+      })
 
       // Refund deducted credits on AI failure
       if (deductionSource === 'free' && user) {
-        // Decrement free_ai_used back using raw SQL (safe atomic decrement)
         await supabase.rpc('refund_free_ai', { p_user_id: user.id })
       } else if (deductionSource !== 'guest' && user) {
-        // Refund paid/gift/pro credit
         await supabase.rpc('refund_ai_credit', {
           p_user_id: user.id,
           p_source:  creditSource,
           p_cost:    1,
         })
       }
-      // Guest: nothing to refund (insert hasn't happened yet)
       return NextResponse.json(
-        { error: 'AI generation failed, please retry.' + (deductionSource !== 'guest' ? ' Credits refunded.' : '') },
+        { error: `AI generation failed (${errStatus}): ${errMsg}` },
         { status: 500 }
       )
     }

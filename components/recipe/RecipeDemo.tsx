@@ -188,7 +188,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
           // Shouldn't happen — retry with fresh token
           showToast('Please refresh the page and try again.', 'error'); return
         }
-        showToast(data.error || 'Generation failed', 'error')
+        showToast(data.error || t('recipe.generateError'), 'error')
         return
       }
 
