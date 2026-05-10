@@ -490,7 +490,11 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                 {/* 热量偏差提示 */}
                 {compliance && !compliance.caloriesOk && (
                   <div style={{ padding: '6px 10px', borderRadius: 6, background: '#FBF0E4', fontSize: 11, color: '#854F0B', marginBottom: 10 }}>
-                    ⚠ {t('recipe.calories_warning', { min: compliance.targetCalories.min, max: compliance.targetCalories.max })}
+                    ⚠ {t('recipe.calories_warning', {
+                      actual: recipe.nutrition.calories.replace('~', ''),
+                      min: compliance.targetCalories.min,
+                      max: compliance.targetCalories.max,
+                    })}
                   </div>
                 )}
 

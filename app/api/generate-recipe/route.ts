@@ -20,6 +20,13 @@ const LANGUAGE_MAP: Record<string, string> = {
   fr: 'French',  ja: 'Japanese',             ko: 'Korean',
 }
 
+// Localized display names for auto-added supplements
+const SUPPLEMENT_NAMES: Record<string, Record<string, string>> = {
+  calcium_carbonate:  { zh: '碳酸钙', en: 'Calcium Carbonate', es: 'Carbonato de Calcio', fr: 'Carbonate de Calcium', ja: '炭酸カルシウム', ko: '탄산칼슘' },
+  fish_oil:           { zh: '鱼油',   en: 'Fish Oil',          es: 'Aceite de Pescado',   fr: "Huile de Poisson",    ja: '魚油',           ko: '어유' },
+  taurine_supplement: { zh: '牛磺酸', en: 'Taurine',           es: 'Taurina',             fr: 'Taurine',             ja: 'タウリン',         ko: '타우린' },
+}
+
 function getClientIp(req: NextRequest): string {
   return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
       || req.headers.get('x-real-ip')
@@ -307,16 +314,20 @@ Output JSON only (no markdown):
     }
 
     // ── 合并自动补全食材 ──────────────────────────────────────────────────────
-    const supplementIngredients = validation.supplements.map(s => ({
-      name:      s.ingredient,
-      dbName:    s.dbName,
-      amountG:   s.amountG,
-      amount:    `${s.amountG}g`,
-      category:  'supplement' as const,
-      emoji:     '💊',
-      autoAdded: true,
-      reasonKey: s.reasonKey,
-    }))
+    // Skip supplements whose dbName already appears in AI-generated ingredients
+    const aiDbNames = new Set((aiResult.ingredients || []).map((ing: any) => ing.dbName))
+    const supplementIngredients = validation.supplements
+      .filter(s => !aiDbNames.has(s.dbName))
+      .map(s => ({
+        name:      SUPPLEMENT_NAMES[s.dbName]?.[locale_] || SUPPLEMENT_NAMES[s.dbName]?.['en'] || s.ingredient,
+        dbName:    s.dbName,
+        amountG:   s.amountG,
+        amount:    `${s.amountG}g`,
+        category:  'supplement' as const,
+        emoji:     '💊',
+        autoAdded: true,
+        reasonKey: s.reasonKey,
+      }))
 
     const finalIngredients = [
       ...(aiResult.ingredients || []).map((ing: any) => ({
