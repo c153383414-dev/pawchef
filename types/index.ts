@@ -58,6 +58,14 @@ export interface Ingredient {
   name: string
   amount: string
 }
+
+export interface SubstituteItem {
+  name: string
+  amount: string
+  emoji: string
+  reason: string
+  nutrition_note: string
+}
  
 export interface NutritionInfo {
   calories: string

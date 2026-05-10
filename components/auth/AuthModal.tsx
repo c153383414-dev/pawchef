@@ -67,7 +67,9 @@ export default function AuthModal({ open, tab, onClose, onSuccess, t }: Props) {
           monthly_ai_count: 0,
           count_reset_at: null,
           last_checkin_date: null,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          free_ai_used: 0,
+          free_ai_limit: 3
         })
       } catch (e: any) {
         setLoading(false)
