@@ -36,7 +36,7 @@ function getClientIp(req: NextRequest): string {
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user }, error: authErr } = await supabase.auth.getUser()
 
     const {
       species, petName, weight, age, healthConditions, locale,
@@ -46,6 +46,14 @@ export async function POST(req: NextRequest) {
     const language = LANGUAGE_MAP[locale] || 'English'
     const ip = getClientIp(req)
 
+    // Debug auth state
+    console.log('[generate-recipe] auth:', {
+      userId: user?.id ?? 'null',
+      authErr: authErr?.message ?? 'none',
+      hasGuestToken: !!guestToken,
+      supabaseKeyPrefix: (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'MISSING')?.slice(0, 15),
+    })
+
     // ── Step 1-5: determine deduction source & model ──────────────────────────
     let selectedModel: string = MODEL_PREMIUM
     let deductionSource: DeductionSource = 'gift'
@@ -53,8 +61,11 @@ export async function POST(req: NextRequest) {
 
     if (!user) {
       // ── Step 1: Guest (no account) ──────────────────────────────────────────
+      // If no guestToken was sent, this is a logged-in user whose server auth failed
+      // Return a meaningful error instead of GUEST_TOKEN_MISSING
       if (!guestToken) {
-        return NextResponse.json({ error: 'GUEST_TOKEN_MISSING' }, { status: 400 })
+        console.error('[generate-recipe] No user and no guestToken — possible auth session issue')
+        return NextResponse.json({ error: 'AUTH_REQUIRED' }, { status: 401 })
       }
 
       const filters = [`token.eq.${guestToken}`]

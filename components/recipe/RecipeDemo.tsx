@@ -173,20 +173,30 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
           weight:           parseFloat(weight) || 5,
           age,
           healthConditions: health,
-          guestToken:       guestToken || undefined,
-          fingerprint:      fingerprint || undefined,
+          // Only send guest tokens for unauthenticated users
+          // Logged-in users must NOT send these to avoid triggering guest flow
+          // if server-side auth temporarily fails
+          guestToken:       !user ? (guestToken || undefined) : undefined,
+          fingerprint:      !user ? (fingerprint || undefined) : undefined,
         }),
       })
       const data = await res.json()
 
       if (!res.ok) {
         const err = data.error
-        if (err === 'GUEST_LIMIT_REACHED')  { setGuestUsed(true); setShowSignupPrompt(true); return }
+        if (err === 'GUEST_LIMIT_REACHED')  {
+          if (user) {
+            // Logged-in user hit guest path — server auth issue, ask to refresh
+            showToast('会话异常，请刷新页面后重试', 'error')
+          } else {
+            setGuestUsed(true); setShowSignupPrompt(true)
+          }
+          return
+        }
         if (err === 'FREE_LIMIT_REACHED')   { showToast(t('recipe.allFreeUsed', { n: user?.free_ai_limit ?? 3 }), 'warn'); return }
         if (err === 'NO_CREDITS')           { showToast(t('recipe.creditsUsed'), 'error'); return }
-        if (err === 'GUEST_TOKEN_MISSING')  {
-          // Shouldn't happen — retry with fresh token
-          showToast('Please refresh the page and try again.', 'error'); return
+        if (err === 'AUTH_REQUIRED' || err === 'GUEST_TOKEN_MISSING')  {
+          showToast('会话已过期，请刷新页面后重新登录', 'error'); return
         }
         showToast(data.error || t('recipe.generateError'), 'error')
         return
