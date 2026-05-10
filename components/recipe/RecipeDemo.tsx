@@ -287,7 +287,19 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
 
             {/* Weight + age */}
             <div style={{ display: 'flex', gap: 10 }}>
-              <input value={weight} onChange={e => setWeight(e.target.value)} placeholder={t('recipe.weight')} type="number" min="0.5" max="100" style={inputStyle} />
+              <div style={{ flex: 1, position: 'relative' }}>
+                <input
+                  value={weight}
+                  onChange={e => setWeight(e.target.value)}
+                  placeholder={t('recipe.weight')}
+                  type="number" min="0.5" max="100"
+                  style={{ ...inputStyle, width: '100%', boxSizing: 'border-box', paddingRight: 40 }}
+                />
+                <span style={{
+                  position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                  fontSize: 13, color: 'rgba(28,26,22,0.4)', fontWeight: 500, pointerEvents: 'none',
+                }}>kg</span>
+              </div>
               <select value={age} onChange={e => setAge(e.target.value)} style={selectStyle}>
                 {AGE_OPTIONS.map(a => <option key={a}>{a}</option>)}
               </select>
