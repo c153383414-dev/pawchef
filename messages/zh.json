@@ -19,7 +19,7 @@
     "ctaSecondary": "查看示例食谱",
     "freeNote": "✓ 无需信用卡 · 1次免费食谱 · 无需注册",
     "stat1Label": "食材安全数据",
-    "stat2Label": "预置食谱库",
+    "stat2Label": "免费AI食谱",
     "stat3Label": "AAFCO合规",
     "stat4Label": "月固定成本"
   },
@@ -148,7 +148,7 @@
     "disclaimer": "⚠️ 所有内容均由 AI 生成，仅供参考，不替代专业兽医建议\n价格含税 · 支持 Visa / Mastercard · Stripe 安全支付",
     "feat": {
       "mostPopular": "🔥 最受欢迎",
-      "presetRecipes": "100+ 预置食谱",
+      "freeAiRecipe": "1次 免费AI食谱体验",
       "safetyChecker": "食材安全查询（无限次）",
       "dangerAlerts": "危险食材实时预警",
       "earnFree": "获取 💙 免费积分",

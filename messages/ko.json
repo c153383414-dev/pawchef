@@ -19,7 +19,7 @@
     "ctaSecondary": "예시 보기",
     "freeNote": "✓ 신용카드 불필요 · 1회 무료 레시피 · 회원가입 불필요",
     "stat1Label": "식재료 안전 데이터",
-    "stat2Label": "프리셋 레시피",
+    "stat2Label": "무료 AI 레시피",
     "stat3Label": "AAFCO 준수",
     "stat4Label": "월 고정 비용"
   },
@@ -148,7 +148,7 @@
     "disclaimer": "⚠️ 모든 콘텐츠는 AI 생성 참고 정보이며, 전문 수의사의 조언을 대체하지 않습니다\n모든 가격 포함 · Visa / Mastercard · Stripe 안전 결제",
     "feat": {
       "mostPopular": "🔥 가장 인기",
-      "presetRecipes": "100개 이상 프리셋 레시피",
+      "freeAiRecipe": "AI 레시피 1회 무료 체험",
       "safetyChecker": "식재료 안전 검사기 (무제한)",
       "dangerAlerts": "위험 식재료 알림",
       "earnFree": "💙 무료 크레딧 획득",

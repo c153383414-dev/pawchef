@@ -19,7 +19,7 @@
     "ctaSecondary": "Voir des exemples",
     "freeNote": "✓ Aucune carte requise · 1 recette gratuite · Sans inscription",
     "stat1Label": "Base de données sécurité",
-    "stat2Label": "Recettes prédéfinies",
+    "stat2Label": "Recettes IA gratuites",
     "stat3Label": "Conforme AAFCO",
     "stat4Label": "Coût mensuel fixe"
   },
@@ -148,7 +148,7 @@
     "disclaimer": "⚠️ Tout le contenu est généré par IA à titre de référence uniquement, et ne remplace pas les conseils vétérinaires professionnels\nTous les prix sont inclusifs · Visa / Mastercard · Paiement sécurisé par Stripe",
     "feat": {
       "mostPopular": "🔥 Le Plus Populaire",
-      "presetRecipes": "100+ recettes prédéfinies",
+      "freeAiRecipe": "1 recette IA gratuite d'essai",
       "safetyChecker": "Vérificateur de sécurité alimentaire (illimité)",
       "dangerAlerts": "Alertes ingrédients dangereux",
       "earnFree": "Gagner 💙 crédits gratuits",

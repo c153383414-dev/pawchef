@@ -51,7 +51,7 @@ export default function PricingSection({ onSignup, t }: Props) {
           <div style={perStyle}>{t('pricing.freePermanent')}</div>
           <div style={divStyle} />
           <div style={secLabel}>{t('pricing.staticContent')}</div>
-          <Feature text={t('pricing.feat.presetRecipes')} />
+          <Feature text={t('pricing.feat.freeAiRecipe')} />
           <Feature text={t('pricing.feat.safetyChecker')} />
           <Feature text={t('pricing.feat.dangerAlerts')} />
           <div style={secLabel}>{t('pricing.freeCreditsSection')}</div>

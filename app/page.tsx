@@ -182,7 +182,7 @@ export default function HomePage() {
             </button>
           </div>
           <div style={{ display: 'flex', gap: 40, justifyContent: 'center', marginTop: 60, flexWrap: 'wrap' }}>
-            {[['60+', t('hero.stat1Label')], ['100+', t('hero.stat2Label')], ['100%', t('hero.stat3Label')], ['$0', t('hero.stat4Label')]].map(([n, l]) => (
+            {[['60+', t('hero.stat1Label')], ['3', t('hero.stat2Label')], ['100%', t('hero.stat3Label')], ['$0', t('hero.stat4Label')]].map(([n, l]) => (
               <div key={l} style={{ textAlign: 'center' }}>
                 <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 28, fontWeight: 700 }}>{n}</div>
                 <div style={{ fontSize: 12, color: 'rgba(28,26,22,0.6)', marginTop: 2 }}>{l}</div>

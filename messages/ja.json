@@ -19,7 +19,7 @@
     "ctaSecondary": "サンプルを見る",
     "freeNote": "✓ クレジットカード不要 · 1回無料 · 登録不要",
     "stat1Label": "食材安全データ",
-    "stat2Label": "プリセットレシピ",
+    "stat2Label": "無料AIレシピ",
     "stat3Label": "AAFCO準拠",
     "stat4Label": "月額固定費"
   },
@@ -148,7 +148,7 @@
     "disclaimer": "⚠️ すべてのコンテンツはAI生成であり参考情報のみです。専門的な獣医師のアドバイスに代わるものではありません\n全て税込 · Visa / Mastercard · Stripeによる安全な決済",
     "feat": {
       "mostPopular": "🔥 最も人気",
-      "presetRecipes": "100以上のプリセットレシピ",
+      "freeAiRecipe": "AI無料レシピ体験1回",
       "safetyChecker": "食材安全チェッカー（無制限）",
       "dangerAlerts": "危険食材アラート",
       "earnFree": "💙 無料クレジットを獲得",

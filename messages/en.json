@@ -19,7 +19,7 @@
     "ctaSecondary": "View Sample Recipes",
     "freeNote": "✓ No credit card needed · 1 free recipe · No signup required",
     "stat1Label": "Food Safety Database",
-    "stat2Label": "Preset Recipes",
+    "stat2Label": "Free AI Recipes",
     "stat3Label": "AAFCO Compliant",
     "stat4Label": "Monthly Fixed Cost"
   },
@@ -148,7 +148,7 @@
     "disclaimer": "⚠️ All content is AI-generated for reference only, not a substitute for professional veterinary advice\nAll prices inclusive · Visa / Mastercard · Secure Stripe payment",
     "feat": {
       "mostPopular": "🔥 Most Popular",
-      "presetRecipes": "100+ preset recipes",
+      "freeAiRecipe": "1 free AI recipe trial",
       "safetyChecker": "Food safety checker (unlimited)",
       "dangerAlerts": "Dangerous ingredient alerts",
       "earnFree": "Earn 💙 free credits",
