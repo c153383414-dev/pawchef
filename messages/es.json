@@ -17,6 +17,7 @@
     "subtitle": "Recetas nutritivas generadas por IA para perros y gatos, siguiendo estándares veterinarios internacionales.",
     "ctaMain": "Generar receta gratis →",
     "ctaSecondary": "Ver recetas de muestra",
+    "freeNote": "✓ Sin tarjeta de crédito · 1 receta gratis · Sin registro",
     "stat1Label": "Base de datos de seguridad",
     "stat2Label": "Recetas preestablecidas",
     "stat3Label": "Cumple AAFCO",
@@ -74,7 +75,23 @@
     "nutriCalories": "Calorías",
     "nutriProtein": "Proteína",
     "nutriFat": "Grasa",
-    "nutriCarbs": "Carbohidratos"
+    "nutriCarbs": "Carbohidratos",
+    "guestFreeAvailable": "🎁 1 receta IA gratis · Sin registro",
+    "guestLimitReached": "Has usado tu receta gratuita",
+    "signupForMore": "Regístrate para 2 recetas gratuitas más →",
+    "freeRemaining": "⚡ Calidad estándar · {n} usos gratuitos restantes",
+    "generateFree": "✦ Generar receta de mi mascota (Gratis)",
+    "generateStandard": "✦ Generar receta (Estándar · {n} restantes)",
+    "generateGift": "✦ Generar receta (-1 🟠 crédito regalo · {n} restantes)",
+    "generatePaid": "✦ Generar receta (-1 🟠 crédito IA · {n} restantes)",
+    "generatePro": "✦ Generar receta (Pro · {n} restantes este mes)",
+    "noCreditsBtn": "Comprar créditos IA para continuar",
+    "standardBadge": "Estándar",
+    "premiumBadge": "Premium ✨",
+    "standardNote": "⚡ IA Estándar · Actualiza para recetas Premium personalizadas",
+    "allFreeUsed": "Has usado todas tus {n} recetas gratuitas.",
+    "creditsUsed": "Tus créditos IA se han agotado.",
+    "monthlyQuotaUsed": "Cuota mensual alcanzada. Compra créditos para continuar."
   },
   "safety": {
     "sectionLabel": "Verificador de Seguridad Alimentaria",
@@ -192,6 +209,16 @@
       "uses": "{n} usos de IA",
       "perUse": "${n}/uso"
     }
+  },
+  "signupPrompt": {
+    "title": "¿Te gustó tu receta gratuita?",
+    "subtitle": "Regístrate gratis para obtener:",
+    "benefit1": "2 recetas IA gratuitas más",
+    "benefit2": "Guarda tu historial de recetas",
+    "benefit3": "Bono de inicio de sesión diario",
+    "ctaSignup": "Crear cuenta gratuita",
+    "ctaBuy": "Comprar créditos IA - $3.9",
+    "loginLink": "¿Ya tienes cuenta? Iniciar sesión"
   },
   "footer": {
     "description": "Plataforma de recetas de nutrición para mascotas con IA, siguiendo estrictamente los estándares internacionales ASPCA · AAFCO · FEDIAF",

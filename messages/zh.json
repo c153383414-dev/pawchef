@@ -17,6 +17,7 @@
     "subtitle": "AI 秒级生成营养完整的猫狗食谱，严格遵循国际兽医营养标准，病宠也适用。",
     "ctaMain": "免费生成食谱 →",
     "ctaSecondary": "查看示例食谱",
+    "freeNote": "✓ 无需信用卡 · 1次免费食谱 · 无需注册",
     "stat1Label": "食材安全数据",
     "stat2Label": "预置食谱库",
     "stat3Label": "AAFCO合规",
@@ -74,7 +75,23 @@
     "nutriCalories": "热量",
     "nutriProtein": "蛋白质",
     "nutriFat": "脂肪",
-    "nutriCarbs": "碳水"
+    "nutriCarbs": "碳水",
+    "guestFreeAvailable": "🎁 1次免费AI食谱 · 无需注册",
+    "guestLimitReached": "您已使用了免费食谱",
+    "signupForMore": "注册获得2次额外免费次数 →",
+    "freeRemaining": "⚡ 标准质量 · 剩余 {n} 次免费使用",
+    "generateFree": "✦ 为我的宠物生成食谱（免费）",
+    "generateStandard": "✦ 生成食谱（标准 · 剩余 {n} 次）",
+    "generateGift": "✦ 生成食谱（-1 🟠 赠送积分 · 剩余 {n}）",
+    "generatePaid": "✦ 生成食谱（-1 🟠 AI积分 · 剩余 {n}）",
+    "generatePro": "✦ 生成食谱（Pro · 本月剩余 {n} 次）",
+    "noCreditsBtn": "购买AI积分继续使用",
+    "standardBadge": "标准版",
+    "premiumBadge": "高级版 ✨",
+    "standardNote": "⚡ 标准AI · 升级获得个性化高级食谱",
+    "allFreeUsed": "您已用完全部 {n} 次免费食谱。",
+    "creditsUsed": "您的AI积分已用完。",
+    "monthlyQuotaUsed": "本月配额已用完，购买积分继续使用。"
   },
   "safety": {
     "sectionLabel": "食材安全查询",
@@ -232,6 +249,16 @@
       "uses": "{n} 次 AI 使用",
       "perUse": "${n}/次"
     }
+  },
+  "signupPrompt": {
+    "title": "喜欢您的免费食谱吗？",
+    "subtitle": "免费注册获得：",
+    "benefit1": "2次额外免费AI食谱",
+    "benefit2": "保存您的食谱历史",
+    "benefit3": "每日签到奖励",
+    "ctaSignup": "创建免费账户",
+    "ctaBuy": "购买AI积分 - $3.9",
+    "loginLink": "已有账户？立即登录"
   },
   "footer": {
     "description": "AI 宠物营养食谱平台，严格遵循 ASPCA · AAFCO · FEDIAF 国际标准",

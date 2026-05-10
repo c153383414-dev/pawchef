@@ -2,72 +2,159 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import OpenAI from 'openai'
 
+// Single OpenAI-compatible client pointing to OpenRouter
 const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.OPENROUTER_API_KEY,
-  defaultHeaders: {
-    'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL,
-    'X-Title': 'PawChef'
-  }
+  defaultHeaders: { 'X-Title': 'PawChef' }
 })
 
 const LANGUAGE_MAP: Record<string, string> = {
-  'en': 'English',
-  'zh': 'Chinese (Simplified)',
-  'es': 'Spanish',
-  'fr': 'French',
-  'ja': 'Japanese',
-  'ko': 'Korean',
+  en: 'English',
+  zh: 'Chinese (Simplified)',
+  es: 'Spanish',
+  fr: 'French',
+  ja: 'Japanese',
+  ko: 'Korean',
+}
+
+// Free/standard tier uses Gemini Flash Lite (~$0.0001/call)
+const MODEL_STANDARD = 'google/gemini-2.0-flash-lite'
+// Paid/premium tier uses Claude Sonnet (~$0.015/call)
+const MODEL_PREMIUM  = 'anthropic/claude-sonnet-4-5'
+
+type DeductionSource = 'guest' | 'free' | 'gift' | 'paid' | 'pro'
+
+function getClientIp(req: NextRequest): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+      || req.headers.get('x-real-ip')
+      || 'unknown'
 }
 
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
-
-    // 1. 验证登录
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Please login first' }, { status: 401 })
-    }
 
-    // 2. 解析请求参数（locale 决定返回语言）
-    const { species, petName, weight, age, healthConditions, locale } = await req.json()
+    const {
+      species, petName, weight, age, healthConditions, locale,
+      guestToken, fingerprint,
+    } = await req.json()
+
     const language = LANGUAGE_MAP[locale] || 'English'
+    const ip = getClientIp(req)
 
-    // 3. 原子扣减积分（调用数据库函数，防并发）
-    const { data: deductResult, error: deductError } = await supabase
-      .rpc('deduct_ai_credits', {
-        p_user_id: user.id,
-        p_cost: 1
-      })
+    // ── Step 1-5: determine deduction source & model ──────────────────────────
+    let selectedModel: string = MODEL_PREMIUM
+    let deductionSource: DeductionSource = 'gift'
+    let freeRemaining = 0   // returned to client for UI
 
-    if (deductError) {
-      console.error('deduct_ai_credits error:', deductError)
-      return NextResponse.json({ error: 'System error, please retry later' }, { status: 500 })
+    if (!user) {
+      // ── Step 1: Guest (no account) ──────────────────────────────────────────
+      if (!guestToken) {
+        return NextResponse.json({ error: 'GUEST_TOKEN_MISSING' }, { status: 400 })
+      }
+
+      const filters = [`token.eq.${guestToken}`]
+      if (ip !== 'unknown') filters.push(`ip.eq.${ip}`)
+      if (fingerprint)      filters.push(`fingerprint.eq.${fingerprint}`)
+
+      const { data: existing } = await supabase
+        .from('guest_usage')
+        .select('id')
+        .or(filters.join(','))
+        .limit(1)
+        .maybeSingle()
+
+      if (existing) {
+        return NextResponse.json({ error: 'GUEST_LIMIT_REACHED' }, { status: 402 })
+      }
+
+      selectedModel    = MODEL_STANDARD
+      deductionSource  = 'guest'
+
+    } else {
+      // ── Step 2-5: Logged-in user ────────────────────────────────────────────
+      const { data: profile, error: profileErr } = await supabase
+        .from('profiles')
+        .select('free_ai_used, free_ai_limit, gift_ai_points, paid_points, is_pro, monthly_ai_count')
+        .eq('id', user.id)
+        .single()
+
+      if (profileErr || !profile) {
+        return NextResponse.json({ error: 'Profile not found' }, { status: 400 })
+      }
+
+      const freeUsed  = profile.free_ai_used  ?? 0
+      const freeLimit = profile.free_ai_limit ?? 3
+
+      if (freeUsed < freeLimit) {
+        // Step 2: free AI quota (Gemini)
+        selectedModel   = MODEL_STANDARD
+        deductionSource = 'free'
+        freeRemaining   = freeLimit - freeUsed - 1
+      } else if ((profile.gift_ai_points ?? 0) > 0) {
+        // Step 3: gifted points (Claude)
+        deductionSource = 'gift'
+      } else if ((profile.paid_points ?? 0) > 0) {
+        // Step 4: purchased points (Claude)
+        deductionSource = 'paid'
+      } else if (profile.is_pro && (profile.monthly_ai_count ?? 0) < 30) {
+        // Step 5: Pro monthly quota (Claude)
+        deductionSource = 'pro'
+      } else {
+        return NextResponse.json({ error: 'NO_CREDITS' }, { status: 402 })
+      }
     }
 
-    if (!deductResult?.ok) {
-      const reason = deductResult?.reason
-      if (reason === 'insufficient_credits') {
+    // ── Deduct credits BEFORE generating (atomic, prevents concurrent abuse) ──
+    let creditSource: string | null = null
+
+    if (deductionSource === 'guest') {
+      await supabase.from('guest_usage').insert({
+        token:       guestToken,
+        ip,
+        fingerprint: fingerprint || '',
+      })
+    } else if (deductionSource === 'free') {
+      const { data: freeResult, error: freeErr } = await supabase
+        .rpc('deduct_free_ai', { p_user_id: user!.id })
+
+      if (freeErr) {
+        console.error('deduct_free_ai error:', freeErr)
+        return NextResponse.json({ error: 'System error, please retry' }, { status: 500 })
+      }
+      if (!freeResult?.ok) {
+        return NextResponse.json({ error: freeResult?.reason || 'FREE_LIMIT_REACHED' }, { status: 402 })
+      }
+      freeRemaining = freeResult.remaining ?? 0
+    } else {
+      // gift / paid / pro → use existing deduct_ai_credits
+      const { data: deductResult, error: deductErr } = await supabase
+        .rpc('deduct_ai_credits', { p_user_id: user!.id, p_cost: 1 })
+
+      if (deductErr) {
+        console.error('deduct_ai_credits error:', deductErr)
+        return NextResponse.json({ error: 'System error, please retry' }, { status: 500 })
+      }
+      if (!deductResult?.ok) {
         return NextResponse.json({
-          error: 'Insufficient credits',
-          detail: 'AI credits insufficient. Please purchase a credits pack or subscribe to Pro.',
+          error:          'NO_CREDITS',
+          detail:         'All credits exhausted.',
           gift_ai_points: deductResult?.gift_ai_points ?? 0,
-          paid_points: deductResult?.paid_points ?? 0
+          paid_points:    deductResult?.paid_points    ?? 0,
         }, { status: 402 })
       }
-      return NextResponse.json({ error: 'Cannot use AI features' }, { status: 403 })
+      creditSource = deductResult?.source ?? null
     }
 
-    // 4. 扣减成功，记录来源（health conditions now use English keys）
-    const creditSource = deductResult?.source
+    // ── Build prompt ───────────────────────────────────────────────────────────
     const isKidney       = healthConditions?.includes('kidney')
     const isPancreatitis = healthConditions?.includes('pancreatitis')
     const isDiabetes     = healthConditions?.includes('diabetes')
     const isObese        = healthConditions?.includes('obesity')
     const speciesName    = species === 'dog' ? 'dog' : 'cat'
 
-    // 5. 构建多语言 AI Prompt
     const prompt = `You are a professional pet nutritionist strictly following AAFCO, ASPCA, and FEDIAF international standards.
 
 Generate a complete homemade pet food recipe for:
@@ -111,48 +198,58 @@ Return ONLY valid JSON, no other text:
   }
 }`
 
-    // 6. 调用 AI
+    // ── Call AI ────────────────────────────────────────────────────────────────
     let recipe: any
     try {
       const completion = await openai.chat.completions.create({
-        model: 'anthropic/claude-sonnet-4-5',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1200,
+        model:       selectedModel,
+        messages:    [{ role: 'user', content: prompt }],
+        max_tokens:  1200,
         temperature: 0.7,
       })
 
-      const text = completion.choices[0]?.message?.content || ''
+      const text      = completion.choices[0]?.message?.content || ''
       const jsonMatch = text.match(/\{[\s\S]*\}/)
       if (!jsonMatch) throw new Error('AI response format error')
       recipe = JSON.parse(jsonMatch[0])
 
     } catch (aiError) {
-      console.error('AI call failed, refunding credit:', aiError)
-      await supabase.rpc('refund_ai_credit', {
-        p_user_id: user.id,
-        p_source: creditSource,
-        p_cost: 1
-      })
-      return NextResponse.json({ error: 'AI generation failed, please retry. Credits refunded.' }, { status: 500 })
+      console.error('AI call failed:', aiError)
+
+      // Refund paid credits on AI failure (free/guest are too cheap to refund)
+      if (deductionSource !== 'guest' && deductionSource !== 'free' && user) {
+        await supabase.rpc('refund_ai_credit', {
+          p_user_id: user.id,
+          p_source:  creditSource,
+          p_cost:    1,
+        })
+      }
+      return NextResponse.json(
+        { error: 'AI generation failed, please retry.' + (deductionSource !== 'guest' && deductionSource !== 'free' ? ' Credits refunded.' : '') },
+        { status: 500 }
+      )
     }
 
-    // 7. 保存食谱记录
-    await supabase.from('recipes').insert({
-      user_id: user.id,
-      title: recipe.title,
-      content: recipe.content,
-      nutrition: recipe.nutrition
-    })
+    // ── Save recipe & log transaction (logged-in users only) ──────────────────
+    if (user) {
+      await supabase.from('recipes').insert({
+        user_id:   user.id,
+        title:     recipe.title,
+        content:   recipe.content,
+        nutrition: recipe.nutrition,
+      })
 
-    // 8. 记录积分流水
-    await supabase.from('point_transactions').insert({
-      user_id: user.id,
-      amount: -1,
-      type: 'generate_recipe',
-      description: `Generate recipe: ${recipe.title} (source: ${creditSource})`
-    })
+      await supabase.from('point_transactions').insert({
+        user_id:     user.id,
+        amount:      -1,
+        type:        'generate_recipe',
+        description: `Generate recipe: ${recipe.title} (source: ${deductionSource})`,
+      })
+    }
 
-    return NextResponse.json(recipe)
+    const tier = (deductionSource === 'guest' || deductionSource === 'free') ? 'standard' : 'premium'
+
+    return NextResponse.json({ ...recipe, tier, freeRemaining })
 
   } catch (e: any) {
     console.error('generate-recipe error:', e)
