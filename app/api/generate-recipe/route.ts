@@ -18,8 +18,8 @@ const LANGUAGE_MAP: Record<string, string> = {
   ko: 'Korean',
 }
 
-// Free/standard tier uses GPT-4o Mini (~$0.0002/call, universally available)
-const MODEL_STANDARD = 'openai/gpt-4o-mini'
+// Free/standard tier: Llama 3.1 8B (completely free on OpenRouter)
+const MODEL_STANDARD = 'meta-llama/llama-3.1-8b-instruct:free'
 // Paid/premium tier uses Claude Sonnet (~$0.015/call)
 const MODEL_PREMIUM  = 'anthropic/claude-sonnet-4-5'
 
