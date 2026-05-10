@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { Profile, Ingredient, RecipeContent, NutritionInfo, SubstituteItem } from '@/types'
+import { Profile, Ingredient, RecipeContent, NutritionInfo, RecipeCompliance, SubstituteItem } from '@/types'
 import { useGuestToken } from '@/hooks/useGuestToken'
 import SignupPrompt from '@/components/ui/SignupPrompt'
 
@@ -22,6 +22,14 @@ const HEALTH_OPTIONS = [
 
 const AGE_OPTIONS = ['<1yr', '1yr', '2yr', '3yr', '5yr', '7yr', '10yr', '12yr+']
 
+// 年龄字符串 → 月份（传给 substitute API 用）
+function parseAgeToMonths(age: string): number {
+  if (age === '<1yr') return 6
+  if (age === '12yr+') return 144
+  const match = age.match(/^(\d+)yr$/)
+  return match ? parseInt(match[1]) * 12 : 36
+}
+
 export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
   const [species,  setSpecies]  = useState<'dog' | 'cat'>('dog')
   const [petName,  setPetName]  = useState('')
@@ -29,11 +37,16 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
   const [age,      setAge]      = useState('3yr')
   const [health,   setHealth]   = useState<string[]>(['healthy'])
   const [loading,  setLoading]  = useState(false)
-  const [recipe,   setRecipeState]   = useState<{ title: string; content: RecipeContent; nutrition: NutritionInfo; tier?: string } | null>(null)
+  const [recipe,   setRecipeState] = useState<{
+    title: string
+    content: RecipeContent
+    nutrition: NutritionInfo
+    compliance?: RecipeCompliance
+    tier?: string
+  } | null>(null)
   const [toast,    setToast]    = useState<{ msg: string; type: 'success' | 'error' | 'warn' } | null>(null)
   const [showSignupPrompt, setShowSignupPrompt] = useState(false)
 
-  // Helper to set recipe and persist to localStorage for guests
   const setRecipe = (r: typeof recipe) => {
     setRecipeState(r)
     if (!user && r) {
@@ -43,91 +56,76 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
     }
   }
 
-  // Guest free-use tracking
   const { guestToken, fingerprint } = useGuestToken()
-  const [guestUsed,      setGuestUsed]      = useState(false)
-  const [guestChecked,   setGuestChecked]   = useState(false)
+  const [guestUsed,    setGuestUsed]    = useState(false)
+  const [guestChecked, setGuestChecked] = useState(false)
 
-  // Substitute state
+  // 食材替换：单个 substitute 替代原来的数组
   const [substituting, setSubstituting] = useState<number | null>(null)
-  const [substitutes,  setSubstitutes]  = useState<Record<number, SubstituteItem[]>>({})
+  const [substitutes,  setSubstitutes]  = useState<Record<number, SubstituteItem & { reason?: string }>>({})
   const [expandedSub,  setExpandedSub]  = useState<number | null>(null)
 
-  // Free AI remaining (updated from API response)
   const [freeRemaining, setFreeRemaining] = useState<number | null>(null)
 
-  // Check if guest has already used their free recipe; restore cached recipe if so
+  // 检查访客是否已用过
   useEffect(() => {
     if (user || !guestToken) return
     const check = async () => {
       try {
-        const res = await fetch(
-          `/api/guest-usage?token=${encodeURIComponent(guestToken)}&fingerprint=${encodeURIComponent(fingerprint)}`
-        )
+        const res  = await fetch(`/api/guest-usage?token=${encodeURIComponent(guestToken)}&fingerprint=${encodeURIComponent(fingerprint)}`)
         const data = await res.json()
         const used = !!data.used
         setGuestUsed(used)
-        // Restore last recipe from localStorage so page refresh doesn't lose it
         if (used) {
           try {
             const cached = localStorage.getItem('pawchef_guest_recipe')
             if (cached) setRecipeState(JSON.parse(cached))
           } catch {}
         }
-      } catch { /* fail silently — allow use */ }
+      } catch { /* fail silently */ }
       setGuestChecked(true)
     }
     check()
   }, [guestToken, fingerprint, user])
 
-  // Initialise freeRemaining from user profile
+  // 从 profile 初始化 freeRemaining
   useEffect(() => {
     if (!user) return
     const used  = user.free_ai_used  ?? 0
-    const limit = user.free_ai_limit ?? 3
+    const limit = user.free_ai_limit ?? 2
     setFreeRemaining(Math.max(0, limit - used))
   }, [user])
 
   const isHealthOnly = health.length === 1 && health[0] === 'healthy'
 
-  // ── Credit state helpers ────────────────────────────────────────────────────
-  const hasFreeAI = user
-    ? (user.free_ai_used ?? 0) < (user.free_ai_limit ?? 3)
-    : false
+  // 积分状态
+  const hasFreeAI = user ? (user.free_ai_used ?? 0) < (user.free_ai_limit ?? 2) : false
+
+  const isPro = user ? (user.is_pro && (user.pro_expires_at ? new Date(user.pro_expires_at) > new Date() : false)) : false
 
   const hasPaidAI = user && (
     (user.gift_ai_points ?? 0) > 0 ||
     (user.paid_points    ?? 0) > 0 ||
-    (user.is_pro && (user.monthly_ai_count ?? 0) < 30)
+    (isPro && (user.monthly_ai_count ?? 0) < 30)
   )
 
   const canGenerate = !user
-    ? (guestChecked && !guestUsed)      // guest: 1 free
-    : (hasFreeAI || hasPaidAI)           // logged in: free or paid
+    ? (guestChecked && !guestUsed)
+    : (hasFreeAI || hasPaidAI)
 
-  // ── Button label ────────────────────────────────────────────────────────────
+  // 按钮文案
   const getButtonLabel = () => {
     if (loading) return t('recipe.generatingBtn')
-
-    // Guest flow
     if (!user) {
       if (!guestChecked) return t('recipe.generatingBtn')
-      if (guestUsed) return t('signupPrompt.ctaSignup')
+      if (guestUsed)     return t('signupPrompt.ctaSignup')
       return t('recipe.generateFree')
     }
-
-    // Free quota
-    const freeLeft = freeRemaining ?? Math.max(0, (user.free_ai_limit ?? 3) - (user.free_ai_used ?? 0))
+    const freeLeft = freeRemaining ?? Math.max(0, (user.free_ai_limit ?? 2) - (user.free_ai_used ?? 0))
     if (hasFreeAI) return t('recipe.generateStandard', { n: freeLeft })
-
-    // Paid flow
-    if ((user.gift_ai_points ?? 0) > 0)
-      return t('recipe.generateGift', { n: user.gift_ai_points })
-    if ((user.paid_points ?? 0) > 0)
-      return t('recipe.generatePaid', { n: user.paid_points })
-    if (user.is_pro)
-      return t('recipe.generatePro', { n: 30 - (user.monthly_ai_count ?? 0) })
-
+    if ((user.gift_ai_points ?? 0) > 0) return t('recipe.generateGift', { n: user.gift_ai_points })
+    if ((user.paid_points    ?? 0) > 0) return t('recipe.generatePaid', { n: user.paid_points })
+    if (isPro) return t('recipe.generatePro', { n: 30 - (user.monthly_ai_count ?? 0) })
     return t('recipe.noCreditsBtn')
   }
 
@@ -154,7 +152,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
     })
   }
 
-  // ── Generate ────────────────────────────────────────────────────────────────
+  // ── Generate ─────────────────────────────────────────────────────────────
   const generate = async () => {
     if (!user && guestUsed) { setShowSignupPrompt(true); return }
     if (!user && !guestChecked) return
@@ -173,9 +171,6 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
           weight:           parseFloat(weight) || 5,
           age,
           healthConditions: health,
-          // Only send guest tokens for unauthenticated users
-          // Logged-in users must NOT send these to avoid triggering guest flow
-          // if server-side auth temporarily fails
           guestToken:       !user ? (guestToken || undefined) : undefined,
           fingerprint:      !user ? (fingerprint || undefined) : undefined,
         }),
@@ -184,33 +179,52 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
 
       if (!res.ok) {
         const err = data.error
-        if (err === 'GUEST_LIMIT_REACHED')  {
-          if (user) {
-            // Logged-in user hit guest path — server auth issue, ask to refresh
-            showToast('会话异常，请刷新页面后重试', 'error')
-          } else {
-            setGuestUsed(true); setShowSignupPrompt(true)
-          }
+        if (err === 'GUEST_LIMIT_REACHED') {
+          if (user) showToast('会话异常，请刷新页面后重试', 'error')
+          else { setGuestUsed(true); setShowSignupPrompt(true) }
           return
         }
-        if (err === 'FREE_LIMIT_REACHED')   { showToast(t('recipe.allFreeUsed', { n: user?.free_ai_limit ?? 3 }), 'warn'); return }
-        if (err === 'NO_CREDITS')           { showToast(t('recipe.creditsUsed'), 'error'); return }
-        if (err === 'AUTH_REQUIRED' || err === 'GUEST_TOKEN_MISSING')  {
+        if (err === 'FREE_LIMIT_REACHED')  { showToast(t('recipe.allFreeUsed', { n: user?.free_ai_limit ?? 2 }), 'warn'); return }
+        if (err === 'NO_CREDITS')          { showToast(t('recipe.creditsUsed'), 'error'); return }
+        if (err === 'AUTH_REQUIRED' || err === 'GUEST_TOKEN_MISSING') {
           showToast('会话已过期，请刷新页面后重新登录', 'error'); return
+        }
+        if (err === 'FORBIDDEN_INGREDIENT_REMOVED') {
+          showToast(t('recipe.error.forbidden_ingredient', { name: (data.removedItems || []).join(', ') }), 'error'); return
+        }
+        if (err === 'NUTRITION_CRITICAL_FAILURE') {
+          showToast(t('recipe.error.nutrition_failure'), 'error'); return
         }
         showToast(data.error || t('recipe.generateError'), 'error')
         return
       }
 
-      setRecipe({ title: data.title, content: data.content, nutrition: data.nutrition, tier: data.tier })
+      // 转换新 API 响应格式为组件内部格式
+      setRecipe({
+        title: data.title,
+        content: {
+          ingredients: data.ingredients || [],
+          steps:       data.steps       || [],
+          warnings:    (data.warnings || []).filter((w: string) => !w.startsWith('ingredient_removed:')),
+        },
+        nutrition:  data.nutrition,
+        compliance: data.compliance,
+        tier:       data.generatedBy === 'claude-sonnet' ? 'premium' : 'standard',
+      })
       setSubstitutes({})
       setExpandedSub(null)
 
-      // Update local free remaining
       if (data.freeRemaining !== undefined) setFreeRemaining(data.freeRemaining)
-      if (!user) setGuestUsed(true)   // mark guest as used
+      if (!user) setGuestUsed(true)
 
-      showToast('✓ ' + t('recipe.aafcoLabel'), 'success')
+      // 显示被移除的食材警告
+      const removed = (data.warnings || []).filter((w: string) => w.startsWith('ingredient_removed:'))
+      if (removed.length > 0) {
+        const names = removed.map((w: string) => w.replace('ingredient_removed:', '')).join(', ')
+        showToast(t('recipe.warning.ingredient_removed', { name: names }), 'warn')
+      } else {
+        showToast('✓ ' + t('compliance.label.compliant_' + (data.compliance?.standard || 'dog_adult')), 'success')
+      }
     } catch {
       showToast('Network error, please retry', 'error')
     } finally {
@@ -218,31 +232,50 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
     }
   }
 
-  // ── Substitute ──────────────────────────────────────────────────────────────
+  // ── Substitute ───────────────────────────────────────────────────────────
   const handleSubstitute = async (ing: Ingredient, index: number) => {
     if (!user) { onAuthRequired(); return }
     const canSub = (user.gift_ai_points ?? 0) > 0 || (user.paid_points ?? 0) > 0 ||
-                   (user.is_pro && (user.monthly_ai_count ?? 0) < 30)
+                   (isPro && (user.monthly_ai_count ?? 0) < 30)
     if (!canSub) { showToast(t('substitute.needCredits'), 'warn'); return }
 
     if (expandedSub === index) { setExpandedSub(null); return }
-    if (substitutes[index]) { setExpandedSub(index); return }
+    if (substitutes[index])   { setExpandedSub(index); return }
 
     setSubstituting(index)
     try {
       const res = await fetch('/api/substitute-ingredient', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ ingredient: ing.name, amount: ing.amount, species, healthConditions: health }),
+        body:    JSON.stringify({
+          targetIngredient: ing.name,
+          targetDbName:     ing.dbName,
+          currentRecipe:    { ingredients: recipe?.content.ingredients || [] },
+          pet: {
+            species,
+            weightKg:         parseFloat(weight) || 5,
+            ageMonths:        parseAgeToMonths(age),
+            healthConditions: health,
+          },
+          allergens: [],
+        }),
       })
       const data = await res.json()
       if (!res.ok) {
-        if (res.status === 402) showToast('🟠 ' + (data.detail || t('substitute.needCredits')), 'error')
+        const msgKey = data.messageKey
+        if (msgKey) showToast(t(msgKey), 'error')
+        else if (res.status === 402) showToast('🟠 ' + t('substitute.needCredits'), 'error')
         else showToast(data.error || 'Failed', 'error')
         return
       }
-      setSubstitutes(prev => ({ ...prev, [index]: data.substitutes }))
+      setSubstitutes(prev => ({ ...prev, [index]: data.substitute }))
       setExpandedSub(index)
+
+      // 更新食谱合规信息
+      if (data.updatedCompliance && recipe) {
+        setRecipeState(prev => prev ? { ...prev, compliance: { ...prev.compliance!, ...data.updatedCompliance } } : prev)
+      }
+
       showToast(t('substitute.creditUsed'), 'success')
     } catch {
       showToast('Network error', 'error')
@@ -254,7 +287,9 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
   const applySubstitute = (ingredientIndex: number, sub: SubstituteItem) => {
     if (!recipe) return
     const newIngredients = recipe.content.ingredients.map((ing, i) =>
-      i === ingredientIndex ? { emoji: sub.emoji, name: sub.name, amount: sub.amount } : ing
+      i === ingredientIndex
+        ? { emoji: sub.emoji, name: sub.name, dbName: sub.dbName, amount: sub.amount || `${sub.amountG}g` }
+        : ing
     )
     setRecipe({ ...recipe, content: { ...recipe.content, ingredients: newIngredients } })
     setExpandedSub(null)
@@ -268,15 +303,27 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
     warn:    { bg: '#FBF0E4', color: '#854F0B' },
   }
 
-  // ── Computed display values ─────────────────────────────────────────────────
-  const freeLeft = freeRemaining ?? (user ? Math.max(0, (user.free_ai_limit ?? 3) - (user.free_ai_used ?? 0)) : 0)
-  const isPremium = recipe?.tier === 'premium'
+  const freeLeft   = freeRemaining ?? (user ? Math.max(0, (user.free_ai_limit ?? 2) - (user.free_ai_used ?? 0)) : 0)
+  const isPremium  = recipe?.tier === 'premium'
+  const compliance = recipe?.compliance
+
+  // 合规标签样式
+  const complianceStyle = compliance ? {
+    compliant:     { bg: '#EBF2EC', color: '#3B6D11', prefix: '✓' },
+    partial:       { bg: '#FBF0E4', color: '#854F0B', prefix: '△' },
+    'non-compliant': { bg: '#FAE8E8', color: '#C45C5C', prefix: '⚠' },
+  }[compliance.label] : null
 
   return (
     <div style={{ padding: '60px max(32px,4vw)' }}>
+      {/* 顶部常驻免责声明 */}
+      <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.4)', padding: '6px 0', marginBottom: 8, borderBottom: '1px solid rgba(28,26,22,0.06)' }}>
+        ⚕ {t('recipe.disclaimer_short')}
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 40, alignItems: 'start' }}>
 
-        {/* ── Form ── */}
+        {/* ── 表单 ── */}
         <div>
           <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(26px,3.5vw,38px)', fontWeight: 700, lineHeight: 1.2, marginBottom: 16 }}>
             {t('recipe.sectionTitle')}
@@ -286,7 +333,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {/* Species + name */}
+            {/* 物种 + 名字 */}
             <div style={{ display: 'flex', gap: 10 }}>
               <select value={species} onChange={e => setSpecies(e.target.value as any)} style={selectStyle}>
                 <option value="dog">{t('recipe.selectDog')}</option>
@@ -295,7 +342,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
               <input value={petName} onChange={e => setPetName(e.target.value)} placeholder={t('recipe.petName')} style={inputStyle} />
             </div>
 
-            {/* Weight + age */}
+            {/* 体重 + 年龄 */}
             <div style={{ display: 'flex', gap: 10 }}>
               <div style={{ flex: 1, position: 'relative' }}>
                 <input
@@ -305,39 +352,41 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   type="number" min="0.5" max="100"
                   style={{ ...inputStyle, width: '100%', boxSizing: 'border-box', paddingRight: 40 }}
                 />
-                <span style={{
-                  position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-                  fontSize: 13, color: 'rgba(28,26,22,0.4)', fontWeight: 500, pointerEvents: 'none',
-                }}>kg</span>
+                <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: 'rgba(28,26,22,0.4)', fontWeight: 500, pointerEvents: 'none' }}>kg</span>
               </div>
               <select value={age} onChange={e => setAge(e.target.value)} style={selectStyle}>
                 {AGE_OPTIONS.map(a => <option key={a}>{a}</option>)}
               </select>
             </div>
 
-            {/* Health conditions */}
+            {/* 健康状况：非 Pro 用户锁定除"健康"以外选项 */}
             <div>
               <div style={{ fontSize: 12, color: 'rgba(28,26,22,0.6)', marginBottom: 8, fontWeight: 500 }}>
                 {t('recipe.healthLabel')}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {HEALTH_OPTIONS.map(({ key, labelKey }) => {
-                  const needsAuth = key !== 'healthy' && !user
-                  const selected  = health.includes(key)
+                  const needsPro = key !== 'healthy' && !isPro
+                  const selected = health.includes(key)
                   return (
-                    <button key={key} onClick={() => needsAuth ? onAuthRequired() : toggleHealth(key)} style={{
+                    <button key={key} onClick={() => needsPro ? onAuthRequired() : toggleHealth(key)} style={{
                       padding: '5px 12px', borderRadius: 6, fontSize: 12, fontWeight: 500,
                       cursor: 'pointer', fontFamily: 'inherit',
-                      border:      `1px solid ${selected ? '#7A9E7E' : 'rgba(28,26,22,0.12)'}`,
-                      background:  selected ? '#7A9E7E' : needsAuth ? '#F7F3EC' : '#FDFAF5',
-                      color:       selected ? '#fff' : needsAuth ? 'rgba(28,26,22,0.35)' : 'rgba(28,26,22,0.6)',
+                      border:     `1px solid ${selected ? '#7A9E7E' : 'rgba(28,26,22,0.12)'}`,
+                      background: selected ? '#7A9E7E' : needsPro ? '#F7F3EC' : '#FDFAF5',
+                      color:      selected ? '#fff' : needsPro ? 'rgba(28,26,22,0.35)' : 'rgba(28,26,22,0.6)',
                     }}>
                       {selected ? `✓ ${t(labelKey)}` : t(labelKey)}
-                      {needsAuth && <span style={{ fontSize: 10, marginLeft: 4 }}>🔒</span>}
+                      {needsPro && <span style={{ fontSize: 10, marginLeft: 4 }}>👑</span>}
                     </button>
                   )
                 })}
               </div>
+              {!isPro && user && (
+                <div style={{ fontSize: 11, color: '#C8813A', marginTop: 6 }}>
+                  {t('recipe.healthLockedHint')} <span style={{ cursor: 'pointer', textDecoration: 'underline' }} onClick={() => onAuthRequired()}>{t('recipe.healthLockedLogin')}</span>
+                </div>
+              )}
               {!user && (
                 <div style={{ fontSize: 11, color: '#C8813A', marginTop: 6 }}>
                   {t('recipe.healthLockedHint')} <span style={{ cursor: 'pointer', textDecoration: 'underline' }} onClick={() => onAuthRequired()}>{t('recipe.healthLockedLogin')}</span>
@@ -345,7 +394,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
               )}
             </div>
 
-            {/* Credit / free-use status bar */}
+            {/* 积分状态栏 */}
             {!user && guestChecked && !guestUsed && (
               <div style={{ padding: '10px 14px', borderRadius: 10, background: '#EBF2EC', fontSize: 12, color: '#3B6D11', lineHeight: 1.6 }}>
                 🎁 {t('recipe.guestFreeAvailable')}
@@ -363,7 +412,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
             )}
             {user && !hasFreeAI && (
               <div style={{ padding: '10px 14px', borderRadius: 10, background: '#F7F3EC', fontSize: 12, color: 'rgba(28,26,22,0.6)', lineHeight: 1.6 }}>
-                {user.is_pro
+                {isPro
                   ? t('recipe.proMonthUsage', { used: user.monthly_ai_count ?? 0 })
                   : t('recipe.aiCreditsLeft', { total: (user.paid_points ?? 0) + (user.gift_ai_points ?? 0) })
                 }
@@ -373,7 +422,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
               </div>
             )}
 
-            {/* Generate button */}
+            {/* 生成按钮 */}
             <button
               onClick={generate}
               disabled={loading || (!guestChecked && !user)}
@@ -386,10 +435,9 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
               {getButtonLabel()}
             </button>
 
-            {/* No-credits state for logged-in users */}
             {user && !canGenerate && (
               <div style={{ padding: '10px 14px', borderRadius: 10, background: '#FAE8E8', fontSize: 12, color: '#C45C5C', lineHeight: 1.6 }}>
-                {t('recipe.allFreeUsed', { n: user.free_ai_limit ?? 3 })}<br />
+                {t('recipe.allFreeUsed', { n: user.free_ai_limit ?? 2 })}<br />
                 <span style={{ color: '#854F0B' }}>{t('recipe.upgradeHint')}</span>
               </div>
             )}
@@ -402,14 +450,14 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
           </div>
         </div>
 
-        {/* ── Result card ── */}
+        {/* ── 结果卡片 ── */}
         <div style={{ background: '#FDFAF5', borderRadius: 16, border: '1px solid rgba(28,26,22,0.12)', overflow: 'hidden', boxShadow: '0 4px 24px rgba(28,26,22,0.06)' }}>
-          {/* Card header */}
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(28,26,22,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {/* 卡片头 */}
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(28,26,22,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
             <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 18, fontWeight: 700 }}>
               {recipe ? recipe.title : `${petName || (species === 'dog' ? '🐕' : '🐈')} Recipe`}
             </div>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
               {recipe && (
                 <div style={{
                   fontSize: 11, fontWeight: 500, padding: '3px 8px', borderRadius: 5,
@@ -419,16 +467,33 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   {isPremium ? t('recipe.premiumBadge') : t('recipe.standardBadge')}
                 </div>
               )}
-              <div style={{ fontSize: 12, fontWeight: 500, color: '#7A9E7E', background: '#EBF2EC', padding: '4px 10px', borderRadius: 6 }}>
-                {t('recipe.aafcoLabel')}
-              </div>
+              {compliance && complianceStyle && (
+                <div style={{
+                  fontSize: 11, fontWeight: 500, padding: '3px 8px', borderRadius: 5,
+                  background: complianceStyle.bg, color: complianceStyle.color,
+                }}>
+                  {complianceStyle.prefix} {t(compliance.labelKey)}
+                </div>
+              )}
+              {!recipe && (
+                <div style={{ fontSize: 12, fontWeight: 500, color: '#7A9E7E', background: '#EBF2EC', padding: '4px 10px', borderRadius: 6 }}>
+                  {t('recipe.aafcoLabel')}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Card body */}
+          {/* 卡片体 */}
           <div style={{ padding: 20 }}>
             {recipe ? (
               <>
+                {/* 热量偏差提示 */}
+                {compliance && !compliance.caloriesOk && (
+                  <div style={{ padding: '6px 10px', borderRadius: 6, background: '#FBF0E4', fontSize: 11, color: '#854F0B', marginBottom: 10 }}>
+                    ⚠ {t('recipe.calories_warning', { min: compliance.targetCalories.min, max: compliance.targetCalories.max })}
+                  </div>
+                )}
+
                 <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(28,26,22,0.5)', marginBottom: 8 }}>
                   {t('recipe.ingredientsLabel')}
                   {user && (
@@ -438,21 +503,28 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   )}
                 </div>
 
-                {/* Ingredient list */}
+                {/* 食材列表 */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 16 }}>
                   {recipe.content.ingredients.map((ing, i) => (
                     <div key={i}>
                       <div style={{
                         padding: '8px 12px', borderRadius: expandedSub === i ? '8px 8px 0 0' : 8,
-                        background: expandedSub === i ? '#EBF2EC' : '#F7F3EC',
+                        background: ing.autoAdded ? '#F0F7F0' : (expandedSub === i ? '#EBF2EC' : '#F7F3EC'),
                         display: 'flex', alignItems: 'center', gap: 8,
-                        border: expandedSub === i ? '1px solid rgba(122,158,126,0.3)' : '1px solid transparent',
+                        border: expandedSub === i ? '1px solid rgba(122,158,126,0.3)' : (ing.autoAdded ? '1px solid rgba(122,158,126,0.2)' : '1px solid transparent'),
                         borderBottom: expandedSub === i ? 'none' : undefined,
                         transition: 'background 0.15s',
                       }}>
-                        <span style={{ fontSize: 13, flex: 1 }}>{ing.emoji} {ing.name}</span>
+                        <span style={{ fontSize: 13, flex: 1 }}>
+                          {ing.emoji} {ing.name}
+                          {ing.autoAdded && ing.reasonKey && (
+                            <span style={{ fontSize: 10, color: '#7A9E7E', marginLeft: 6 }}>
+                              {t(ing.reasonKey)}
+                            </span>
+                          )}
+                        </span>
                         <span style={{ color: 'rgba(28,26,22,0.6)', fontWeight: 500, fontSize: 13, flexShrink: 0 }}>{ing.amount}</span>
-                        {user && (
+                        {user && !ing.autoAdded && (
                           <button
                             onClick={() => handleSubstitute(ing, i)}
                             disabled={substituting === i}
@@ -478,27 +550,22 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                           <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.5)', marginBottom: 8, fontWeight: 500 }}>
                             {t('substitute.suggestions', { name: ing.name })} · <span style={{ color: '#C8813A' }}>{t('substitute.creditUsed')}</span>
                           </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                            {substitutes[i].map((sub, si) => (
-                              <div key={si} style={{ padding: '8px 10px', borderRadius: 8, background: '#FDFAF5', border: '1px solid rgba(28,26,22,0.08)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
-                                  <span style={{ fontSize: 13, fontWeight: 500 }}>
-                                    {sub.emoji} {sub.name} <span style={{ color: 'rgba(28,26,22,0.5)', fontWeight: 400 }}>{sub.amount}</span>
-                                  </span>
-                                  <button onClick={() => applySubstitute(i, sub)} style={{
-                                    padding: '2px 8px', borderRadius: 5, fontSize: 11,
-                                    cursor: 'pointer', border: 'none',
-                                    background: '#1C1A16', color: '#FDFAF5', fontFamily: 'inherit',
-                                  }}>
-                                    {t('substitute.apply')}
-                                  </button>
-                                </div>
-                                <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.5)', lineHeight: 1.4 }}>{sub.reason}</div>
-                                {sub.nutrition_note && (
-                                  <div style={{ fontSize: 11, color: '#854F0B', marginTop: 2 }}>{sub.nutrition_note}</div>
-                                )}
-                              </div>
-                            ))}
+                          <div style={{ padding: '8px 10px', borderRadius: 8, background: '#FDFAF5', border: '1px solid rgba(28,26,22,0.08)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
+                              <span style={{ fontSize: 13, fontWeight: 500 }}>
+                                {substitutes[i].emoji} {substitutes[i].name} <span style={{ color: 'rgba(28,26,22,0.5)', fontWeight: 400 }}>{substitutes[i].amount}</span>
+                              </span>
+                              <button onClick={() => applySubstitute(i, substitutes[i])} style={{
+                                padding: '2px 8px', borderRadius: 5, fontSize: 11,
+                                cursor: 'pointer', border: 'none',
+                                background: '#1C1A16', color: '#FDFAF5', fontFamily: 'inherit',
+                              }}>
+                                {t('substitute.apply')}
+                              </button>
+                            </div>
+                            {substitutes[i].reason && (
+                              <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.5)', lineHeight: 1.4 }}>{substitutes[i].reason}</div>
+                            )}
                           </div>
                           <button onClick={() => setExpandedSub(null)} style={{ marginTop: 8, fontSize: 11, color: 'rgba(28,26,22,0.4)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
                             {t('substitute.collapse')}
@@ -527,14 +594,13 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   ))}
                 </div>
 
-                {/* Standard / Premium note */}
                 {recipe.tier === 'standard' && (
                   <div style={{ padding: '8px 12px', borderRadius: 8, background: '#F7F3EC', fontSize: 11, color: 'rgba(28,26,22,0.5)', marginBottom: 12 }}>
                     ⚡ {t('recipe.standardNote')}
                   </div>
                 )}
 
-                {/* Nutrition row */}
+                {/* 营养信息 */}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', paddingTop: 14, borderTop: '1px solid rgba(28,26,22,0.08)' }}>
                   {([
                     [t('recipe.nutriCalories'), recipe.nutrition.calories],
@@ -580,7 +646,6 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
         </div>
       )}
 
-      {/* Signup prompt modal */}
       {showSignupPrompt && (
         <SignupPrompt
           t={t}

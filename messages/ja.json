@@ -91,7 +91,18 @@
     "standardNote": "⚡ スタンダードAI · プレミアムでパーソナライズドレシピを",
     "allFreeUsed": "無料レシピ{n}回をすべて使用しました。",
     "creditsUsed": "AIクレジットが残っていません。",
-    "monthlyQuotaUsed": "月間クォータに達しました。クレジットを購入して続けてください。"
+    "monthlyQuotaUsed": "月間クォータに達しました。クレジットを購入して続けてください。",
+    "disclaimer_short": "⚕ AIが生成したレシピです。栄養参考情報のみ。獣医師のアドバイスに代わるものではありません。",
+    "disclaimer_full": "すべてのレシピはAAFCO国際基準に従ってAIが生成しています。栄養参考情報のみで医療アドバイスではありません。給餌前に獣医師に相談してください。",
+    "calories_warning": "⚠️ 現在のカロリー（{actual} kcal）が目標範囲 {min}–{max} kcal を外れています。食材の量を調整してください。",
+    "generateError": "生成に失敗しました。後ほど再試行してください。",
+    "error": {
+      "forbidden_ingredient": "⚠️ 健康状態の制限により一部の食材が調整されました",
+      "nutrition_failure": "🚨 レシピの栄養が基準を満たしていません。再生成してください。"
+    },
+    "warning": {
+      "ingredient_removed": "⚠️ {name} は健康上の制限により食材から除外されました"
+    }
   },
   "safety": {
     "sectionLabel": "食材安全チェッカー",
@@ -271,6 +282,37 @@
     "success": {
       "signupOk": "登録完了！{email} に確認メールを送信しました。リンクをクリックしてアカウントを有効化してください。",
       "resetSent": "リセットリンクを送信しました（メールが登録済みかどうかにかかわらず同じメッセージが表示されます）"
+    },
+    "register_success_with_bonus": "🎁 登録ボーナス：20 💙 無料クレジットを付与しました"
+  },
+  "compliance": {
+    "label": {
+      "compliant_dog_adult": "✓ AAFCO 成犬基準準拠",
+      "compliant_dog_puppy": "✓ AAFCO 子犬基準準拠",
+      "compliant_cat_adult": "✓ AAFCO 成猫基準準拠",
+      "compliant_cat_kitten": "✓ AAFCO 子猫基準準拠",
+      "partial_dog_adult": "△ AAFCO 成犬基準部分準拠",
+      "partial_dog_puppy": "△ AAFCO 子犬基準部分準拠",
+      "partial_cat_adult": "△ AAFCO 成猫基準部分準拠",
+      "partial_cat_kitten": "△ AAFCO 子猫基準部分準拠",
+      "non-compliant_dog_adult": "⚠ AAFCO 成犬基準非準拠",
+      "non-compliant_dog_puppy": "⚠ AAFCO 子犬基準非準拠",
+      "non-compliant_cat_adult": "⚠ AAFCO 成猫基準非準拠",
+      "non-compliant_cat_kitten": "⚠ AAFCO 子猫基準非準拠"
+    }
+  },
+  "supplement": {
+    "reason": {
+      "calcium_deficiency": "カルシウム不足のため自動補充",
+      "omega3_deficiency": "オメガ3不足のため自動補充",
+      "taurine_deficiency": "タウリン不足（猫に必須）のため自動補充"
+    }
+  },
+  "substitute": {
+    "no_options": "この食材の適切な代替品が見つかりませんでした",
+    "error": {
+      "safety_violation": "代替食材がペットの健康要件を満たしていないためキャンセルしました",
+      "nutrition_failure": "代替後の栄養チェックに失敗したためキャンセルしました"
     }
   },
   "language": {

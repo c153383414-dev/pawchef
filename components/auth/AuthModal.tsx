@@ -40,7 +40,7 @@ export default function AuthModal({ open, tab, onClose, onSuccess, t }: Props) {
       })
       setLoading(false)
       if (error) return setMsg({ type: 'error', text: error.message })
-      setMsg({ type: 'success', text: t('auth.success.signupOk', { email }) })
+      setMsg({ type: 'success', text: t('auth.success.signupOk', { email }) + ' ' + t('auth.register_success_with_bonus') })
     } else {
       try {
         const timeout = new Promise<never>((_, reject) =>
@@ -69,7 +69,7 @@ export default function AuthModal({ open, tab, onClose, onSuccess, t }: Props) {
           last_checkin_date: null,
           created_at: new Date().toISOString(),
           free_ai_used: 0,
-          free_ai_limit: 3
+          free_ai_limit: 2
         })
       } catch (e: any) {
         setLoading(false)

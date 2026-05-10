@@ -91,7 +91,18 @@
     "standardNote": "⚡ Standard AI · Upgrade for personalized Premium recipes",
     "allFreeUsed": "You've used all {n} free recipes.",
     "creditsUsed": "Your AI credits are used up.",
-    "monthlyQuotaUsed": "Monthly quota reached. Purchase credits to continue."
+    "monthlyQuotaUsed": "Monthly quota reached. Purchase credits to continue.",
+    "disclaimer_short": "⚕ AI-generated recipe for nutritional reference only. Not a substitute for veterinary advice.",
+    "disclaimer_full": "All recipes are AI-generated following AAFCO international standards. For nutritional reference only, not medical advice. Consult a licensed veterinarian before feeding, especially for pets with health conditions.",
+    "calories_warning": "⚠️ Current calories ({actual} kcal) are outside the target range {min}–{max} kcal. Please adjust ingredient amounts.",
+    "generateError": "Generation failed. Please try again later.",
+    "error": {
+      "forbidden_ingredient": "⚠️ Some ingredients were adjusted due to health condition restrictions",
+      "nutrition_failure": "🚨 Recipe nutrition does not meet standards. Please regenerate."
+    },
+    "warning": {
+      "ingredient_removed": "⚠️ {name} was removed from the recipe due to health restrictions"
+    }
   },
   "safety": {
     "sectionLabel": "Food Safety Checker",
@@ -271,7 +282,8 @@
     "success": {
       "signupOk": "Registration successful! Verification email sent to {email}. Please click the link to activate your account.",
       "resetSent": "Reset link sent (same message whether email is registered or not)"
-    }
+    },
+    "register_success_with_bonus": "🎁 Signup bonus: 20 💙 free credits added to your account"
   },
   "language": {
     "select": "Language",
@@ -290,7 +302,12 @@
     "creditUsed": "1 🟠 AI credit used",
     "loading": "Searching...",
     "needCredits": "Needs 1 🟠 AI credit or Pro",
-    "applied": "✓ Ingredient replaced"
+    "applied": "✓ Ingredient replaced",
+    "no_options": "No suitable substitute found for this ingredient",
+    "error": {
+      "safety_violation": "Substitute does not meet pet health requirements, cancelled",
+      "nutrition_failure": "Post-substitution nutrition check failed, cancelled"
+    }
   },
   "mealPlan": {
     "sectionTitle": "7-Day Meal Plan",
@@ -314,6 +331,29 @@
     "proteinSources": "Protein Sources",
     "standard": "Standard",
     "disclaimer": "⚠️ AI generated, for nutritional reference only. Not a substitute for professional veterinary advice."
+  },
+  "compliance": {
+    "label": {
+      "compliant_dog_adult": "✓ AAFCO Adult Dog Compliant",
+      "compliant_dog_puppy": "✓ AAFCO Puppy Compliant",
+      "compliant_cat_adult": "✓ AAFCO Adult Cat Compliant",
+      "compliant_cat_kitten": "✓ AAFCO Kitten Compliant",
+      "partial_dog_adult": "△ Partially AAFCO Adult Dog Compliant",
+      "partial_dog_puppy": "△ Partially AAFCO Puppy Compliant",
+      "partial_cat_adult": "△ Partially AAFCO Adult Cat Compliant",
+      "partial_cat_kitten": "△ Partially AAFCO Kitten Compliant",
+      "non-compliant_dog_adult": "⚠ Not AAFCO Adult Dog Compliant",
+      "non-compliant_dog_puppy": "⚠ Not AAFCO Puppy Compliant",
+      "non-compliant_cat_adult": "⚠ Not AAFCO Adult Cat Compliant",
+      "non-compliant_cat_kitten": "⚠ Not AAFCO Kitten Compliant"
+    }
+  },
+  "supplement": {
+    "reason": {
+      "calcium_deficiency": "Calcium deficient, auto-supplemented",
+      "omega3_deficiency": "Omega-3 deficient, auto-supplemented",
+      "taurine_deficiency": "Taurine deficient (essential for cats), auto-supplemented"
+    }
   },
   "feedingLog": {
     "title": "Nutrition Log",

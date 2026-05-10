@@ -34,7 +34,7 @@ export default function HomePage() {
     last_checkin_date: dbProfile?.last_checkin_date ?? null,
     created_at: dbProfile?.created_at ?? new Date().toISOString(),
     free_ai_used:  dbProfile?.free_ai_used  ?? 0,
-    free_ai_limit: dbProfile?.free_ai_limit ?? 3,
+    free_ai_limit: dbProfile?.free_ai_limit ?? 2,
   })
 
   useEffect(() => {

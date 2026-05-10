@@ -91,7 +91,18 @@
     "standardNote": "⚡ 标准AI · 升级获得个性化高级食谱",
     "allFreeUsed": "您已用完全部 {n} 次免费食谱。",
     "creditsUsed": "您的AI积分已用完。",
-    "monthlyQuotaUsed": "本月配额已用完，购买积分继续使用。"
+    "monthlyQuotaUsed": "本月配额已用完，购买积分继续使用。",
+    "disclaimer_short": "⚕ 本食谱由 AI 生成，仅供营养参考，不能替代专业兽医建议。",
+    "disclaimer_full": "本平台所有食谱均由 AI 生成，遵循 AAFCO 国际标准。仅供营养参考，不构成医疗建议。喂食前请咨询执业兽医，尤其是有健康状况的宠物。",
+    "calories_warning": "⚠️ 当前热量（{actual} kcal）不在目标范围 {min}–{max} kcal 内，请适量调整食材用量。",
+    "generateError": "生成失败，请稍后重试。",
+    "error": {
+      "forbidden_ingredient": "⚠️ 部分食材因健康状况限制已被调整",
+      "nutrition_failure": "🚨 食谱营养不达标，请重新生成"
+    },
+    "warning": {
+      "ingredient_removed": "⚠️ {name} 因健康限制已从食谱中移除"
+    }
   },
   "safety": {
     "sectionLabel": "食材安全查询",
@@ -311,7 +322,8 @@
     "success": {
       "signupOk": "注册成功！验证邮件已发送至 {email}，请点击链接激活账号。",
       "resetSent": "重置链接已发送（无论邮箱是否注册，均显示此消息）"
-    }
+    },
+    "register_success_with_bonus": "🎁 注册奖励：20 💙 免费积分已到账"
   },
   "language": {
     "select": "语言",
@@ -330,7 +342,12 @@
     "creditUsed": "已消耗 1 🟠 AI 积分",
     "loading": "查询中...",
     "needCredits": "需要 1 🟠 AI 积分或 Pro",
-    "applied": "✓ 食材已替换"
+    "applied": "✓ 食材已替换",
+    "no_options": "未找到符合条件的替代食材",
+    "error": {
+      "safety_violation": "替代食材不符合宠物健康要求，已取消",
+      "nutrition_failure": "替换后营养校验不通过，已取消"
+    }
   },
   "mealPlan": {
     "sectionTitle": "7天膳食周计划",
@@ -354,6 +371,29 @@
     "proteinSources": "蛋白质来源",
     "standard": "营养标准",
     "disclaimer": "⚠️ 由 AI 生成，仅供营养参考，不能替代专业兽医建议。"
+  },
+  "compliance": {
+    "label": {
+      "compliant_dog_adult": "✓ 符合 AAFCO 成犬标准",
+      "compliant_dog_puppy": "✓ 符合 AAFCO 幼犬标准",
+      "compliant_cat_adult": "✓ 符合 AAFCO 成猫标准",
+      "compliant_cat_kitten": "✓ 符合 AAFCO 幼猫标准",
+      "partial_dog_adult": "△ 部分符合 AAFCO 成犬标准",
+      "partial_dog_puppy": "△ 部分符合 AAFCO 幼犬标准",
+      "partial_cat_adult": "△ 部分符合 AAFCO 成猫标准",
+      "partial_cat_kitten": "△ 部分符合 AAFCO 幼猫标准",
+      "non-compliant_dog_adult": "⚠ 不符合 AAFCO 成犬标准",
+      "non-compliant_dog_puppy": "⚠ 不符合 AAFCO 幼犬标准",
+      "non-compliant_cat_adult": "⚠ 不符合 AAFCO 成猫标准",
+      "non-compliant_cat_kitten": "⚠ 不符合 AAFCO 幼猫标准"
+    }
+  },
+  "supplement": {
+    "reason": {
+      "calcium_deficiency": "钙含量不足，自动补充",
+      "omega3_deficiency": "Omega-3 含量不足，自动补充",
+      "taurine_deficiency": "牛磺酸不足（猫咪必需），自动补充"
+    }
   },
   "feedingLog": {
     "title": "营养饮食日志",

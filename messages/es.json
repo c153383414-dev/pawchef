@@ -91,7 +91,18 @@
     "standardNote": "⚡ IA Estándar · Actualiza para recetas Premium personalizadas",
     "allFreeUsed": "Has usado todas tus {n} recetas gratuitas.",
     "creditsUsed": "Tus créditos IA se han agotado.",
-    "monthlyQuotaUsed": "Cuota mensual alcanzada. Compra créditos para continuar."
+    "monthlyQuotaUsed": "Cuota mensual alcanzada. Compra créditos para continuar.",
+    "disclaimer_short": "⚕ Receta generada por IA, solo referencia nutricional. No reemplaza el consejo veterinario.",
+    "disclaimer_full": "Todas las recetas son generadas por IA siguiendo las normas AAFCO. Solo referencia nutricional, no consejo médico. Consulte a un veterinario antes de alimentar.",
+    "calories_warning": "⚠️ Las calorías actuales ({actual} kcal) están fuera del rango objetivo {min}–{max} kcal. Ajuste las cantidades.",
+    "generateError": "Error de generación. Por favor, inténtelo más tarde.",
+    "error": {
+      "forbidden_ingredient": "⚠️ Algunos ingredientes fueron ajustados por restricciones de salud",
+      "nutrition_failure": "🚨 La nutrición no cumple los estándares. Por favor, genere de nuevo."
+    },
+    "warning": {
+      "ingredient_removed": "⚠️ {name} fue eliminado de la receta por restricciones de salud"
+    }
   },
   "safety": {
     "sectionLabel": "Verificador de Seguridad Alimentaria",
@@ -271,6 +282,37 @@
     "success": {
       "signupOk": "¡Registro exitoso! Correo de verificación enviado a {email}. Por favor, haz clic en el enlace para activar tu cuenta.",
       "resetSent": "Enlace de restablecimiento enviado (mismo mensaje independientemente de si el correo está registrado o no)"
+    },
+    "register_success_with_bonus": "🎁 Bono de registro: 20 💙 créditos gratuitos añadidos"
+  },
+  "compliance": {
+    "label": {
+      "compliant_dog_adult": "✓ Cumple AAFCO Perro Adulto",
+      "compliant_dog_puppy": "✓ Cumple AAFCO Cachorro",
+      "compliant_cat_adult": "✓ Cumple AAFCO Gato Adulto",
+      "compliant_cat_kitten": "✓ Cumple AAFCO Gatito",
+      "partial_dog_adult": "△ Cumple parcialmente AAFCO Perro Adulto",
+      "partial_dog_puppy": "△ Cumple parcialmente AAFCO Cachorro",
+      "partial_cat_adult": "△ Cumple parcialmente AAFCO Gato Adulto",
+      "partial_cat_kitten": "△ Cumple parcialmente AAFCO Gatito",
+      "non-compliant_dog_adult": "⚠ No cumple AAFCO Perro Adulto",
+      "non-compliant_dog_puppy": "⚠ No cumple AAFCO Cachorro",
+      "non-compliant_cat_adult": "⚠ No cumple AAFCO Gato Adulto",
+      "non-compliant_cat_kitten": "⚠ No cumple AAFCO Gatito"
+    }
+  },
+  "supplement": {
+    "reason": {
+      "calcium_deficiency": "Calcio deficiente, suplementado automáticamente",
+      "omega3_deficiency": "Omega-3 deficiente, suplementado automáticamente",
+      "taurine_deficiency": "Taurina deficiente (esencial para gatos), suplementada automáticamente"
+    }
+  },
+  "substitute": {
+    "no_options": "No se encontró sustituto adecuado para este ingrediente",
+    "error": {
+      "safety_violation": "El sustituto no cumple los requisitos de salud, cancelado",
+      "nutrition_failure": "La verificación nutricional post-sustitución falló, cancelado"
     }
   },
   "language": {

@@ -1,36 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { validateRecipe, calculateDER, PetParams } from '@/lib/nutrition-validator'
+import { getForbiddenFoods, getAllowedFoodsByCategory } from '@/lib/nutrition-db'
+import { resolveUnknownIngredients } from '@/lib/usda-api'
+import { DeductSource } from '@/types'
 import OpenAI from 'openai'
 
-// Single OpenAI-compatible client pointing to OpenRouter
 const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.OPENROUTER_API_KEY,
   defaultHeaders: { 'X-Title': 'PawChef' }
 })
 
+const MODEL_FREE    = 'openai/gpt-4o-mini'
+const MODEL_PREMIUM = 'anthropic/claude-sonnet-4-5'
+
 const LANGUAGE_MAP: Record<string, string> = {
-  en: 'English',
-  zh: 'Chinese (Simplified)',
-  es: 'Spanish',
-  fr: 'French',
-  ja: 'Japanese',
-  ko: 'Korean',
+  en: 'English', zh: 'Chinese (Simplified)', es: 'Spanish',
+  fr: 'French',  ja: 'Japanese',             ko: 'Korean',
 }
-
-// Free/standard tier: Llama 3.1 8B free (200 req/day, 20 req/min on OpenRouter)
-const MODEL_STANDARD         = 'meta-llama/llama-3.1-8b-instruct:free'
-// Fallback when free quota exhausted (rate-limited): ~$0.0001/call
-const MODEL_STANDARD_FALLBACK = 'openai/gpt-4o-mini'
-// Paid/premium tier uses Claude Sonnet (~$0.015/call)
-const MODEL_PREMIUM  = 'anthropic/claude-sonnet-4-5'
-
-type DeductionSource = 'guest' | 'free' | 'gift' | 'paid' | 'pro'
 
 function getClientIp(req: NextRequest): string {
   return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
       || req.headers.get('x-real-ip')
       || 'unknown'
+}
+
+// 将年龄字符串转为月份（"3yr" → 36）
+function parseAgeToMonths(age: string): number {
+  if (age === '<1yr') return 6
+  if (age === '12yr+') return 144
+  const match = age.match(/^(\d+)yr$/)
+  return match ? parseInt(match[1]) * 12 : 36
 }
 
 export async function POST(req: NextRequest) {
@@ -44,53 +45,39 @@ export async function POST(req: NextRequest) {
     } = await req.json()
 
     const language = LANGUAGE_MAP[locale] || 'English'
-    const ip = getClientIp(req)
+    const ip       = getClientIp(req)
+    const locale_  = locale || 'en'
 
-    // Debug auth state
     console.log('[generate-recipe] auth:', {
       userId: user?.id ?? 'null',
       authErr: authErr?.message ?? 'none',
       hasGuestToken: !!guestToken,
-      supabaseKeyPrefix: (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'MISSING')?.slice(0, 15),
     })
 
-    // ── Step 1-5: determine deduction source & model ──────────────────────────
-    let selectedModel: string = MODEL_PREMIUM
-    let deductionSource: DeductionSource = 'gift'
-    let freeRemaining = 0   // returned to client for UI
+    // ── 确定积分扣减来源 ──────────────────────────────────────────────────────
+    let deductSource: DeductSource = 'guest'
+    let freeRemaining = 0
+    let isPro = false
+    let creditSource: string | null = null
 
     if (!user) {
-      // ── Step 1: Guest (no account) ──────────────────────────────────────────
-      // If no guestToken was sent, this is a logged-in user whose server auth failed
-      // Return a meaningful error instead of GUEST_TOKEN_MISSING
       if (!guestToken) {
-        console.error('[generate-recipe] No user and no guestToken — possible auth session issue')
         return NextResponse.json({ error: 'AUTH_REQUIRED' }, { status: 401 })
       }
-
       const filters = [`token.eq.${guestToken}`]
       if (ip !== 'unknown') filters.push(`ip.eq.${ip}`)
       if (fingerprint)      filters.push(`fingerprint.eq.${fingerprint}`)
-
       const { data: existing } = await supabase
-        .from('guest_usage')
-        .select('id')
-        .or(filters.join(','))
-        .limit(1)
-        .maybeSingle()
-
+        .from('guest_usage').select('id').or(filters.join(',')).limit(1).maybeSingle()
       if (existing) {
         return NextResponse.json({ error: 'GUEST_LIMIT_REACHED' }, { status: 402 })
       }
-
-      selectedModel    = MODEL_STANDARD
-      deductionSource  = 'guest'
+      deductSource = 'guest'
 
     } else {
-      // ── Step 2-5: Logged-in user ────────────────────────────────────────────
       const { data: profile, error: profileErr } = await supabase
         .from('profiles')
-        .select('free_ai_used, free_ai_limit, gift_ai_points, paid_points, is_pro, monthly_ai_count')
+        .select('free_ai_used, free_ai_limit, gift_ai_points, paid_points, is_pro, monthly_ai_count, pro_expires_at')
         .eq('id', user.id)
         .single()
 
@@ -98,210 +85,320 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Profile not found' }, { status: 400 })
       }
 
+      isPro = !!(profile.is_pro && profile.pro_expires_at && new Date(profile.pro_expires_at) > new Date())
+
       const freeUsed  = profile.free_ai_used  ?? 0
-      const freeLimit = profile.free_ai_limit ?? 3
+      const freeLimit = profile.free_ai_limit ?? 2
 
       if (freeUsed < freeLimit) {
-        // Step 2: free AI quota (Gemini)
-        selectedModel   = MODEL_STANDARD
-        deductionSource = 'free'
-        freeRemaining   = freeLimit - freeUsed - 1
+        deductSource  = 'free_ai_quota'
+        freeRemaining = freeLimit - freeUsed - 1
       } else if ((profile.gift_ai_points ?? 0) > 0) {
-        // Step 3: gifted points (Claude)
-        deductionSource = 'gift'
+        deductSource = 'gift_ai_points'
       } else if ((profile.paid_points ?? 0) > 0) {
-        // Step 4: purchased points (Claude)
-        deductionSource = 'paid'
-      } else if (profile.is_pro && (profile.monthly_ai_count ?? 0) < 30) {
-        // Step 5: Pro monthly quota (Claude)
-        deductionSource = 'pro'
+        deductSource = 'paid_points'
+      } else if (isPro && (profile.monthly_ai_count ?? 0) < 30) {
+        deductSource = 'pro_monthly'
       } else {
         return NextResponse.json({ error: 'NO_CREDITS' }, { status: 402 })
       }
+
+      // 付费/赠送/Pro 先扣再生成
+      if (deductSource === 'free_ai_quota') {
+        const { data: freeResult, error: freeErr } = await supabase
+          .rpc('deduct_free_ai', { p_user_id: user.id })
+        if (freeErr) {
+          return NextResponse.json({ error: 'System error, please retry' }, { status: 500 })
+        }
+        if (!freeResult?.ok) {
+          return NextResponse.json({ error: freeResult?.reason || 'FREE_LIMIT_REACHED' }, { status: 402 })
+        }
+        freeRemaining = freeResult.remaining ?? 0
+      } else {
+        const source = deductSource === 'pro_monthly' ? 'pro' :
+                       deductSource === 'gift_ai_points' ? 'gift' : 'paid'
+        const { data: deductResult, error: deductErr } = await supabase
+          .rpc('deduct_ai_credits', { p_user_id: user.id, p_cost: 1 })
+        if (deductErr) {
+          return NextResponse.json({ error: 'System error, please retry' }, { status: 500 })
+        }
+        if (!deductResult?.ok) {
+          return NextResponse.json({ error: 'NO_CREDITS' }, { status: 402 })
+        }
+        creditSource = deductResult?.source ?? source
+      }
     }
 
-    // ── For paid/gift/pro: deduct BEFORE generating (atomic, prevents abuse) ──
-    // ── For guest/free: deduct AFTER generating succeeds (so AI failures don't
-    //    waste the user's free quota)                                           ──
-    let creditSource: string | null = null
+    // ── 宠物参数 ──────────────────────────────────────────────────────────────
+    const ageMonths   = parseAgeToMonths(age || '3yr')
+    const weightKg    = parseFloat(weight) || 5
+    const isPuppy     = ageMonths < 12
+    const isCat       = species === 'cat'
 
-    if (deductionSource === 'free') {
-      const { data: freeResult, error: freeErr } = await supabase
-        .rpc('deduct_free_ai', { p_user_id: user!.id })
+    // 服务端强制：非 Pro 用户只能使用 healthy
+    const safeConditions: string[] = isPro
+      ? (healthConditions?.filter((c: string) => c !== 'healthy') ?? [])
+      : []
 
-      if (freeErr) {
-        console.error('deduct_free_ai error:', freeErr)
-        return NextResponse.json({ error: 'System error, please retry' }, { status: 500 })
-      }
-      if (!freeResult?.ok) {
-        return NextResponse.json({ error: freeResult?.reason || 'FREE_LIMIT_REACHED' }, { status: 402 })
-      }
-      freeRemaining = freeResult.remaining ?? 0
-    } else if (deductionSource !== 'guest') {
-      // gift / paid / pro → use existing deduct_ai_credits
-      const { data: deductResult, error: deductErr } = await supabase
-        .rpc('deduct_ai_credits', { p_user_id: user!.id, p_cost: 1 })
-
-      if (deductErr) {
-        console.error('deduct_ai_credits error:', deductErr)
-        return NextResponse.json({ error: 'System error, please retry' }, { status: 500 })
-      }
-      if (!deductResult?.ok) {
-        return NextResponse.json({
-          error:          'NO_CREDITS',
-          detail:         'All credits exhausted.',
-          gift_ai_points: deductResult?.gift_ai_points ?? 0,
-          paid_points:    deductResult?.paid_points    ?? 0,
-        }, { status: 402 })
-      }
-      creditSource = deductResult?.source ?? null
+    const petParams: PetParams = {
+      weightKg,
+      ageMonths,
+      species: species as 'dog' | 'cat',
+      healthConditions: safeConditions.length > 0 ? safeConditions : ['healthy'],
     }
-    // Note: guest deduction happens AFTER successful AI generation (see below)
 
-    // ── Build prompt ───────────────────────────────────────────────────────────
-    const isKidney       = healthConditions?.includes('kidney')
-    const isPancreatitis = healthConditions?.includes('pancreatitis')
-    const isDiabetes     = healthConditions?.includes('diabetes')
-    const isObese        = healthConditions?.includes('obesity')
-    const speciesName    = species === 'dog' ? 'dog' : 'cat'
+    const targetCalories   = calculateDER(petParams)
+    const forbiddenDbNames = getForbiddenFoods(safeConditions)
 
-    const prompt = `You are a professional pet nutritionist strictly following AAFCO, ASPCA, and FEDIAF international standards.
+    // ── Prompt 构建 ──────────────────────────────────────────────────────────
+    const freeDogIngredients = `proteins: chicken_breast, beef_lean, salmon, turkey_breast, duck_breast, cod, pork_lean, egg_cooked
+   organs: chicken_liver, chicken_gizzard
+   veggies: carrot, broccoli, pumpkin, sweet_potato, spinach, green_peas
+   carbs: brown_rice_cooked, white_rice_cooked, oatmeal_cooked
+   supplements: calcium_carbonate
+   oils: fish_oil`
 
-Generate a complete homemade pet food recipe for:
-- Species: ${speciesName}
-- Name: ${petName || 'Pet'}
-- Weight: ${weight || 5}kg
-- Age: ${age || 'adult'}
-- Health conditions: ${healthConditions?.join(', ') || 'healthy'}
+    const freeCatIngredients = `proteins: chicken_breast, beef_lean, salmon, turkey_breast, duck_breast, cod, pork_lean, egg_cooked
+   organs: chicken_liver, chicken_gizzard
+   veggies: carrot, broccoli, pumpkin, green_peas
+   supplements: calcium_carbonate, taurine_supplement
+   oils: fish_oil
+   (NO carbs/rice/oatmeal - cats need very low carbohydrates)`
 
-Strict requirements:
-1. NEVER use: onion, garlic, grapes, raisins, chocolate, xylitol, avocado, macadamia nuts, caffeine, alcohol, chives
-2. NO salt, seasoning, or spices whatsoever
-3. All meat must be thoroughly cooked
-4. This is nutritional reference only, not medical advice
-${isKidney       ? '5. Kidney disease mode: low phosphorus, low potassium, restricted protein, use rabbit or cod, avoid organ meats' : ''}
-${isPancreatitis ? '5. Pancreatitis mode: very low fat, use skinless chicken breast or cod, avoid any high-fat ingredients' : ''}
-${isDiabetes     ? '5. Diabetes mode: low carbohydrate, high protein, avoid starchy foods' : ''}
-${isObese        ? '5. Weight loss mode: low calorie, high fiber, controlled fat, reduced carbs' : ''}
+    const freePrompt = `You are a professional pet nutritionist creating a home-cooked meal recipe.
+Respond in ${language}.
 
-Calculate precise daily portions based on ${weight || 5}kg body weight.
+Pet: ${isCat ? 'Cat' : 'Dog'}, ${weightKg}kg, ${ageMonths} months ${isPuppy ? `(${isCat ? 'KITTEN' : 'PUPPY'} - higher protein/fat/calcium needed)` : '(adult)'}
+Target calories: ${targetCalories.min}–${targetCalories.max} kcal (MUST stay within range)
+${isCat ? 'IMPORTANT: Cat is an obligate carnivore. High protein, moderate fat, minimal carbs. Taurine is essential.' : ''}
 
-IMPORTANT: All text values in the JSON MUST be written in ${language}. This includes the recipe title, all ingredient names, all step descriptions, all warnings, and all notes.
+MANDATORY:
+1. Calcium source: calcium_carbonate ~${(weightKg * (isPuppy ? 0.35 : 0.15)).toFixed(1)}g
+2. Omega-3: fish_oil ~${Math.max(0.5, weightKg * 0.1).toFixed(1)}ml OR use salmon/cod
+${isCat ? `3. Taurine: taurine_supplement ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g (cats cannot synthesize taurine)` : '3. Balance protein and moderate carbs'}
+4. Steps must NOT contain gram/weight numbers
+5. ONLY use approved ingredients (exact dbName keys):
+${isCat ? freeCatIngredients : freeDogIngredients}
 
-Return ONLY valid JSON, no other text:
+Output JSON only (no markdown):
 {
-  "title": "Recipe name in ${language} (include pet name if provided)",
-  "content": {
-    "ingredients": [
-      {"emoji": "🍗", "name": "ingredient name in ${language}", "amount": "XXg"}
-    ],
-    "steps": ["step 1 in ${language}", "step 2 in ${language}", "step 3 in ${language}", "step 4 in ${language}"],
-    "warnings": ["warning in ${language} if health conditions present, else empty array"],
-    "notes": "brief notes in ${language}"
-  },
-  "nutrition": {
-    "calories": "~XXX kcal",
-    "protein": "XXg",
-    "fat": "XXg",
-    "carbs": "XXg",
-    "standard": "AAFCO compliant"
-  }
+  "title": "title in ${language}",
+  "ingredients": [{ "name": "ingredient name in ${language}", "dbName": "exact_key", "amountG": 50, "category": "protein|organ|veggie|carb|supplement|oil", "emoji": "🍗" }],
+  "steps": ["Step 1 (no gram numbers)", "Step 2", "Step 3", "Step 4"],
+  "warnings": []
 }`
 
-    // ── Call AI (auto-fallback if free model rate-limited) ────────────────────
-    let recipe: any
-    let usedModel = selectedModel
-    try {
-      let completion
-      try {
-        completion = await openai.chat.completions.create({
-          model:       selectedModel,
-          messages:    [{ role: 'user', content: prompt }],
-          max_tokens:  1200,
-          temperature: 0.7,
-        })
-      } catch (primaryErr: any) {
-        // If free model is rate-limited (429) or unavailable (404), fall back
-        const status = primaryErr?.status || primaryErr?.response?.status
-        const isFreeModel = selectedModel === MODEL_STANDARD
-        if (isFreeModel && (status === 429 || status === 404 || status === 400)) {
-          console.warn(`[generate-recipe] Free model ${selectedModel} failed (${status}), falling back to ${MODEL_STANDARD_FALLBACK}`)
-          usedModel = MODEL_STANDARD_FALLBACK
-          completion = await openai.chat.completions.create({
-            model:       MODEL_STANDARD_FALLBACK,
-            messages:    [{ role: 'user', content: prompt }],
-            max_tokens:  1200,
-            temperature: 0.7,
-          })
-        } else {
-          throw primaryErr
-        }
-      }
+    const healthNote = safeConditions.length > 0
+      ? `\nHealth restrictions:\n${safeConditions.map((c: string) => ({
+          kidney:       '- Low phosphorus: avoid spinach, legumes, excess organ meat',
+          pancreatitis: '- Low fat: avoid fatty meats, excess egg yolk',
+          diabetes:     '- Low glycemic: avoid white rice, sweet potato excess',
+          obesity:      '- Low calorie: reduce carbohydrates and oils',
+          allergy:      '- Check for allergens in all ingredients',
+        } as Record<string, string>)[c] || '').filter(Boolean).join('\n')}
+Forbidden ingredient dbNames: ${forbiddenDbNames.join(', ')}`
+      : ''
 
+    const proPrompt = `You are an expert pet nutritionist creating a personalized home-cooked meal recipe.
+Respond in ${language}.
+
+Pet: ${isCat ? 'Cat' : 'Dog'}${petName ? ` (${petName})` : ''}, ${weightKg}kg, ${ageMonths} months ${isPuppy ? `(${isCat ? 'KITTEN' : 'PUPPY'})` : '(adult)'}
+Health: ${petParams.healthConditions.join(', ')}
+Target calories: ${targetCalories.min}–${targetCalories.max} kcal (MUST stay within range)
+${isCat ? 'IMPORTANT: Cat is an obligate carnivore. High protein (>50% calories), moderate fat, minimal/no carbs. Taurine MUST be present.' : ''}
+${healthNote}
+
+MANDATORY:
+1. Calcium source required: ~${(weightKg * (isPuppy ? 0.35 : 0.15)).toFixed(1)}g calcium carbonate
+2. Omega-3 required: ~${Math.max(0.5, weightKg * 0.1).toFixed(1)}ml fish oil OR fatty fish
+${isCat ? `3. Taurine required: ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g taurine supplement OR ensure meat sources provide sufficient taurine` : ''}
+4. Steps must NOT contain gram/weight numbers
+5. Be creative with safe ingredients
+6. Provide dbName in English snake_case for each ingredient
+
+Output JSON only (no markdown):
+{
+  "title": "title in ${language}",
+  "ingredients": [{ "name": "ingredient name in ${language}", "dbName": "english_snake_case", "amountG": 50, "category": "protein|organ|veggie|carb|supplement|oil", "emoji": "🍗" }],
+  "steps": ["Step 1", "Step 2", "Step 3", "Step 4"],
+  "warnings": ["health-specific warnings if any"]
+}`
+
+    const model     = isPro ? MODEL_PREMIUM : MODEL_FREE
+    const prompt    = isPro ? proPrompt     : freePrompt
+    const maxTokens = isPro ? 2000          : 1200
+
+    // ── AI 调用 ──────────────────────────────────────────────────────────────
+    let aiResult: any
+    try {
+      const completion = await openai.chat.completions.create({
+        model, messages: [{ role: 'user', content: prompt }],
+        max_tokens: maxTokens, temperature: 0.7,
+      })
       const text      = completion.choices[0]?.message?.content || ''
       const jsonMatch = text.match(/\{[\s\S]*\}/)
       if (!jsonMatch) throw new Error('AI response format error')
-      recipe = JSON.parse(jsonMatch[0])
-
+      aiResult = JSON.parse(jsonMatch[0])
     } catch (aiError: any) {
-      // Log detailed error for debugging
-      const errMsg = aiError?.message || String(aiError)
-      const errStatus = aiError?.status || aiError?.response?.status || 'unknown'
-      console.error('[generate-recipe] AI call failed:', {
-        model: selectedModel,
-        status: errStatus,
-        message: errMsg,
-        keyPrefix: process.env.OPENROUTER_API_KEY?.slice(0, 12) + '...',
-      })
-
-      // Refund deducted credits on AI failure
-      if (deductionSource === 'free' && user) {
-        await supabase.rpc('refund_free_ai', { p_user_id: user.id })
-      } else if (deductionSource !== 'guest' && user) {
-        await supabase.rpc('refund_ai_credit', {
-          p_user_id: user.id,
-          p_source:  creditSource,
-          p_cost:    1,
-        })
-      }
+      console.error('[generate-recipe] AI call failed:', aiError?.message)
+      await refundCredits(supabase, user?.id, deductSource, creditSource)
       return NextResponse.json(
-        { error: `AI generation failed (${errStatus}): ${errMsg}` },
+        { error: `AI generation failed: ${aiError?.message || 'unknown'}` },
         { status: 500 }
       )
     }
 
-    // ── Record guest usage AFTER successful generation ────────────────────────
-    if (deductionSource === 'guest') {
+    // ── Pro 专属：禁用食材硬校验 ──────────────────────────────────────────────
+    if (isPro && safeConditions.length > 0) {
+      const removedItems: any[] = []
+      aiResult.ingredients = aiResult.ingredients.filter((ing: any) => {
+        const isForbidden = forbiddenDbNames.includes(ing.dbName)
+        if (isForbidden) removedItems.push(ing)
+        return !isForbidden
+      })
+      if (removedItems.length > 0) {
+        const removedCritical = removedItems.filter((i: any) =>
+          ['protein', 'organ', 'carb'].includes(i.category)
+        )
+        if (removedCritical.length > 0) {
+          await refundCredits(supabase, user!.id, deductSource, creditSource)
+          return NextResponse.json({
+            error:        'FORBIDDEN_INGREDIENT_REMOVED',
+            messageKey:   'recipe.error.forbidden_ingredient',
+            removedItems: removedCritical.map((i: any) => i.name),
+          }, { status: 422 })
+        }
+        aiResult.warnings = [
+          ...(aiResult.warnings || []),
+          ...removedItems.map((i: any) => `ingredient_removed:${i.dbName}`),
+        ]
+      }
+    }
+
+    // ── 营养校验 ─────────────────────────────────────────────────────────────
+    let ingredientsForValidation = (aiResult.ingredients || []).map((ing: any) => ({
+      name: ing.name, dbName: ing.dbName, amountG: ing.amountG || 0,
+    }))
+
+    // Pro 用户对未知食材查 USDA
+    if (isPro) {
+      ingredientsForValidation = await resolveUnknownIngredients(ingredientsForValidation)
+    }
+
+    const validation = validateRecipe(ingredientsForValidation, petParams)
+
+    // 免费用户：未知食材超30% → 退还
+    if (!isPro && validation.unknownIngredients.length > 0 &&
+        validation.unknownIngredients.length / (aiResult.ingredients?.length || 1) > 0.3) {
+      await refundCredits(supabase, user?.id, deductSource, creditSource)
+      return NextResponse.json({ error: 'INGREDIENT_MISMATCH' }, { status: 500 })
+    }
+
+    // 蛋白质/脂肪严重不足 → 退还
+    const isCriticalFailure =
+      validation.complianceLabel === 'non-compliant' &&
+      (!validation.aafco.protein.ok || !validation.aafco.fat.ok)
+    if (isCriticalFailure) {
+      await refundCredits(supabase, user?.id, deductSource, creditSource)
+      return NextResponse.json({
+        error:      'NUTRITION_CRITICAL_FAILURE',
+        messageKey: 'recipe.error.nutrition_failure',
+      }, { status: 422 })
+    }
+
+    // ── 合并自动补全食材 ──────────────────────────────────────────────────────
+    const supplementIngredients = validation.supplements.map(s => ({
+      name:      s.ingredient,
+      dbName:    s.dbName,
+      amountG:   s.amountG,
+      amount:    `${s.amountG}g`,
+      category:  'supplement' as const,
+      emoji:     '💊',
+      autoAdded: true,
+      reasonKey: s.reasonKey,
+    }))
+
+    const finalIngredients = [
+      ...(aiResult.ingredients || []).map((ing: any) => ({
+        ...ing,
+        amount: ing.amount || `${ing.amountG}g`,
+      })),
+      ...supplementIngredients,
+    ]
+
+    // ── 访客：生成成功后记录使用 ──────────────────────────────────────────────
+    if (deductSource === 'guest') {
       await supabase.from('guest_usage').insert({
-        token:       guestToken,
-        ip,
-        fingerprint: fingerprint || '',
+        token: guestToken, ip, fingerprint: fingerprint || '',
       })
     }
 
-    // ── Save recipe & log transaction (logged-in users only) ──────────────────
+    // ── 登录用户：保存食谱 & 积分流水 ─────────────────────────────────────────
     if (user) {
       await supabase.from('recipes').insert({
         user_id:   user.id,
-        title:     recipe.title,
-        content:   recipe.content,
-        nutrition: recipe.nutrition,
+        title:     aiResult.title,
+        content:   { ingredients: finalIngredients, steps: aiResult.steps, warnings: aiResult.warnings },
+        nutrition: {
+          calories: `~${validation.actualCalories}`,
+          protein:  `${validation.nutrients.protein}g`,
+          fat:      `${validation.nutrients.fat}g`,
+          carbs:    `${validation.nutrients.carbs}g`,
+        },
       })
-
       await supabase.from('point_transactions').insert({
         user_id:     user.id,
         amount:      -1,
         type:        'generate_recipe',
-        description: `Generate recipe: ${recipe.title} (source: ${deductionSource})`,
+        description: `Generate recipe: ${aiResult.title} (source: ${deductSource})`,
       })
     }
 
-    const tier = (deductionSource === 'guest' || deductionSource === 'free') ? 'standard' : 'premium'
-
-    return NextResponse.json({ ...recipe, tier, freeRemaining })
+    return NextResponse.json({
+      title:       aiResult.title,
+      ingredients: finalIngredients,
+      steps:       aiResult.steps   || [],
+      warnings:    aiResult.warnings || [],
+      nutrition: {
+        calories: `~${validation.actualCalories}`,
+        protein:  `${validation.nutrients.protein}g`,
+        fat:      `${validation.nutrients.fat}g`,
+        carbs:    `${validation.nutrients.carbs}g`,
+      },
+      compliance: {
+        label:                validation.complianceLabel,
+        labelKey:             validation.complianceLabelKey,
+        caloriesOk:           validation.caloriesOk,
+        targetCalories:       validation.targetCalories,
+        autoAddedSupplements: validation.supplements,
+      },
+      unknownIngredients: validation.unknownIngredients,
+      generatedBy:        isPro ? 'claude-sonnet' : 'gpt-4o-mini',
+      freeRemaining,
+    })
 
   } catch (e: any) {
     console.error('generate-recipe error:', e)
     return NextResponse.json({ error: e.message || 'Server error' }, { status: 500 })
+  }
+}
+
+// ── 退还积分辅助函数 ─────────────────────────────────────────────────────────
+async function refundCredits(
+  supabase: any,
+  userId: string | undefined,
+  source: DeductSource,
+  creditSource: string | null
+) {
+  if (!userId || source === 'guest') return
+  if (source === 'free_ai_quota') {
+    await supabase.rpc('refund_free_ai', { p_user_id: userId }).catch(() => {})
+  } else {
+    const src = creditSource ||
+      (source === 'gift_ai_points' ? 'gift' :
+       source === 'paid_points'    ? 'paid' : 'pro')
+    await supabase.rpc('refund_ai_credit', {
+      p_user_id: userId, p_source: src, p_cost: 1,
+    }).catch(() => {})
   }
 }
