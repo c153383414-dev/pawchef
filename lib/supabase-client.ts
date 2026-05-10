@@ -6,7 +6,7 @@ export function createClient() {
   if (clientInstance) return clientInstance
   clientInstance = _createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)!
   )
   return clientInstance
 }
