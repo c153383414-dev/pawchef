@@ -18,8 +18,10 @@ const LANGUAGE_MAP: Record<string, string> = {
   ko: 'Korean',
 }
 
-// Free/standard tier: Llama 3.1 8B (completely free on OpenRouter)
-const MODEL_STANDARD = 'meta-llama/llama-3.1-8b-instruct:free'
+// Free/standard tier: Llama 3.1 8B free (200 req/day, 20 req/min on OpenRouter)
+const MODEL_STANDARD         = 'meta-llama/llama-3.1-8b-instruct:free'
+// Fallback when free quota exhausted (rate-limited): ~$0.0001/call
+const MODEL_STANDARD_FALLBACK = 'openai/gpt-4o-mini'
 // Paid/premium tier uses Claude Sonnet (~$0.015/call)
 const MODEL_PREMIUM  = 'anthropic/claude-sonnet-4-5'
 
@@ -195,15 +197,35 @@ Return ONLY valid JSON, no other text:
   }
 }`
 
-    // ── Call AI ────────────────────────────────────────────────────────────────
+    // ── Call AI (auto-fallback if free model rate-limited) ────────────────────
     let recipe: any
+    let usedModel = selectedModel
     try {
-      const completion = await openai.chat.completions.create({
-        model:       selectedModel,
-        messages:    [{ role: 'user', content: prompt }],
-        max_tokens:  1200,
-        temperature: 0.7,
-      })
+      let completion
+      try {
+        completion = await openai.chat.completions.create({
+          model:       selectedModel,
+          messages:    [{ role: 'user', content: prompt }],
+          max_tokens:  1200,
+          temperature: 0.7,
+        })
+      } catch (primaryErr: any) {
+        // If free model is rate-limited (429) or unavailable (404), fall back
+        const status = primaryErr?.status || primaryErr?.response?.status
+        const isFreeModel = selectedModel === MODEL_STANDARD
+        if (isFreeModel && (status === 429 || status === 404 || status === 400)) {
+          console.warn(`[generate-recipe] Free model ${selectedModel} failed (${status}), falling back to ${MODEL_STANDARD_FALLBACK}`)
+          usedModel = MODEL_STANDARD_FALLBACK
+          completion = await openai.chat.completions.create({
+            model:       MODEL_STANDARD_FALLBACK,
+            messages:    [{ role: 'user', content: prompt }],
+            max_tokens:  1200,
+            temperature: 0.7,
+          })
+        } else {
+          throw primaryErr
+        }
+      }
 
       const text      = completion.choices[0]?.message?.content || ''
       const jsonMatch = text.match(/\{[\s\S]*\}/)
