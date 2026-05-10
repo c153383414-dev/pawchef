@@ -18,8 +18,8 @@ const LANGUAGE_MAP: Record<string, string> = {
   ko: 'Korean',
 }
 
-// Free/standard tier uses Gemini Flash 1.5 (~$0.0001/call)
-const MODEL_STANDARD = 'google/gemini-flash-1.5'
+// Free/standard tier uses GPT-4o Mini (~$0.0002/call, universally available)
+const MODEL_STANDARD = 'openai/gpt-4o-mini'
 // Paid/premium tier uses Claude Sonnet (~$0.015/call)
 const MODEL_PREMIUM  = 'anthropic/claude-sonnet-4-5'
 
