@@ -17,6 +17,7 @@
     "subtitle": "AI-powered nutritionally complete recipes for dogs and cats, following international veterinary nutrition standards. Suitable for pets with health conditions.",
     "ctaMain": "Generate Recipe Free →",
     "ctaSecondary": "View Sample Recipes",
+    "freeNote": "✓ No credit card needed · 1 free recipe · No signup required",
     "stat1Label": "Food Safety Database",
     "stat2Label": "Preset Recipes",
     "stat3Label": "AAFCO Compliant",
@@ -74,7 +75,23 @@
     "nutriCalories": "Calories",
     "nutriProtein": "Protein",
     "nutriFat": "Fat",
-    "nutriCarbs": "Carbs"
+    "nutriCarbs": "Carbs",
+    "guestFreeAvailable": "🎁 1 free AI recipe · No signup needed",
+    "guestLimitReached": "You've used your free recipe",
+    "signupForMore": "Sign up for 2 more free recipes →",
+    "freeRemaining": "⚡ Standard quality · {n} free uses remaining",
+    "generateFree": "✦ Generate My Pet's Recipe (Free)",
+    "generateStandard": "✦ Generate Recipe (Standard · {n} left)",
+    "generateGift": "✦ Generate Recipe (-1 🟠 gifted credit · {n} left)",
+    "generatePaid": "✦ Generate Recipe (-1 🟠 AI credit · {n} left)",
+    "generatePro": "✦ Generate Recipe (Pro · {n} left this month)",
+    "noCreditsBtn": "Purchase AI Credits to Continue",
+    "standardBadge": "Standard",
+    "premiumBadge": "Premium ✨",
+    "standardNote": "⚡ Standard AI · Upgrade for personalized Premium recipes",
+    "allFreeUsed": "You've used all {n} free recipes.",
+    "creditsUsed": "Your AI credits are used up.",
+    "monthlyQuotaUsed": "Monthly quota reached. Purchase credits to continue."
   },
   "safety": {
     "sectionLabel": "Food Safety Checker",
@@ -192,6 +209,16 @@
       "uses": "{n} AI uses",
       "perUse": "${n}/use"
     }
+  },
+  "signupPrompt": {
+    "title": "Enjoyed your free recipe?",
+    "subtitle": "Sign up for free to get:",
+    "benefit1": "2 more free AI recipes",
+    "benefit2": "Save your recipe history",
+    "benefit3": "Daily check-in bonus",
+    "ctaSignup": "Create Free Account",
+    "ctaBuy": "Purchase AI Credits - $3.9",
+    "loginLink": "Already have an account? Login"
   },
   "footer": {
     "description": "AI-powered pet nutrition recipe platform, strictly following ASPCA · AAFCO · FEDIAF international standards",

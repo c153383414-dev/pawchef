@@ -33,6 +33,8 @@ export default function HomePage() {
     count_reset_at: dbProfile?.count_reset_at ?? null,
     last_checkin_date: dbProfile?.last_checkin_date ?? null,
     created_at: dbProfile?.created_at ?? new Date().toISOString(),
+    free_ai_used:  dbProfile?.free_ai_used  ?? 0,
+    free_ai_limit: dbProfile?.free_ai_limit ?? 3,
   })
 
   useEffect(() => {
@@ -163,9 +165,14 @@ export default function HomePage() {
             {t('hero.title')}<br />
             <em style={{ fontStyle: 'italic', color: '#C8813A' }}>{t('hero.titleHighlight')}</em>
           </h1>
-          <p style={{ fontSize: 'clamp(16px,2vw,19px)', color: 'rgba(28,26,22,0.6)', maxWidth: 520, margin: '0 auto 36px', fontWeight: 300 }}>
+          <p style={{ fontSize: 'clamp(16px,2vw,19px)', color: 'rgba(28,26,22,0.6)', maxWidth: 520, margin: '0 auto 16px', fontWeight: 300 }}>
             {t('hero.subtitle')}
           </p>
+          {!user && (
+            <p style={{ fontSize: 13, color: 'rgba(28,26,22,0.45)', marginBottom: 24 }}>
+              {t('hero.freeNote')}
+            </p>
+          )}
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={() => scrollTo('demo')} style={{ padding: '14px 32px', borderRadius: 10, background: '#1C1A16', color: '#FDFAF5', fontSize: 16, fontWeight: 500, border: 'none', cursor: 'pointer' }}>
               {t('hero.ctaMain')}
@@ -224,7 +231,7 @@ export default function HomePage() {
 
       {/* DEMO */}
       <div id="demo" style={{ background: '#F7F3EC', borderRadius: 24, margin: '0 max(24px,5vw)' }}>
-        <RecipeDemo user={user} onAuthRequired={() => openAuth('signup')} locale={locale} t={t} />
+        <RecipeDemo user={user} onAuthRequired={(mode) => openAuth(mode ?? 'signup')} locale={locale} t={t} />
       </div>
 
       {/* MEAL PLAN */}

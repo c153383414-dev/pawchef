@@ -17,6 +17,7 @@
     "subtitle": "AAFCO基準に準拠したAI生成の栄養完全なレシピ。病気のペットにも対応。",
     "ctaMain": "無料でレシピ生成 →",
     "ctaSecondary": "サンプルを見る",
+    "freeNote": "✓ クレジットカード不要 · 1回無料 · 登録不要",
     "stat1Label": "食材安全データ",
     "stat2Label": "プリセットレシピ",
     "stat3Label": "AAFCO準拠",
@@ -74,7 +75,23 @@
     "nutriCalories": "カロリー",
     "nutriProtein": "タンパク質",
     "nutriFat": "脂質",
-    "nutriCarbs": "炭水化物"
+    "nutriCarbs": "炭水化物",
+    "guestFreeAvailable": "🎁 1回無料AIレシピ · 登録不要",
+    "guestLimitReached": "無料レシピを使用しました",
+    "signupForMore": "登録してさらに2回無料で →",
+    "freeRemaining": "⚡ スタンダード品質 · 残り{n}回無料",
+    "generateFree": "✦ ペットのレシピを生成（無料）",
+    "generateStandard": "✦ レシピ生成（スタンダード · 残り{n}回）",
+    "generateGift": "✦ レシピ生成（-1 🟠 ギフトクレジット · 残り{n}）",
+    "generatePaid": "✦ レシピ生成（-1 🟠 AIクレジット · 残り{n}）",
+    "generatePro": "✦ レシピ生成（Pro · 今月残り{n}回）",
+    "noCreditsBtn": "AIクレジットを購入して続ける",
+    "standardBadge": "スタンダード",
+    "premiumBadge": "プレミアム ✨",
+    "standardNote": "⚡ スタンダードAI · プレミアムでパーソナライズドレシピを",
+    "allFreeUsed": "無料レシピ{n}回をすべて使用しました。",
+    "creditsUsed": "AIクレジットが残っていません。",
+    "monthlyQuotaUsed": "月間クォータに達しました。クレジットを購入して続けてください。"
   },
   "safety": {
     "sectionLabel": "食材安全チェッカー",
@@ -192,6 +209,16 @@
       "uses": "{n}回分のAI利用",
       "perUse": "${n}/回"
     }
+  },
+  "signupPrompt": {
+    "title": "無料レシピはいかがでしたか？",
+    "subtitle": "無料登録で以下を取得：",
+    "benefit1": "AIレシピをさらに2回無料",
+    "benefit2": "レシピ履歴を保存",
+    "benefit3": "毎日ログインボーナス",
+    "ctaSignup": "無料アカウントを作成",
+    "ctaBuy": "AIクレジットを購入 - $3.9",
+    "loginLink": "すでにアカウントをお持ちですか？ログイン"
   },
   "footer": {
     "description": "ASPCA · AAFCO · FEDIAF 国際基準に厳密に準拠した、AI搭載ペット栄養レシピプラットフォーム",

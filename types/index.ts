@@ -15,6 +15,9 @@ export interface Profile {
   count_reset_at: string | null
   last_checkin_date: string | null
   created_at: string
+  // 免费AI次数（新增）
+  free_ai_used: number      // 已用免费AI次数（默认0）
+  free_ai_limit: number     // 免费次数上限（默认3）
 }
  
 export interface Pet {
