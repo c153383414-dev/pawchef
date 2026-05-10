@@ -29,9 +29,19 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
   const [age,      setAge]      = useState('3yr')
   const [health,   setHealth]   = useState<string[]>(['healthy'])
   const [loading,  setLoading]  = useState(false)
-  const [recipe,   setRecipe]   = useState<{ title: string; content: RecipeContent; nutrition: NutritionInfo; tier?: string } | null>(null)
+  const [recipe,   setRecipeState]   = useState<{ title: string; content: RecipeContent; nutrition: NutritionInfo; tier?: string } | null>(null)
   const [toast,    setToast]    = useState<{ msg: string; type: 'success' | 'error' | 'warn' } | null>(null)
   const [showSignupPrompt, setShowSignupPrompt] = useState(false)
+
+  // Helper to set recipe and persist to localStorage for guests
+  const setRecipe = (r: typeof recipe) => {
+    setRecipeState(r)
+    if (!user && r) {
+      try { localStorage.setItem('pawchef_guest_recipe', JSON.stringify(r)) } catch {}
+    } else if (!r) {
+      try { localStorage.removeItem('pawchef_guest_recipe') } catch {}
+    }
+  }
 
   // Guest free-use tracking
   const { guestToken, fingerprint } = useGuestToken()
@@ -46,7 +56,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
   // Free AI remaining (updated from API response)
   const [freeRemaining, setFreeRemaining] = useState<number | null>(null)
 
-  // Check if guest has already used their free recipe
+  // Check if guest has already used their free recipe; restore cached recipe if so
   useEffect(() => {
     if (user || !guestToken) return
     const check = async () => {
@@ -55,7 +65,15 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
           `/api/guest-usage?token=${encodeURIComponent(guestToken)}&fingerprint=${encodeURIComponent(fingerprint)}`
         )
         const data = await res.json()
-        setGuestUsed(!!data.used)
+        const used = !!data.used
+        setGuestUsed(used)
+        // Restore last recipe from localStorage so page refresh doesn't lose it
+        if (used) {
+          try {
+            const cached = localStorage.getItem('pawchef_guest_recipe')
+            if (cached) setRecipeState(JSON.parse(cached))
+          } catch {}
+        }
       } catch { /* fail silently — allow use */ }
       setGuestChecked(true)
     }

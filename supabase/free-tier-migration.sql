@@ -75,7 +75,22 @@ END;
 $$;
 
 -- ---------------------------------------------------------------
--- 4. Cleanup function: delete guest_usage older than 30 days
+-- 4. Atomic free-AI refund function (used when AI call fails)
+-- ---------------------------------------------------------------
+CREATE OR REPLACE FUNCTION refund_free_ai(p_user_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE profiles
+     SET free_ai_used = GREATEST(0, free_ai_used - 1)
+   WHERE id = p_user_id;
+END;
+$$;
+
+-- ---------------------------------------------------------------
+-- 6. Cleanup function: delete guest_usage older than 30 days
 --    Call this via pg_cron or manually:  SELECT cleanup_guest_usage();
 -- ---------------------------------------------------------------
 CREATE OR REPLACE FUNCTION cleanup_guest_usage()
@@ -93,7 +108,7 @@ END;
 $$;
 
 -- ---------------------------------------------------------------
--- 5. Update handle_new_user trigger to initialise free_ai fields
+-- 7. Update handle_new_user trigger to initialise free_ai fields
 --    (Only if your existing trigger inserts into profiles)
 -- ---------------------------------------------------------------
 -- If you have an existing handle_new_user function, add these lines

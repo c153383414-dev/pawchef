@@ -107,16 +107,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ── Deduct credits BEFORE generating (atomic, prevents concurrent abuse) ──
+    // ── For paid/gift/pro: deduct BEFORE generating (atomic, prevents abuse) ──
+    // ── For guest/free: deduct AFTER generating succeeds (so AI failures don't
+    //    waste the user's free quota)                                           ──
     let creditSource: string | null = null
 
-    if (deductionSource === 'guest') {
-      await supabase.from('guest_usage').insert({
-        token:       guestToken,
-        ip,
-        fingerprint: fingerprint || '',
-      })
-    } else if (deductionSource === 'free') {
+    if (deductionSource === 'free') {
       const { data: freeResult, error: freeErr } = await supabase
         .rpc('deduct_free_ai', { p_user_id: user!.id })
 
@@ -128,7 +124,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: freeResult?.reason || 'FREE_LIMIT_REACHED' }, { status: 402 })
       }
       freeRemaining = freeResult.remaining ?? 0
-    } else {
+    } else if (deductionSource !== 'guest') {
       // gift / paid / pro → use existing deduct_ai_credits
       const { data: deductResult, error: deductErr } = await supabase
         .rpc('deduct_ai_credits', { p_user_id: user!.id, p_cost: 1 })
@@ -147,6 +143,7 @@ export async function POST(req: NextRequest) {
       }
       creditSource = deductResult?.source ?? null
     }
+    // Note: guest deduction happens AFTER successful AI generation (see below)
 
     // ── Build prompt ───────────────────────────────────────────────────────────
     const isKidney       = healthConditions?.includes('kidney')
@@ -216,18 +213,32 @@ Return ONLY valid JSON, no other text:
     } catch (aiError) {
       console.error('AI call failed:', aiError)
 
-      // Refund paid credits on AI failure (free/guest are too cheap to refund)
-      if (deductionSource !== 'guest' && deductionSource !== 'free' && user) {
+      // Refund deducted credits on AI failure
+      if (deductionSource === 'free' && user) {
+        // Decrement free_ai_used back using raw SQL (safe atomic decrement)
+        await supabase.rpc('refund_free_ai', { p_user_id: user.id })
+      } else if (deductionSource !== 'guest' && user) {
+        // Refund paid/gift/pro credit
         await supabase.rpc('refund_ai_credit', {
           p_user_id: user.id,
           p_source:  creditSource,
           p_cost:    1,
         })
       }
+      // Guest: nothing to refund (insert hasn't happened yet)
       return NextResponse.json(
-        { error: 'AI generation failed, please retry.' + (deductionSource !== 'guest' && deductionSource !== 'free' ? ' Credits refunded.' : '') },
+        { error: 'AI generation failed, please retry.' + (deductionSource !== 'guest' ? ' Credits refunded.' : '') },
         { status: 500 }
       )
+    }
+
+    // ── Record guest usage AFTER successful generation ────────────────────────
+    if (deductionSource === 'guest') {
+      await supabase.from('guest_usage').insert({
+        token:       guestToken,
+        ip,
+        fingerprint: fingerprint || '',
+      })
     }
 
     // ── Save recipe & log transaction (logged-in users only) ──────────────────
