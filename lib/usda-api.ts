@@ -1,5 +1,5 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { NutrientPer100g } from './nutrition-db'
+import { findFood, NutrientPer100g } from './nutrition-db'
 
 const USDA_API_KEY = process.env.USDA_API_KEY
 
@@ -17,6 +17,13 @@ export async function resolveUnknownIngredients(
   const resolved: ResolvedIngredient[] = []
 
   for (const ing of ingredients) {
+    // Skip ingredients already in local nutrition DB — trust curated data over USDA
+    const localMatch = findFood(ing.dbName, true) || findFood(ing.name, false)
+    if (localMatch) {
+      resolved.push(ing)
+      continue
+    }
+
     // 1. 查 Supabase 缓存
     try {
       const { data: cached } = await supabase

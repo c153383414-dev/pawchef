@@ -121,11 +121,12 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
       if (guestUsed)     return t('signupPrompt.ctaSignup')
       return t('recipe.generateFree')
     }
+    // Pro users always show Pro quota first, regardless of remaining free quota
+    if (isPro) return t('recipe.generatePro', { n: 30 - (user.monthly_ai_count ?? 0) })
     const freeLeft = freeRemaining ?? Math.max(0, (user.free_ai_limit ?? 2) - (user.free_ai_used ?? 0))
     if (hasFreeAI) return t('recipe.generateStandard', { n: freeLeft })
     if ((user.gift_ai_points ?? 0) > 0) return t('recipe.generateGift', { n: user.gift_ai_points })
     if ((user.paid_points    ?? 0) > 0) return t('recipe.generatePaid', { n: user.paid_points })
-    if (isPro) return t('recipe.generatePro', { n: 30 - (user.monthly_ai_count ?? 0) })
     return t('recipe.noCreditsBtn')
   }
 
@@ -405,17 +406,19 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                 {t('recipe.guestLimitReached')} · <span style={{ color: '#185FA5', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setShowSignupPrompt(true)}>{t('recipe.signupForMore')}</span>
               </div>
             )}
-            {user && hasFreeAI && (
+            {user && isPro && (
+              <div style={{ padding: '10px 14px', borderRadius: 10, background: '#FBF0E4', fontSize: 12, color: '#854F0B', lineHeight: 1.6 }}>
+                {t('recipe.proMonthUsage', { used: user.monthly_ai_count ?? 0 })}
+              </div>
+            )}
+            {user && !isPro && hasFreeAI && (
               <div style={{ padding: '10px 14px', borderRadius: 10, background: '#EBF2EC', fontSize: 12, color: '#3B6D11', lineHeight: 1.6 }}>
                 ⚡ {t('recipe.freeRemaining', { n: freeLeft })}
               </div>
             )}
-            {user && !hasFreeAI && (
+            {user && !isPro && !hasFreeAI && (
               <div style={{ padding: '10px 14px', borderRadius: 10, background: '#F7F3EC', fontSize: 12, color: 'rgba(28,26,22,0.6)', lineHeight: 1.6 }}>
-                {isPro
-                  ? t('recipe.proMonthUsage', { used: user.monthly_ai_count ?? 0 })
-                  : t('recipe.aiCreditsLeft', { total: (user.paid_points ?? 0) + (user.gift_ai_points ?? 0) })
-                }
+                {t('recipe.aiCreditsLeft', { total: (user.paid_points ?? 0) + (user.gift_ai_points ?? 0) })}
                 {(user.gift_ai_points ?? 0) > 0 && (
                   <span style={{ color: '#C8813A' }}> {t('recipe.giftNote', { gift: user.gift_ai_points })}</span>
                 )}

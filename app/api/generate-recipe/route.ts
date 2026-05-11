@@ -161,6 +161,12 @@ export async function POST(req: NextRequest) {
     const portionGuidance = calculatePortionGuidance(petParams)
     const portionText     = formatPortionGuidanceForPrompt(portionGuidance, isCat)
 
+    // Pro 多样性：每次随机选一个主蛋白类型
+    const DOG_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey', 'duck', 'pork', 'cod']
+    const CAT_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey', 'duck', 'cod']
+    const proProteinPool = isCat ? CAT_PROTEINS : DOG_PROTEINS
+    const featuredProtein = proProteinPool[Math.floor(Math.random() * proProteinPool.length)]
+
     // ── Prompt 构建 ──────────────────────────────────────────────────────────
     const freeDogIngredients = `proteins: chicken_breast, beef_lean, salmon, turkey_breast, duck_breast, cod, pork_lean, egg_cooked
    organs: chicken_liver, chicken_gizzard
@@ -219,12 +225,14 @@ ${portionText}
 ${isCat ? 'IMPORTANT: Cat is an obligate carnivore. High protein (>50% calories), moderate fat, minimal/no carbs. Taurine MUST be present.' : ''}
 ${healthNote}
 
+TODAY's featured protein: ${featuredProtein} — build the recipe around this protein unless health conditions forbid it.
+
 MANDATORY:
 1. Calcium source required: ~${(weightKg * (isPuppy ? 0.35 : 0.15)).toFixed(1)}g calcium carbonate
 2. Omega-3 required: ~${Math.max(0.5, weightKg * 0.1).toFixed(1)}ml fish oil OR fatty fish
 ${isCat ? `3. Taurine required: ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g taurine supplement OR ensure meat sources provide sufficient taurine` : ''}
 4. Steps must NOT contain gram/weight numbers
-5. Be creative with safe ingredients
+5. Be creative with safe ingredients — vary the combination each time
 6. Provide dbName in English snake_case for each ingredient
 
 Output JSON only (no markdown):
@@ -235,16 +243,17 @@ Output JSON only (no markdown):
   "warnings": ["health-specific warnings if any"]
 }`
 
-    const model     = isPro ? MODEL_PREMIUM : MODEL_FREE
-    const prompt    = isPro ? proPrompt     : freePrompt
-    const maxTokens = isPro ? 2000          : 1200
+    const model       = isPro ? MODEL_PREMIUM : MODEL_FREE
+    const prompt      = isPro ? proPrompt     : freePrompt
+    const maxTokens   = isPro ? 2000          : 1200
+    const temperature = isPro ? 0.9           : 0.7   // Pro: higher temp for more diversity
 
     // ── AI 调用 ──────────────────────────────────────────────────────────────
     let aiResult: any
     try {
       const completion = await openai.chat.completions.create({
         model, messages: [{ role: 'user', content: prompt }],
-        max_tokens: maxTokens, temperature: 0.7,
+        max_tokens: maxTokens, temperature,
       })
       const text      = completion.choices[0]?.message?.content || ''
       const jsonMatch = text.match(/\{[\s\S]*\}/)
