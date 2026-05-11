@@ -395,11 +395,11 @@ Output JSON only (no markdown):
     // ── 用缩放后克重更新主食材，合并补充剂 ──────────────────────────────────
     const mainIngredientDbNames = new Set(
       ingredientsForValidation
-        .filter(ing => {
+        .filter((ing: { dbName?: string }) => {
           const food = ing.dbName ? findFood(ing.dbName, true) : undefined
           return !['supplement', 'oil'].includes(food?.category || '')
         })
-        .map(ing => ing.dbName)
+        .map((ing: { dbName?: string }) => ing.dbName)
     )
 
     const scaledMainIngredients = (aiResult.ingredients || [])
