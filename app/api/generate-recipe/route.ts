@@ -12,7 +12,7 @@ const openai = new OpenAI({
   defaultHeaders: { 'X-Title': 'PawChef' }
 })
 
-const MODEL_FREE    = 'openai/gpt-4o-mini'
+const MODEL_FREE    = 'anthropic/claude-haiku-3-5'
 const MODEL_PREMIUM = 'anthropic/claude-sonnet-4-5'
 
 const LANGUAGE_MAP: Record<string, string> = {
