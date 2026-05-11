@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { validateRecipe, calculateDER, PetParams } from '@/lib/nutrition-validator'
+import { validateRecipe, calculateDER, calculatePortionGuidance, formatPortionGuidanceForPrompt, PetParams } from '@/lib/nutrition-validator'
 import { getForbiddenFoods, getAllowedFoodsByCategory } from '@/lib/nutrition-db'
 import { resolveUnknownIngredients } from '@/lib/usda-api'
 import { DeductSource } from '@/types'
@@ -157,6 +157,10 @@ export async function POST(req: NextRequest) {
     const targetCalories   = calculateDER(petParams)
     const forbiddenDbNames = getForbiddenFoods(safeConditions)
 
+    // 动态参考克重，注入 prompt 解决 AI 热量偏低问题
+    const portionGuidance = calculatePortionGuidance(petParams)
+    const portionText     = formatPortionGuidanceForPrompt(portionGuidance, isCat)
+
     // ── Prompt 构建 ──────────────────────────────────────────────────────────
     const freeDogIngredients = `proteins: chicken_breast, beef_lean, salmon, turkey_breast, duck_breast, cod, pork_lean, egg_cooked
    organs: chicken_liver, chicken_gizzard
@@ -176,7 +180,7 @@ export async function POST(req: NextRequest) {
 Respond in ${language}.
 
 Pet: ${isCat ? 'Cat' : 'Dog'}, ${weightKg}kg, ${ageMonths} months ${isPuppy ? `(${isCat ? 'KITTEN' : 'PUPPY'} - higher protein/fat/calcium needed)` : '(adult)'}
-Target calories: ${targetCalories.min}–${targetCalories.max} kcal (MUST stay within range)
+${portionText}
 ${isCat ? 'IMPORTANT: Cat is an obligate carnivore. High protein, moderate fat, minimal carbs. Taurine is essential.' : ''}
 
 MANDATORY:
@@ -211,7 +215,7 @@ Respond in ${language}.
 
 Pet: ${isCat ? 'Cat' : 'Dog'}${petName ? ` (${petName})` : ''}, ${weightKg}kg, ${ageMonths} months ${isPuppy ? `(${isCat ? 'KITTEN' : 'PUPPY'})` : '(adult)'}
 Health: ${petParams.healthConditions.join(', ')}
-Target calories: ${targetCalories.min}–${targetCalories.max} kcal (MUST stay within range)
+${portionText}
 ${isCat ? 'IMPORTANT: Cat is an obligate carnivore. High protein (>50% calories), moderate fat, minimal/no carbs. Taurine MUST be present.' : ''}
 ${healthNote}
 

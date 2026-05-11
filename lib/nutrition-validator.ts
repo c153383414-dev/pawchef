@@ -291,3 +291,84 @@ export function validateRecipe(
     complianceLabelKey,
   }
 }
+
+// ── 动态参考克重计算（用于注入 prompt，解决 AI 无法估算热量的问题）──
+
+export interface PortionGuidance {
+  targetCalMin:     number
+  targetCalMax:     number
+  protein:          { min: number; max: number }
+  veggie:           { min: number; max: number }
+  carb:             { min: number; max: number }
+  fishOil:          number
+  calciumCarbonate: number
+  taurine?:         number
+  totalWeightMin:   number
+  totalWeightMax:   number
+}
+
+export function calculatePortionGuidance(params: PetParams): PortionGuidance {
+  const der       = calculateDER(params)
+  const targetCal = (der.min + der.max) / 2
+  const isCat     = params.species === 'cat'
+  const isPuppy   = params.ageMonths < 12
+
+  const proteinRatio    = isPuppy ? 0.50 : 0.45
+  const veggieRatio     = isPuppy ? 0.08 : 0.10
+  const carbRatio       = isCat   ? 0    : (isPuppy ? 0.20 : 0.25)
+  const catProteinRatio = isCat   ? (isPuppy ? 0.70 : 0.65) : proteinRatio
+
+  const PROTEIN_KCAL = 150
+  const VEGGIE_KCAL  = 40
+  const CARB_KCAL    = 120
+
+  const proteinG = (targetCal * (isCat ? catProteinRatio : proteinRatio)) / PROTEIN_KCAL * 100
+  const veggieG  = (targetCal * veggieRatio)  / VEGGIE_KCAL  * 100
+  const carbG    = isCat ? 0 : (targetCal * carbRatio) / CARB_KCAL * 100
+
+  const fishOilG          = Math.max(0.5, params.weightKg * 0.1)
+  const calciumCarbonateG = Math.round(params.weightKg * (isPuppy ? 0.35 : 0.15) * 10) / 10
+  const taurineG          = isCat
+    ? Math.max(0.05, Math.round(params.weightKg * 0.025 * 100) / 100)
+    : undefined
+
+  const range = (val: number) => ({
+    min: Math.max(1, Math.round(val * 0.85)),
+    max: Math.round(val * 1.15),
+  })
+
+  const totalMid = proteinG + veggieG + carbG
+
+  return {
+    targetCalMin:     der.min,
+    targetCalMax:     der.max,
+    protein:          range(proteinG),
+    veggie:           range(veggieG),
+    carb:             isCat ? { min: 0, max: 0 } : range(carbG),
+    fishOil:          Math.round(fishOilG * 10) / 10,
+    calciumCarbonate: calciumCarbonateG,
+    taurine:          taurineG,
+    totalWeightMin:   Math.round(totalMid * 0.85),
+    totalWeightMax:   Math.round(totalMid * 1.15),
+  }
+}
+
+export function formatPortionGuidanceForPrompt(g: PortionGuidance, isCat: boolean): string {
+  const carbLine = isCat
+    ? '- Carbs/grains: NOT recommended for cats (obligate carnivores)'
+    : `- Carbs (rice/oatmeal): ${g.carb.min}–${g.carb.max}g`
+
+  const taurineLine = g.taurine !== undefined
+    ? `- Taurine supplement: ${g.taurine}g (fixed, cats cannot synthesize taurine)`
+    : ''
+
+  return `Reference portions to hit calorie target ${g.targetCalMin}–${g.targetCalMax} kcal:
+- Main protein (meat/fish): ${g.protein.min}–${g.protein.max}g
+- Vegetables: ${g.veggie.min}–${g.veggie.max}g
+${carbLine}
+- Fish oil: ${g.fishOil}ml (fixed)
+- Calcium carbonate: ${g.calciumCarbonate}g (fixed)
+${taurineLine}
+- Total food weight (excluding supplements): ${g.totalWeightMin}–${g.totalWeightMax}g
+These are reference ranges. Adjust slightly to stay within calorie target.`
+}
