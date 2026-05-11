@@ -29,10 +29,10 @@ CREATE POLICY "service_role_all_guest_usage" ON guest_usage
 -- ---------------------------------------------------------------
 ALTER TABLE profiles
   ADD COLUMN IF NOT EXISTS free_ai_used  INTEGER NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS free_ai_limit INTEGER NOT NULL DEFAULT 3;
+  ADD COLUMN IF NOT EXISTS free_ai_limit INTEGER NOT NULL DEFAULT 2;
 
--- Back-fill existing users (give them their 3 free uses starting from 0)
-UPDATE profiles SET free_ai_used = 0, free_ai_limit = 3
+-- Back-fill existing users (1 guest + 1 registration = 2 total)
+UPDATE profiles SET free_ai_used = 0, free_ai_limit = 2
   WHERE free_ai_used IS NULL OR free_ai_limit IS NULL;
 
 -- ---------------------------------------------------------------
@@ -114,14 +114,14 @@ $$;
 -- If you have an existing handle_new_user function, add these lines
 -- to its INSERT or UPDATE statement:
 --   free_ai_used  = 0,
---   free_ai_limit = 3
+--   free_ai_limit = 2
 --
 -- Example (adjust to match your existing trigger body):
 -- CREATE OR REPLACE FUNCTION public.handle_new_user()
 -- RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
 -- BEGIN
 --   INSERT INTO public.profiles (id, email, display_name, free_ai_used, free_ai_limit)
---   VALUES (NEW.id, NEW.email, NEW.raw_user_meta_data->>'display_name', 0, 3)
+--   VALUES (NEW.id, NEW.email, NEW.raw_user_meta_data->>'display_name', 0, 2)
 --   ON CONFLICT (id) DO NOTHING;
 --   RETURN NEW;
 -- END;

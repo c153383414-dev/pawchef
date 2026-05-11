@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Profile, Ingredient, RecipeContent, NutritionInfo, RecipeCompliance, SubstituteItem } from '@/types'
 import { useGuestToken } from '@/hooks/useGuestToken'
 import SignupPrompt from '@/components/ui/SignupPrompt'
@@ -59,6 +59,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
   const { guestToken, fingerprint } = useGuestToken()
   const [guestUsed,    setGuestUsed]    = useState(false)
   const [guestChecked, setGuestChecked] = useState(false)
+  const reconciledForUser = useRef<string | null>(null)
 
   // 食材替换：单个 substitute 替代原来的数组
   const [substituting, setSubstituting] = useState<number | null>(null)
@@ -95,6 +96,24 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
     const limit = user.free_ai_limit ?? 2
     setFreeRemaining(Math.max(0, limit - used))
   }, [user])
+
+  // 登录后对访客已用次数进行修正（每 session 每用户只跑一次）
+  useEffect(() => {
+    if (!user || !guestToken || reconciledForUser.current === user.id) return
+    reconciledForUser.current = user.id
+    fetch('/api/reconcile-guest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guestToken, fingerprint }),
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.reconciled && data.freeRemaining !== undefined) {
+          setFreeRemaining(data.freeRemaining)
+        }
+      })
+      .catch(() => {})
+  }, [user?.id, guestToken])
 
   const isHealthOnly = health.length === 1 && health[0] === 'healthy'
 
