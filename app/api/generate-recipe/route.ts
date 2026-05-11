@@ -61,6 +61,16 @@ export async function POST(req: NextRequest) {
       hasGuestToken: !!guestToken,
     })
 
+    // ── 体重防篡改校验 ────────────────────────────────────────────────────────
+    const weightNum = typeof weight === 'number' ? weight : parseFloat(weight)
+    const maxWeight = species === 'cat' ? 20 : 100
+    if (!weightNum || weightNum < 1 || weightNum > maxWeight) {
+      return NextResponse.json(
+        { error: 'WEIGHT_OUT_OF_RANGE', messageKey: 'recipe.error.weight_too_low' },
+        { status: 400 }
+      )
+    }
+
     // ── 确定积分扣减来源 ──────────────────────────────────────────────────────
     let deductSource: DeductSource = 'guest'
     let freeRemaining = 0

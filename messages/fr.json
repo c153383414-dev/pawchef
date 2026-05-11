@@ -86,6 +86,13 @@
     "generatePaid": "✦ Générer une recette (-1 🟠 crédit IA · {n} restants)",
     "generatePro": "✦ Générer une recette (Pro · {n} restantes ce mois)",
     "noCreditsBtn": "Acheter des crédits IA pour continuer",
+    "error": {
+      "weight_too_low": "Un animal aussi léger est généralement encore en période d'allaitement. Consultez un vétérinaire avant d'introduire des aliments solides."
+    },
+    "weight_hint": {
+      "dog": "Plage conseillée : 1–100 kg",
+      "cat": "Plage conseillée : 1–20 kg"
+    },
     "standardBadge": "Standard",
     "premiumBadge": "Premium ✨",
     "standardNote": "⚡ IA Standard · Passez à Premium pour des recettes personnalisées",

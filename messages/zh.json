@@ -86,6 +86,13 @@
     "generatePaid": "✦ 生成食谱（-1 🟠 AI积分 · 剩余 {n}）",
     "generatePro": "✦ 生成食谱（Pro · 本月剩余 {n} 次）",
     "noCreditsBtn": "购买AI积分继续使用",
+    "error": {
+      "weight_too_low": "该体重的幼崽通常仍在哺乳期，建议咨询兽医后再引入固体食物"
+    },
+    "weight_hint": {
+      "dog": "建议输入范围：1–100 kg",
+      "cat": "建议输入范围：1–20 kg"
+    },
     "standardBadge": "标准版",
     "premiumBadge": "高级版 ✨",
     "standardNote": "⚡ 标准AI · 升级获得个性化高级食谱",

@@ -120,6 +120,11 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
 
   const isHealthOnly = health.length === 1 && health[0] === 'healthy'
 
+  // 体重校验
+  const weightNum   = parseFloat(weight)
+  const weightMax   = species === 'cat' ? 20 : 100
+  const weightValid = !isNaN(weightNum) && weightNum >= 1 && weightNum <= weightMax
+
   // 积分状态
   const hasFreeAI = user ? (user.free_ai_used ?? 0) < (user.free_ai_limit ?? 2) : false
 
@@ -131,9 +136,9 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
     (isPro && (user.monthly_ai_count ?? 0) < 30)
   )
 
-  const canGenerate = !user
+  const canGenerate = weightValid && (!user
     ? (guestChecked && !guestUsed)
-    : (hasFreeAI || hasPaidAI)
+    : (hasFreeAI || hasPaidAI))
 
   // 按钮文案
   const getButtonLabel = () => {
@@ -372,10 +377,15 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   value={weight}
                   onChange={e => setWeight(e.target.value)}
                   placeholder={t('recipe.weight')}
-                  type="number" min="0.5" max="100"
-                  style={{ ...inputStyle, width: '100%', boxSizing: 'border-box', paddingRight: 40 }}
+                  type="number" min="1" max={species === 'cat' ? 20 : 100}
+                  style={{ ...inputStyle, width: '100%', boxSizing: 'border-box', paddingRight: 40, border: weight && !weightValid ? '1px solid #C45C5C' : undefined }}
                 />
                 <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: 'rgba(28,26,22,0.4)', fontWeight: 500, pointerEvents: 'none' }}>kg</span>
+                <div style={{ fontSize: 11, marginTop: 4, color: weight && !weightValid ? '#C45C5C' : 'rgba(28,26,22,0.38)', lineHeight: 1.4 }}>
+                  {weight && !weightValid && weightNum < 1
+                    ? t('recipe.error.weight_too_low')
+                    : t(species === 'dog' ? 'recipe.weight_hint.dog' : 'recipe.weight_hint.cat')}
+                </div>
               </div>
               <select value={age} onChange={e => setAge(e.target.value)} style={selectStyle}>
                 {AGE_OPTIONS.map(a => <option key={a}>{a}</option>)}
@@ -450,7 +460,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
             {/* 生成按钮 */}
             <button
               onClick={generate}
-              disabled={loading || (!guestChecked && !user)}
+              disabled={loading || !weightValid || (!guestChecked && !user)}
               style={{
                 padding: '12px 24px', borderRadius: 8, fontSize: 15, fontWeight: 500,
                 border: 'none', fontFamily: 'inherit', transition: 'opacity 0.2s',

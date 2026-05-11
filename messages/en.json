@@ -86,6 +86,13 @@
     "generatePaid": "✦ Generate Recipe (-1 🟠 AI credit · {n} left)",
     "generatePro": "✦ Generate Recipe (Pro · {n} left this month)",
     "noCreditsBtn": "Purchase AI Credits to Continue",
+    "error": {
+      "weight_too_low": "Pets this light are usually still nursing. Please consult a vet before introducing solid food."
+    },
+    "weight_hint": {
+      "dog": "Suggested range: 1–100 kg",
+      "cat": "Suggested range: 1–20 kg"
+    },
     "standardBadge": "Standard",
     "premiumBadge": "Premium ✨",
     "standardNote": "⚡ Standard AI · Upgrade for personalized Premium recipes",
