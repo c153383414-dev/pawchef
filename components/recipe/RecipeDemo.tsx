@@ -524,11 +524,6 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                       }}>
                         <span style={{ fontSize: 13, flex: 1 }}>
                           {ing.emoji} {ing.name}
-                          {ing.autoAdded && ing.reasonKey && (
-                            <span style={{ fontSize: 10, color: '#7A9E7E', marginLeft: 6 }}>
-                              {t(ing.reasonKey)}
-                            </span>
-                          )}
                         </span>
                         <span style={{ color: 'rgba(28,26,22,0.6)', fontWeight: 500, fontSize: 13, flexShrink: 0 }}>{ing.amount}</span>
                         {user && !ing.autoAdded && (
