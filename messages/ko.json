@@ -20,7 +20,7 @@
     "freeNote": "✓ 신용카드 불필요 · 1회 무료 레시피 · 회원가입 불필요",
     "stat1Label": "식재료 안전 데이터",
     "stat2Label": "무료 AI 레시피",
-    "stat3Label": "AAFCO 준수",
+    "stat3Label": "AAFCO 참조",
     "stat4Label": "월 고정 비용"
   },
   "features": {
@@ -41,7 +41,7 @@
   },
   "recipe": {
     "sectionTitle": "30초 만에 완전한 레시피 생성",
-    "sectionSubtitle": "반려동물 정보를 선택하면 AI가 AAFCO 기준에 맞는 영양 완전 레시피를 즉시 생성합니다",
+    "sectionSubtitle": "반려동물 정보를 선택하면 AI가 AAFCO 기준을 참조한 영양 완전 레시피를 즉시 생성합니다",
     "selectDog": "🐕 강아지",
     "selectCat": "🐈 고양이",
     "petName": "반려동물 이름",
@@ -57,7 +57,7 @@
     "generatingBtn": "⏳ 생성 중...",
     "loginBtn": "로그인하여 레시피 생성",
     "needCredits": "🟠 AI 크레딧 필요",
-    "aafcoLabel": "✓ AAFCO 준수",
+    "aafcoLabel": "✓ AAFCO 참조",
     "ingredientsLabel": "재료",
     "stepsLabel": "조리 단계",
     "disclaimer": "⚠️ AI 생성 콘텐츠로, 영양 참고 정보 전용입니다. 전문 수의사의 조언을 대체하지 않습니다.",
@@ -287,18 +287,18 @@
   },
   "compliance": {
     "label": {
-      "compliant_dog_adult": "✓ AAFCO 성견 기준 충족",
-      "compliant_dog_puppy": "✓ AAFCO 강아지 기준 충족",
-      "compliant_cat_adult": "✓ AAFCO 성묘 기준 충족",
-      "compliant_cat_kitten": "✓ AAFCO 새끼고양이 기준 충족",
-      "partial_dog_adult": "△ AAFCO 성견 기준 부분 충족",
-      "partial_dog_puppy": "△ AAFCO 강아지 기준 부분 충족",
-      "partial_cat_adult": "△ AAFCO 성묘 기준 부분 충족",
-      "partial_cat_kitten": "△ AAFCO 새끼고양이 기준 부분 충족",
-      "non-compliant_dog_adult": "⚠ AAFCO 성견 기준 미충족",
-      "non-compliant_dog_puppy": "⚠ AAFCO 강아지 기준 미충족",
-      "non-compliant_cat_adult": "⚠ AAFCO 성묘 기준 미충족",
-      "non-compliant_cat_kitten": "⚠ AAFCO 새끼고양이 기준 미충족"
+      "compliant_dog_adult": "✓ AAFCO 성견 기준 참조",
+      "compliant_dog_puppy": "✓ AAFCO 강아지 기준 참조",
+      "compliant_cat_adult": "✓ AAFCO 성묘 기준 참조",
+      "compliant_cat_kitten": "✓ AAFCO 새끼고양이 기준 참조",
+      "partial_dog_adult": "△ AAFCO 성견 기준 부분 참조",
+      "partial_dog_puppy": "△ AAFCO 강아지 기준 부분 참조",
+      "partial_cat_adult": "△ AAFCO 성묘 기준 부분 참조",
+      "partial_cat_kitten": "△ AAFCO 새끼고양이 기준 부분 참조",
+      "non-compliant_dog_adult": "⚠ AAFCO 성견 기준 미달",
+      "non-compliant_dog_puppy": "⚠ AAFCO 강아지 기준 미달",
+      "non-compliant_cat_adult": "⚠ AAFCO 성묘 기준 미달",
+      "non-compliant_cat_kitten": "⚠ AAFCO 새끼고양이 기준 미달"
     }
   },
   "supplement": {

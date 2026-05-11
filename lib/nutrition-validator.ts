@@ -372,3 +372,49 @@ ${taurineLine}
 - Total food weight (excluding supplements): ${g.totalWeightMin}–${g.totalWeightMax}g
 These are reference ranges. Adjust slightly to stay within calorie target.`
 }
+
+/**
+ * 缩放食谱主食材克重以达到目标热量
+ * 移除原有补充剂，重新计算补充剂用量
+ */
+export function scaleToTargetCalories(
+  ingredients: RecipeIngredientInput[],
+  pet: PetParams,
+  actualCalories: number
+): {
+  scaledIngredients: RecipeIngredientInput[]
+  scaleFactor: number
+  revalidation: ValidationResult
+} {
+  const targetCalories = calculateDER(pet)
+  const targetMid = (targetCalories.min + targetCalories.max) / 2
+  const scaleFactor = targetMid / actualCalories
+
+  // 只缩放主食材，过滤掉补充剂和油脂（后续重新计算）
+  const mainIngredients = ingredients
+    .filter(ing => {
+      const food = ing.dbName ? findFood(ing.dbName, true) : findFood(ing.name, false)
+      const category = food?.category || (ing as any).category
+      return !['supplement', 'oil'].includes(category || '')
+    })
+    .map(ing => ({
+      ...ing,
+      amountG: Math.max(1, Math.round(ing.amountG * scaleFactor)),
+    }))
+
+  // 重新校验（内部自动补全钙粉/鱼油/牛磺酸）
+  const revalidation = validateRecipe(mainIngredients, pet)
+
+  // 最终食材 = 缩放后主食材 + 重新计算的补充剂
+  const scaledIngredients: RecipeIngredientInput[] = [
+    ...mainIngredients,
+    ...revalidation.supplements.map(s => ({
+      name:              s.ingredient,
+      dbName:            s.dbName,
+      amountG:           s.amountG,
+      nutrientsOverride: findFood(s.dbName, true)?.nutrients,
+    }))
+  ]
+
+  return { scaledIngredients, scaleFactor, revalidation }
+}

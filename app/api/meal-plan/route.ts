@@ -108,7 +108,7 @@ ${isDiabetes ? '- 糖尿病：低碳水高蛋白，避免淀粉' : ''}
   "weeklyNutrition": {
     "avgDailyCalories": "约XXX kcal",
     "proteinSources": ["蛋白质1", "蛋白质2"],
-    "standard": "符合AAFCO成年${speciesName}营养标准"
+    "standard": "参照AAFCO成年${speciesName}营养标准"
   }
 }`
 

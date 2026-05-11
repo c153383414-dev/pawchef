@@ -20,7 +20,7 @@
     "freeNote": "✓ クレジットカード不要 · 1回無料 · 登録不要",
     "stat1Label": "食材安全データ",
     "stat2Label": "無料AIレシピ",
-    "stat3Label": "AAFCO準拠",
+    "stat3Label": "AAFCO参照",
     "stat4Label": "月額固定費"
   },
   "features": {
@@ -41,7 +41,7 @@
   },
   "recipe": {
     "sectionTitle": "30秒で完全なレシピを生成",
-    "sectionSubtitle": "ペットの情報を選択するだけで、AIがAAFCO準拠の栄養完全レシピを即時生成します",
+    "sectionSubtitle": "ペットの情報を選択するだけで、AIがAAFCO参照の栄養完全レシピを即時生成します",
     "selectDog": "🐕 犬",
     "selectCat": "🐈 猫",
     "petName": "ペットの名前",
@@ -57,7 +57,7 @@
     "generatingBtn": "⏳ 生成中...",
     "loginBtn": "ログインしてレシピを生成",
     "needCredits": "🟠 AIクレジットが必要です",
-    "aafcoLabel": "✓ AAFCO準拠",
+    "aafcoLabel": "✓ AAFCO参照",
     "ingredientsLabel": "食材",
     "stepsLabel": "調理手順",
     "disclaimer": "⚠️ AI生成コンテンツです。栄養参考情報としてのみご利用ください。専門的な獣医師のアドバイスに代わるものではありません。",
@@ -287,18 +287,18 @@
   },
   "compliance": {
     "label": {
-      "compliant_dog_adult": "✓ AAFCO 成犬基準準拠",
-      "compliant_dog_puppy": "✓ AAFCO 子犬基準準拠",
-      "compliant_cat_adult": "✓ AAFCO 成猫基準準拠",
-      "compliant_cat_kitten": "✓ AAFCO 子猫基準準拠",
-      "partial_dog_adult": "△ AAFCO 成犬基準部分準拠",
-      "partial_dog_puppy": "△ AAFCO 子犬基準部分準拠",
-      "partial_cat_adult": "△ AAFCO 成猫基準部分準拠",
-      "partial_cat_kitten": "△ AAFCO 子猫基準部分準拠",
-      "non-compliant_dog_adult": "⚠ AAFCO 成犬基準非準拠",
-      "non-compliant_dog_puppy": "⚠ AAFCO 子犬基準非準拠",
-      "non-compliant_cat_adult": "⚠ AAFCO 成猫基準非準拠",
-      "non-compliant_cat_kitten": "⚠ AAFCO 子猫基準非準拠"
+      "compliant_dog_adult": "✓ AAFCO 成犬基準参照",
+      "compliant_dog_puppy": "✓ AAFCO 子犬基準参照",
+      "compliant_cat_adult": "✓ AAFCO 成猫基準参照",
+      "compliant_cat_kitten": "✓ AAFCO 子猫基準参照",
+      "partial_dog_adult": "△ AAFCO 成犬基準部分参照",
+      "partial_dog_puppy": "△ AAFCO 子犬基準部分参照",
+      "partial_cat_adult": "△ AAFCO 成猫基準部分参照",
+      "partial_cat_kitten": "△ AAFCO 子猫基準部分参照",
+      "non-compliant_dog_adult": "⚠ AAFCO 成犬基準未達",
+      "non-compliant_dog_puppy": "⚠ AAFCO 子犬基準未達",
+      "non-compliant_cat_adult": "⚠ AAFCO 成猫基準未達",
+      "non-compliant_cat_kitten": "⚠ AAFCO 子猫基準未達"
     }
   },
   "supplement": {

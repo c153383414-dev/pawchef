@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { validateRecipe, calculateDER, calculatePortionGuidance, formatPortionGuidanceForPrompt, PetParams } from '@/lib/nutrition-validator'
-import { getForbiddenFoods, getAllowedFoodsByCategory } from '@/lib/nutrition-db'
+import { validateRecipe, calculateDER, calculatePortionGuidance, formatPortionGuidanceForPrompt, scaleToTargetCalories, PetParams } from '@/lib/nutrition-validator'
+import { findFood, getForbiddenFoods, getAllowedFoodsByCategory } from '@/lib/nutrition-db'
 import { resolveUnknownIngredients } from '@/lib/usda-api'
 import { DeductSource } from '@/types'
 import OpenAI from 'openai'
@@ -295,7 +295,7 @@ Output JSON only (no markdown):
       }
     }
 
-    // ── 营养校验 ─────────────────────────────────────────────────────────────
+    // ── 营养校验 + 自动缩放 + 自动补全 ──────────────────────────────────────
     let ingredientsForValidation = (aiResult.ingredients || []).map((ing: any) => ({
       name: ing.name, dbName: ing.dbName, amountG: ing.amountG || 0,
     }))
@@ -305,7 +305,73 @@ Output JSON only (no markdown):
       ingredientsForValidation = await resolveUnknownIngredients(ingredientsForValidation)
     }
 
-    const validation = validateRecipe(ingredientsForValidation, petParams)
+    // 第一次校验
+    let validation = validateRecipe(ingredientsForValidation, petParams)
+
+    // 热量偏差处理
+    const targetMid   = (validation.targetCalories.min + validation.targetCalories.max) / 2
+    const calorieDiff = Math.abs(validation.actualCalories - targetMid) / targetMid
+
+    if (!validation.caloriesOk) {
+      if (calorieDiff <= 0.5) {
+        // 偏差 ≤ 50%：直接缩放修正
+        const { scaledIngredients, revalidation } = scaleToTargetCalories(
+          ingredientsForValidation, petParams, validation.actualCalories
+        )
+        ingredientsForValidation = scaledIngredients
+        validation = revalidation
+
+      } else if (isPro) {
+        // 偏差 > 50%，Pro 用户：重新生成一次（最多1次）
+        try {
+          const retryCompletion = await openai.chat.completions.create({
+            model, messages: [{ role: 'user', content: prompt }],
+            max_tokens: maxTokens, temperature,
+          })
+          const retryText   = retryCompletion.choices[0]?.message?.content || ''
+          const retryResult = JSON.parse(retryText.replace(/```json|```/g, '').trim())
+
+          if (safeConditions.length > 0) {
+            retryResult.ingredients = retryResult.ingredients.filter(
+              (ing: any) => !forbiddenDbNames.includes(ing.dbName)
+            )
+          }
+          let retryIngredients = retryResult.ingredients.map((ing: any) => ({
+            name: ing.name, dbName: ing.dbName, amountG: ing.amountG || 0,
+          }))
+          retryIngredients = await resolveUnknownIngredients(retryIngredients)
+
+          const retryValidation = validateRecipe(retryIngredients, petParams)
+          if (!retryValidation.caloriesOk) {
+            const { scaledIngredients, revalidation } = scaleToTargetCalories(
+              retryIngredients, petParams, retryValidation.actualCalories
+            )
+            ingredientsForValidation = scaledIngredients
+            validation = revalidation
+          } else {
+            ingredientsForValidation = retryIngredients
+            validation = retryValidation
+          }
+          aiResult = retryResult
+
+        } catch {
+          // 重试失败：强制缩放原结果，不中断流程
+          const { scaledIngredients, revalidation } = scaleToTargetCalories(
+            ingredientsForValidation, petParams, validation.actualCalories
+          )
+          ingredientsForValidation = scaledIngredients
+          validation = revalidation
+        }
+
+      } else {
+        // 偏差 > 50%，免费用户：强制缩放
+        const { scaledIngredients, revalidation } = scaleToTargetCalories(
+          ingredientsForValidation, petParams, validation.actualCalories
+        )
+        ingredientsForValidation = scaledIngredients
+        validation = revalidation
+      }
+    }
 
     // 免费用户：未知食材超30% → 退还
     if (!isPro && validation.unknownIngredients.length > 0 &&
@@ -326,28 +392,39 @@ Output JSON only (no markdown):
       }, { status: 422 })
     }
 
-    // ── 合并自动补全食材 ──────────────────────────────────────────────────────
-    // Skip supplements whose dbName already appears in AI-generated ingredients
-    const aiDbNames = new Set((aiResult.ingredients || []).map((ing: any) => ing.dbName))
-    const supplementIngredients = validation.supplements
-      .filter(s => !aiDbNames.has(s.dbName))
-      .map(s => ({
+    // ── 用缩放后克重更新主食材，合并补充剂 ──────────────────────────────────
+    const mainIngredientDbNames = new Set(
+      ingredientsForValidation
+        .filter(ing => {
+          const food = ing.dbName ? findFood(ing.dbName, true) : undefined
+          return !['supplement', 'oil'].includes(food?.category || '')
+        })
+        .map(ing => ing.dbName)
+    )
+
+    const scaledMainIngredients = (aiResult.ingredients || [])
+      .filter((ing: any) => mainIngredientDbNames.has(ing.dbName) || !['supplement', 'oil'].includes(ing.category))
+      .map((ing: any) => {
+        const scaled = ingredientsForValidation.find((s: any) => s.dbName === ing.dbName)
+        return {
+          ...ing,
+          amountG: scaled?.amountG ?? ing.amountG,
+          amount:  `${scaled?.amountG ?? ing.amountG}g`,
+        }
+      })
+
+    const finalIngredients = [
+      ...scaledMainIngredients,
+      ...validation.supplements.map(s => ({
         name:      SUPPLEMENT_NAMES[s.dbName]?.[locale_] || SUPPLEMENT_NAMES[s.dbName]?.['en'] || s.ingredient,
         dbName:    s.dbName,
         amountG:   s.amountG,
         amount:    `${s.amountG}g`,
         category:  'supplement' as const,
-        emoji:     '💊',
+        emoji:     s.dbName === 'taurine_supplement' ? '💊' : s.dbName === 'fish_oil' ? '💧' : '🦴',
         autoAdded: true,
         reasonKey: s.reasonKey,
-      }))
-
-    const finalIngredients = [
-      ...(aiResult.ingredients || []).map((ing: any) => ({
-        ...ing,
-        amount: ing.amount || `${ing.amountG}g`,
       })),
-      ...supplementIngredients,
     ]
 
     // ── 访客：生成成功后记录使用 ──────────────────────────────────────────────

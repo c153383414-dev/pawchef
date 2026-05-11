@@ -20,7 +20,7 @@
     "freeNote": "✓ Aucune carte requise · 1 recette gratuite · Sans inscription",
     "stat1Label": "Base de données sécurité",
     "stat2Label": "Recettes IA gratuites",
-    "stat3Label": "Conforme AAFCO",
+    "stat3Label": "Référencé AAFCO",
     "stat4Label": "Coût mensuel fixe"
   },
   "features": {
@@ -41,7 +41,7 @@
   },
   "recipe": {
     "sectionTitle": "Générez une Recette Complète en 30 Secondes",
-    "sectionSubtitle": "Sélectionnez les informations de votre animal, l'IA génère instantanément une recette nutritionnellement complète conforme à l'AAFCO",
+    "sectionSubtitle": "Sélectionnez les informations de votre animal, l'IA génère instantanément une recette nutritionnellement complète basée sur les normes AAFCO",
     "selectDog": "🐕 Chien",
     "selectCat": "🐈 Chat",
     "petName": "Nom de l'animal",
@@ -57,7 +57,7 @@
     "generatingBtn": "⏳ Génération en cours...",
     "loginBtn": "Connectez-vous pour générer une recette",
     "needCredits": "🟠 Crédits IA nécessaires",
-    "aafcoLabel": "✓ Conforme à l'AAFCO",
+    "aafcoLabel": "✓ Référencé AAFCO",
     "ingredientsLabel": "Ingrédients",
     "stepsLabel": "Étapes de préparation",
     "disclaimer": "⚠️ Généré par IA, à titre de référence nutritionnelle uniquement. Ne remplace pas les conseils vétérinaires professionnels.",
@@ -287,18 +287,18 @@
   },
   "compliance": {
     "label": {
-      "compliant_dog_adult": "✓ Conforme AAFCO Chien Adulte",
-      "compliant_dog_puppy": "✓ Conforme AAFCO Chiot",
-      "compliant_cat_adult": "✓ Conforme AAFCO Chat Adulte",
-      "compliant_cat_kitten": "✓ Conforme AAFCO Chaton",
-      "partial_dog_adult": "△ Partiellement conforme AAFCO Chien Adulte",
-      "partial_dog_puppy": "△ Partiellement conforme AAFCO Chiot",
-      "partial_cat_adult": "△ Partiellement conforme AAFCO Chat Adulte",
-      "partial_cat_kitten": "△ Partiellement conforme AAFCO Chaton",
-      "non-compliant_dog_adult": "⚠ Non conforme AAFCO Chien Adulte",
-      "non-compliant_dog_puppy": "⚠ Non conforme AAFCO Chiot",
-      "non-compliant_cat_adult": "⚠ Non conforme AAFCO Chat Adulte",
-      "non-compliant_cat_kitten": "⚠ Non conforme AAFCO Chaton"
+      "compliant_dog_adult": "✓ Basé sur AAFCO Chien Adulte",
+      "compliant_dog_puppy": "✓ Basé sur AAFCO Chiot",
+      "compliant_cat_adult": "✓ Basé sur AAFCO Chat Adulte",
+      "compliant_cat_kitten": "✓ Basé sur AAFCO Chaton",
+      "partial_dog_adult": "△ Partiellement basé sur AAFCO Chien Adulte",
+      "partial_dog_puppy": "△ Partiellement basé sur AAFCO Chiot",
+      "partial_cat_adult": "△ Partiellement basé sur AAFCO Chat Adulte",
+      "partial_cat_kitten": "△ Partiellement basé sur AAFCO Chaton",
+      "non-compliant_dog_adult": "⚠ En dessous du référentiel AAFCO Chien Adulte",
+      "non-compliant_dog_puppy": "⚠ En dessous du référentiel AAFCO Chiot",
+      "non-compliant_cat_adult": "⚠ En dessous du référentiel AAFCO Chat Adulte",
+      "non-compliant_cat_kitten": "⚠ En dessous du référentiel AAFCO Chaton"
     }
   },
   "supplement": {

@@ -41,7 +41,7 @@
   },
   "recipe": {
     "sectionTitle": "30 秒生成完整食谱",
-    "sectionSubtitle": "输入宠物信息，AI 即时生成符合 AAFCO 标准的营养完整食谱",
+    "sectionSubtitle": "输入宠物信息，AI 即时生成参照 AAFCO 标准的营养完整食谱",
     "selectDog": "🐕 狗",
     "selectCat": "🐈 猫",
     "petName": "宠物名字",
@@ -57,7 +57,7 @@
     "generatingBtn": "⏳ 生成中...",
     "loginBtn": "登录后生成食谱",
     "needCredits": "🟠 需要 AI 积分",
-    "aafcoLabel": "✓ 符合 AAFCO 标准",
+    "aafcoLabel": "✓ 参照 AAFCO 标准",
     "ingredientsLabel": "食材",
     "stepsLabel": "烹饪步骤",
     "disclaimer": "⚠️ 由 AI 生成，仅供营养参考，不能替代专业兽医建议。",
@@ -374,18 +374,18 @@
   },
   "compliance": {
     "label": {
-      "compliant_dog_adult": "✓ 符合 AAFCO 成犬标准",
-      "compliant_dog_puppy": "✓ 符合 AAFCO 幼犬标准",
-      "compliant_cat_adult": "✓ 符合 AAFCO 成猫标准",
-      "compliant_cat_kitten": "✓ 符合 AAFCO 幼猫标准",
-      "partial_dog_adult": "△ 部分符合 AAFCO 成犬标准",
-      "partial_dog_puppy": "△ 部分符合 AAFCO 幼犬标准",
-      "partial_cat_adult": "△ 部分符合 AAFCO 成猫标准",
-      "partial_cat_kitten": "△ 部分符合 AAFCO 幼猫标准",
-      "non-compliant_dog_adult": "⚠ 不符合 AAFCO 成犬标准",
-      "non-compliant_dog_puppy": "⚠ 不符合 AAFCO 幼犬标准",
-      "non-compliant_cat_adult": "⚠ 不符合 AAFCO 成猫标准",
-      "non-compliant_cat_kitten": "⚠ 不符合 AAFCO 幼猫标准"
+      "compliant_dog_adult": "✓ 参照 AAFCO 成犬标准",
+      "compliant_dog_puppy": "✓ 参照 AAFCO 幼犬标准",
+      "compliant_cat_adult": "✓ 参照 AAFCO 成猫标准",
+      "compliant_cat_kitten": "✓ 参照 AAFCO 幼猫标准",
+      "partial_dog_adult": "△ 部分参照 AAFCO 成犬标准",
+      "partial_dog_puppy": "△ 部分参照 AAFCO 幼犬标准",
+      "partial_cat_adult": "△ 部分参照 AAFCO 成猫标准",
+      "partial_cat_kitten": "△ 部分参照 AAFCO 幼猫标准",
+      "non-compliant_dog_adult": "⚠ 未达 AAFCO 成犬标准",
+      "non-compliant_dog_puppy": "⚠ 未达 AAFCO 幼犬标准",
+      "non-compliant_cat_adult": "⚠ 未达 AAFCO 成猫标准",
+      "non-compliant_cat_kitten": "⚠ 未达 AAFCO 幼猫标准"
     }
   },
   "supplement": {
