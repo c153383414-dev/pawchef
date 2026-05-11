@@ -470,7 +470,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
               {getButtonLabel()}
             </button>
 
-            {user && !canGenerate && (
+            {user && !canGenerate && weightValid && (
               <div style={{ padding: '10px 14px', borderRadius: 10, background: '#FAE8E8', fontSize: 12, color: '#C45C5C', lineHeight: 1.6 }}>
                 {t('recipe.allFreeUsed', { n: user.free_ai_limit ?? 2 })}<br />
                 <span style={{ color: '#854F0B' }}>{t('recipe.upgradeHint')}</span>
