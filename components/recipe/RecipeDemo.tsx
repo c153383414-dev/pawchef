@@ -59,7 +59,8 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
   const { guestToken, fingerprint } = useGuestToken()
   const [guestUsed,    setGuestUsed]    = useState(false)
   const [guestChecked, setGuestChecked] = useState(false)
-  const reconciledForUser = useRef<string | null>(null)
+  const reconciledForUser  = useRef<string | null>(null)
+  const reconciledFreeLeft = useRef<number | null>(null)
 
   // 食材替换：单个 substitute 替代原来的数组
   const [substituting, setSubstituting] = useState<number | null>(null)
@@ -89,9 +90,10 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
     check()
   }, [guestToken, fingerprint, user])
 
-  // 从 profile 初始化 freeRemaining
+  // 从 profile 初始化 freeRemaining（若已对访客用量完成修正则不覆盖）
   useEffect(() => {
     if (!user) return
+    if (reconciledFreeLeft.current !== null) return
     const used  = user.free_ai_used  ?? 0
     const limit = user.free_ai_limit ?? 2
     setFreeRemaining(Math.max(0, limit - used))
@@ -108,7 +110,8 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
     })
       .then(r => r.ok ? r.json() : null)
       .then(data => {
-        if (data?.reconciled && data.freeRemaining !== undefined) {
+        if (data?.freeRemaining !== undefined) {
+          reconciledFreeLeft.current = data.freeRemaining
           setFreeRemaining(data.freeRemaining)
         }
       })

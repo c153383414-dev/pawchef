@@ -194,7 +194,10 @@ MANDATORY:
 2. Omega-3: fish_oil ~${Math.max(0.5, weightKg * 0.1).toFixed(1)}ml OR use salmon/cod
 ${isCat ? `3. Taurine: taurine_supplement ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g (cats cannot synthesize taurine)` : '3. Balance protein and moderate carbs'}
 4. Steps must NOT contain gram/weight numbers
-5. ONLY use approved ingredients (exact dbName keys):
+5. Steps must ONLY reference ingredients that appear in the ingredient list above.
+   Do NOT mention any ingredient in steps that is not listed. Do NOT add salt, oil,
+   seasoning, or any unlisted item in the steps.
+6. ONLY use approved ingredients (exact dbName keys):
 ${isCat ? freeCatIngredients : freeDogIngredients}
 
 Output JSON only (no markdown):
@@ -232,7 +235,10 @@ MANDATORY:
 2. Omega-3 required: ~${Math.max(0.5, weightKg * 0.1).toFixed(1)}ml fish oil OR fatty fish
 ${isCat ? `3. Taurine required: ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g taurine supplement OR ensure meat sources provide sufficient taurine` : ''}
 4. Steps must NOT contain gram/weight numbers
-5. Be creative with safe ingredients — vary the combination each time
+5. Steps must ONLY reference ingredients that appear in the ingredient list above.
+   Do NOT mention any ingredient in steps that is not listed. Do NOT add salt, oil,
+   seasoning, or any unlisted item in the steps.
+6. Be creative with safe ingredients — vary the combination each time
 6. Provide dbName in English snake_case for each ingredient
 
 Output JSON only (no markdown):
