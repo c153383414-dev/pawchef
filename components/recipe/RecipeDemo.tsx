@@ -383,8 +383,8 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                 <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: 'rgba(28,26,22,0.4)', fontWeight: 500, pointerEvents: 'none' }}>kg</span>
                 <div style={{ fontSize: 11, marginTop: 4, color: weight && !weightValid ? '#C45C5C' : 'rgba(28,26,22,0.38)', lineHeight: 1.4 }}>
                   {weight && !weightValid && weightNum < 1
-                    ? t('recipe.error.weight_too_low')
-                    : t(species === 'dog' ? 'recipe.weight_hint.dog' : 'recipe.weight_hint.cat')}
+                    ? t('recipe.weightErrorTooLow')
+                    : t(species === 'dog' ? 'recipe.weightHintDog' : 'recipe.weightHintCat')}
                 </div>
               </div>
               <select value={age} onChange={e => setAge(e.target.value)} style={selectStyle}>

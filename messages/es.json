@@ -86,13 +86,9 @@
     "generatePaid": "✦ Generar receta (-1 🟠 crédito IA · {n} restantes)",
     "generatePro": "✦ Generar receta (Pro · {n} restantes este mes)",
     "noCreditsBtn": "Comprar créditos IA para continuar",
-    "error": {
-      "weight_too_low": "Las mascotas de este peso suelen estar en período de lactancia. Consulta a un veterinario antes de introducir alimentos sólidos."
-    },
-    "weight_hint": {
-      "dog": "Rango sugerido: 1–100 kg",
-      "cat": "Rango sugerido: 1–20 kg"
-    },
+    "weightErrorTooLow": "Las mascotas de este peso suelen estar en período de lactancia. Consulta a un veterinario antes de introducir alimentos sólidos.",
+    "weightHintDog": "Rango sugerido: 1–100 kg",
+    "weightHintCat": "Rango sugerido: 1–20 kg",
     "standardBadge": "Estándar",
     "premiumBadge": "Premium ✨",
     "standardNote": "⚡ IA Estándar · Actualiza para recetas Premium personalizadas",

@@ -86,13 +86,9 @@
     "generatePaid": "✦ レシピ生成（-1 🟠 AIクレジット · 残り{n}）",
     "generatePro": "✦ レシピ生成（Pro · 今月残り{n}回）",
     "noCreditsBtn": "AIクレジットを購入して続ける",
-    "error": {
-      "weight_too_low": "この体重の幼体はまだ授乳期の可能性があります。固形食を導入する前に獣医師にご相談ください。"
-    },
-    "weight_hint": {
-      "dog": "推奨範囲：1～100 kg",
-      "cat": "推奨範囲：1～20 kg"
-    },
+    "weightErrorTooLow": "この体重の幼体はまだ授乳期の可能性があります。固形食を導入する前に獣医師にご相談ください。",
+    "weightHintDog": "推奨範囲：1～100 kg",
+    "weightHintCat": "推奨範囲：1～20 kg",
     "standardBadge": "スタンダード",
     "premiumBadge": "プレミアム ✨",
     "standardNote": "⚡ スタンダードAI · プレミアムでパーソナライズドレシピを",

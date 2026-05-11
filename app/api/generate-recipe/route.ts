@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
     const maxWeight = species === 'cat' ? 20 : 100
     if (!weightNum || weightNum < 1 || weightNum > maxWeight) {
       return NextResponse.json(
-        { error: 'WEIGHT_OUT_OF_RANGE', messageKey: 'recipe.error.weight_too_low' },
+        { error: 'WEIGHT_OUT_OF_RANGE', messageKey: 'recipe.weightErrorTooLow' },
         { status: 400 }
       )
     }
