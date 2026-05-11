@@ -78,7 +78,7 @@
     "nutriCarbs": "Glucides",
     "guestFreeAvailable": "🎁 1 recette IA gratuite · Sans inscription",
     "guestLimitReached": "Vous avez utilisé votre recette gratuite",
-    "signupForMore": "Inscrivez-vous pour 2 recettes gratuites supplémentaires →",
+    "signupForMore": "Inscrivez-vous pour 1 recette gratuite supplémentaire →",
     "freeRemaining": "⚡ Qualité standard · {n} utilisations gratuites restantes",
     "generateFree": "✦ Générer la recette de mon animal (Gratuit)",
     "generateStandard": "✦ Générer une recette (Standard · {n} restantes)",
@@ -224,7 +224,7 @@
   "signupPrompt": {
     "title": "Vous avez aimé votre recette gratuite ?",
     "subtitle": "Inscrivez-vous gratuitement pour obtenir :",
-    "benefit1": "2 recettes IA gratuites supplémentaires",
+    "benefit1": "1 recette IA gratuite supplémentaire",
     "benefit2": "Sauvegardez votre historique de recettes",
     "benefit3": "Bonus de connexion quotidien",
     "ctaSignup": "Créer un compte gratuit",

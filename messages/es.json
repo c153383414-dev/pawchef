@@ -78,7 +78,7 @@
     "nutriCarbs": "Carbohidratos",
     "guestFreeAvailable": "🎁 1 receta IA gratis · Sin registro",
     "guestLimitReached": "Has usado tu receta gratuita",
-    "signupForMore": "Regístrate para 2 recetas gratuitas más →",
+    "signupForMore": "Regístrate para 1 receta gratuita más →",
     "freeRemaining": "⚡ Calidad estándar · {n} usos gratuitos restantes",
     "generateFree": "✦ Generar receta de mi mascota (Gratis)",
     "generateStandard": "✦ Generar receta (Estándar · {n} restantes)",
@@ -224,7 +224,7 @@
   "signupPrompt": {
     "title": "¿Te gustó tu receta gratuita?",
     "subtitle": "Regístrate gratis para obtener:",
-    "benefit1": "2 recetas IA gratuitas más",
+    "benefit1": "1 receta IA gratuita más",
     "benefit2": "Guarda tu historial de recetas",
     "benefit3": "Bono de inicio de sesión diario",
     "ctaSignup": "Crear cuenta gratuita",

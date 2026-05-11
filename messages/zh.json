@@ -78,7 +78,7 @@
     "nutriCarbs": "碳水",
     "guestFreeAvailable": "🎁 1次免费AI食谱 · 无需注册",
     "guestLimitReached": "您已使用了免费食谱",
-    "signupForMore": "注册获得2次额外免费次数 →",
+    "signupForMore": "注册获得1次额外免费次数 →",
     "freeRemaining": "⚡ 标准质量 · 剩余 {n} 次免费使用",
     "generateFree": "✦ 为我的宠物生成食谱（免费）",
     "generateStandard": "✦ 生成食谱（标准 · 剩余 {n} 次）",
@@ -264,7 +264,7 @@
   "signupPrompt": {
     "title": "喜欢您的免费食谱吗？",
     "subtitle": "免费注册获得：",
-    "benefit1": "2次额外免费AI食谱",
+    "benefit1": "1次额外免费AI食谱",
     "benefit2": "保存您的食谱历史",
     "benefit3": "每日签到奖励",
     "ctaSignup": "创建免费账户",

@@ -78,7 +78,7 @@
     "nutriCarbs": "탄수화물",
     "guestFreeAvailable": "🎁 1회 무료 AI 레시피 · 회원가입 불필요",
     "guestLimitReached": "무료 레시피를 사용하셨습니다",
-    "signupForMore": "가입하고 2회 추가 무료 레시피 받기 →",
+    "signupForMore": "가입하고 1회 추가 무료 레시피 받기 →",
     "freeRemaining": "⚡ 스탠다드 품질 · {n}회 무료 남음",
     "generateFree": "✦ 내 반려동물 레시피 생성 (무료)",
     "generateStandard": "✦ 레시피 생성 (스탠다드 · {n}회 남음)",
@@ -224,7 +224,7 @@
   "signupPrompt": {
     "title": "무료 레시피가 마음에 드셨나요?",
     "subtitle": "무료 가입하고 받으세요:",
-    "benefit1": "AI 레시피 2회 추가 무료",
+    "benefit1": "AI 레시피 1회 추가 무료",
     "benefit2": "레시피 기록 저장",
     "benefit3": "매일 로그인 보너스",
     "ctaSignup": "무료 계정 만들기",

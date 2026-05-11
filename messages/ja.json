@@ -78,7 +78,7 @@
     "nutriCarbs": "炭水化物",
     "guestFreeAvailable": "🎁 1回無料AIレシピ · 登録不要",
     "guestLimitReached": "無料レシピを使用しました",
-    "signupForMore": "登録してさらに2回無料で →",
+    "signupForMore": "登録してさらに1回無料で →",
     "freeRemaining": "⚡ スタンダード品質 · 残り{n}回無料",
     "generateFree": "✦ ペットのレシピを生成（無料）",
     "generateStandard": "✦ レシピ生成（スタンダード · 残り{n}回）",
@@ -224,7 +224,7 @@
   "signupPrompt": {
     "title": "無料レシピはいかがでしたか？",
     "subtitle": "無料登録で以下を取得：",
-    "benefit1": "AIレシピをさらに2回無料",
+    "benefit1": "AIレシピをさらに1回無料",
     "benefit2": "レシピ履歴を保存",
     "benefit3": "毎日ログインボーナス",
     "ctaSignup": "無料アカウントを作成",

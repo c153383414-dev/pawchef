@@ -78,7 +78,7 @@
     "nutriCarbs": "Carbs",
     "guestFreeAvailable": "🎁 1 free AI recipe · No signup needed",
     "guestLimitReached": "You've used your free recipe",
-    "signupForMore": "Sign up for 2 more free recipes →",
+    "signupForMore": "Sign up for 1 more free recipe →",
     "freeRemaining": "⚡ Standard quality · {n} free uses remaining",
     "generateFree": "✦ Generate My Pet's Recipe (Free)",
     "generateStandard": "✦ Generate Recipe (Standard · {n} left)",
@@ -224,7 +224,7 @@
   "signupPrompt": {
     "title": "Enjoyed your free recipe?",
     "subtitle": "Sign up for free to get:",
-    "benefit1": "2 more free AI recipes",
+    "benefit1": "1 more free AI recipe",
     "benefit2": "Save your recipe history",
     "benefit3": "Daily check-in bonus",
     "ctaSignup": "Create Free Account",
