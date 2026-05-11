@@ -121,9 +121,10 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
   const isHealthOnly = health.length === 1 && health[0] === 'healthy'
 
   // 体重校验
-  const weightNum   = parseFloat(weight)
-  const weightMax   = species === 'cat' ? 20 : 100
-  const weightValid = !isNaN(weightNum) && weightNum >= 1 && weightNum <= weightMax
+  const weightNum        = parseFloat(weight)
+  const weightMax        = species === 'cat' ? 15 : 100
+  const weightValid      = !isNaN(weightNum) && weightNum >= 1 && weightNum <= weightMax
+  const showCatOverweight = species === 'cat' && weightValid && weightNum > 10 && !health.includes('obesity')
 
   // 积分状态
   const hasFreeAI = user ? (user.free_ai_used ?? 0) < (user.free_ai_limit ?? 2) : false
@@ -377,15 +378,22 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   value={weight}
                   onChange={e => setWeight(e.target.value)}
                   placeholder={t('recipe.weight')}
-                  type="number" min="1" max={species === 'cat' ? 20 : 100}
+                  type="number" min="1" max={weightMax}
                   style={{ ...inputStyle, width: '100%', boxSizing: 'border-box', paddingRight: 40, border: weight && !weightValid ? '1px solid #C45C5C' : undefined }}
                 />
                 <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: 'rgba(28,26,22,0.4)', fontWeight: 500, pointerEvents: 'none' }}>kg</span>
                 <div style={{ fontSize: 11, marginTop: 4, color: weight && !weightValid ? '#C45C5C' : 'rgba(28,26,22,0.38)', lineHeight: 1.4 }}>
                   {weight && !weightValid && weightNum < 1
                     ? t('recipe.weightErrorTooLow')
-                    : t(species === 'dog' ? 'recipe.weightHintDog' : 'recipe.weightHintCat')}
+                    : weight && !weightValid && weightNum > weightMax
+                      ? t('recipe.weightErrorTooHigh')
+                      : t(species === 'dog' ? 'recipe.weightHintDog' : 'recipe.weightHintCat')}
                 </div>
+                {showCatOverweight && (
+                  <div style={{ fontSize: 11, marginTop: 3, color: '#C8813A', lineHeight: 1.4 }}>
+                    {t('recipe.weightHintCatOverweight')}
+                  </div>
+                )}
               </div>
               <select value={age} onChange={e => setAge(e.target.value)} style={selectStyle}>
                 {AGE_OPTIONS.map(a => <option key={a}>{a}</option>)}

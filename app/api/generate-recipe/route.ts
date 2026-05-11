@@ -63,10 +63,16 @@ export async function POST(req: NextRequest) {
 
     // ── 体重防篡改校验 ────────────────────────────────────────────────────────
     const weightNum = typeof weight === 'number' ? weight : parseFloat(weight)
-    const maxWeight = species === 'cat' ? 20 : 100
-    if (!weightNum || weightNum < 1 || weightNum > maxWeight) {
+    const maxWeight = species === 'cat' ? 15 : 100
+    if (!weightNum || weightNum < 1) {
       return NextResponse.json(
-        { error: 'WEIGHT_OUT_OF_RANGE', messageKey: 'recipe.weightErrorTooLow' },
+        { error: 'WEIGHT_TOO_LOW', messageKey: 'recipe.weightErrorTooLow' },
+        { status: 400 }
+      )
+    }
+    if (weightNum > maxWeight) {
+      return NextResponse.json(
+        { error: 'WEIGHT_TOO_HIGH', messageKey: 'recipe.weightErrorTooHigh' },
         { status: 400 }
       )
     }
