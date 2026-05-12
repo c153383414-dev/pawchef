@@ -435,8 +435,25 @@ Output JSON only (no markdown):
         }
       })
 
+    // AI 原始输出中的油/补充剂若验证器未重新添加，保留入列表以保持步骤一致性
+    const validationSupplementDbNames = new Set(validation.supplements.map(s => s.dbName))
+    const scaledMainDbNames           = new Set(scaledMainIngredients.map((i: any) => i.dbName))
+    const aiRetainedSupplements = (aiResult.ingredients || [])
+      .filter((ing: any) =>
+        ['supplement', 'oil'].includes(ing.category) &&
+        ing.dbName &&
+        !validationSupplementDbNames.has(ing.dbName) &&
+        !scaledMainDbNames.has(ing.dbName)
+      )
+      .map((ing: any) => ({
+        ...ing,
+        amount: `${ing.amountG}g`,
+        autoAdded: false,
+      }))
+
     const finalIngredients = [
       ...scaledMainIngredients,
+      ...aiRetainedSupplements,
       ...validation.supplements.map(s => ({
         name:      SUPPLEMENT_NAMES[s.dbName]?.[locale_] || SUPPLEMENT_NAMES[s.dbName]?.['en'] || s.ingredient,
         dbName:    s.dbName,
