@@ -271,6 +271,33 @@ Output JSON only (no markdown):
     const temperature = isPro ? 0.9           : 0.7   // Pro: higher temp for more diversity
 
     // ── AI 调用 ──────────────────────────────────────────────────────────────
+    const FISH_OIL_KEYWORDS = ['fish oil', '鱼油', '魚油', '어유', 'huile de poisson', 'aceite de pescado']
+    const TAURINE_KEYWORDS  = ['taurine', '牛磺酸', 'タウリン', '타우린', 'taurina']
+    const weightKg_         = typeof weight === 'number' ? weight : parseFloat(weight)
+    const isCat_            = species === 'cat'
+
+    function syncStepsIngredients(result: any) {
+      const stepsText = (result.steps || []).join(' ').toLowerCase()
+      if (!result.ingredients.some((i: any) => i.dbName === 'fish_oil') &&
+          FISH_OIL_KEYWORDS.some(kw => stepsText.includes(kw))) {
+        result.ingredients.push({
+          name: SUPPLEMENT_NAMES['fish_oil']?.[locale_] || 'Fish Oil',
+          dbName: 'fish_oil',
+          amountG: parseFloat(Math.max(0.5, weightKg_ * 0.1).toFixed(1)),
+          category: 'oil', emoji: '💧',
+        })
+      }
+      if (!result.ingredients.some((i: any) => i.dbName === 'taurine_supplement') &&
+          isCat_ && TAURINE_KEYWORDS.some(kw => stepsText.includes(kw))) {
+        result.ingredients.push({
+          name: SUPPLEMENT_NAMES['taurine_supplement']?.[locale_] || 'Taurine',
+          dbName: 'taurine_supplement',
+          amountG: parseFloat(Math.max(0.05, weightKg_ * 0.025).toFixed(2)),
+          category: 'supplement', emoji: '💊',
+        })
+      }
+    }
+
     let aiResult: any
     try {
       const completion = await openai.chat.completions.create({
@@ -281,6 +308,7 @@ Output JSON only (no markdown):
       const jsonMatch = text.match(/\{[\s\S]*\}/)
       if (!jsonMatch) throw new Error('AI response format error')
       aiResult = JSON.parse(jsonMatch[0])
+      syncStepsIngredients(aiResult)
     } catch (aiError: any) {
       console.error('[generate-recipe] AI call failed:', aiError?.message)
       await refundCredits(supabase, user?.id, deductSource, creditSource)
@@ -375,6 +403,7 @@ Output JSON only (no markdown):
             validation = retryValidation
           }
           aiResult = retryResult
+          syncStepsIngredients(aiResult)
 
         } catch {
           // 重试失败：强制缩放原结果，不中断流程
