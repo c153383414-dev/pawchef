@@ -223,31 +223,26 @@ export function validateRecipe(
     }
   }
 
-  // 补 Omega-3
-  const targetOmega3 = Math.max(pet.weightKg * 50, (standards.omega3.min / 1000) * cal)
-  if (nutrients.omega3 < targetOmega3) {
-    const deficit = targetOmega3 - nutrients.omega3
-    const amountG = Math.ceil((deficit / 300) * 10) / 10
-    supplements.push({ ingredient: 'fish_oil', dbName: 'fish_oil', amountG, reasonKey: 'supplement.reason.omega3_deficiency' })
-    nutrients.omega3 += amountG * 300
-  }
+  // 补鱼油：同时满足 Omega-3 和脂肪，取两者所需量的较大值，胰腺炎时严格限量
+  const targetOmega3      = Math.max(pet.weightKg * 50, (standards.omega3.min / 1000) * cal)
+  const omega3Deficit     = Math.max(0, targetOmega3 - nutrients.omega3)
+  const fishOilForOmega3  = omega3Deficit / 300
 
-  // 补脂肪（仅当脂肪不达标时追加鱼油，安全剂量上限 0.3g/kg，最多 3g）
-  if (!aafco.fat.ok) {
-    const targetFat  = (standards.fat.min / 1000) * cal
-    const fatDeficit = Math.max(0, targetFat - nutrients.fat)
-    const maxBoost   = Math.min(pet.weightKg * 0.3, 3)
-    const boostG     = Math.min(maxBoost, Math.round(fatDeficit * 10) / 10)
-    if (boostG > 0) {
-      const existing = supplements.find(s => s.dbName === 'fish_oil')
-      if (existing) {
-        existing.amountG = Math.round((existing.amountG + boostG) * 10) / 10
-      } else {
-        supplements.push({ ingredient: 'fish_oil', dbName: 'fish_oil', amountG: boostG, reasonKey: 'supplement.reason.fat_deficiency' })
-      }
-      nutrients.fat   += boostG
-      nutrients.omega3 += boostG * 300
-    }
+  const fatDeficit       = !aafco.fat.ok ? Math.max(0, (standards.fat.min / 1000) * cal - nutrients.fat) : 0
+  const fishOilForFat    = fatDeficit // 鱼油约 100% 脂肪
+
+  const hasPancreatitis  = pet.healthConditions.includes('pancreatitis')
+  const fishOilLimit     = Math.min(pet.weightKg * (hasPancreatitis ? 0.1 : 0.3), hasPancreatitis ? 1 : 3)
+  const fishOilNeeded    = Math.min(Math.max(fishOilForOmega3, fishOilForFat), fishOilLimit)
+
+  if (fishOilNeeded > 0.05) {
+    const amountG = Math.ceil(fishOilNeeded * 10) / 10
+    supplements.push({
+      ingredient: 'fish_oil', dbName: 'fish_oil', amountG,
+      reasonKey: fatDeficit > 0 ? 'supplement.reason.fat_and_omega3_deficiency' : 'supplement.reason.omega3_deficiency',
+    })
+    nutrients.omega3 += amountG * 300
+    nutrients.fat    += amountG
   }
 
   // 补牛磺酸（仅猫）

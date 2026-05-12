@@ -138,8 +138,8 @@ export const NUTRITION_DB: FoodItem[] = [
     category: 'veggie',
     nutrients: { calories: 23, protein: 2.9, fat: 0.4, carbs: 3.6, calcium: 99, phosphorus: 49, omega3: 0, taurine: 0, vitaminA: 469, vitaminD: 0, zinc: 0.5, iodine: 8 },
     dogSafe: true, catSafe: false,
-    forbiddenFor: ['kidney'], cautionFor: ['kidney'],
-    notes: '草酸含量高，老年犬建议少用，肾病犬禁用'
+    forbiddenFor: ['kidney'], cautionFor: ['kidney', 'obesity'],
+    notes: '草酸含量高，肾病禁用；老年犬（>8岁）建议避免；catSafe=false（高草酸对猫有泌尿结石风险）'
   },
   {
     id: 'green_peas', dbName: 'green_peas',

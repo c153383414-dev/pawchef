@@ -178,11 +178,35 @@ export async function POST(req: NextRequest) {
     const portionText     = formatPortionGuidanceForPrompt(portionGuidance, isCat)
 
     // Pro 多样性：每次随机选一个主蛋白类型
-    // cod excluded — too lean (0.7% fat) to serve as featured protein; AI can still use it in mixed recipes
-    const DOG_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey', 'duck', 'pork', 'egg']
-    const CAT_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey', 'duck']
+    // cod excluded — too lean (0.7% fat); expanded pool for more variety
+    const DOG_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey', 'duck', 'pork', 'egg',
+                          'rabbit', 'lamb', 'sardines', 'mackerel', 'beef heart', 'venison']
+    const CAT_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey', 'duck',
+                          'rabbit', 'lamb', 'sardines', 'mackerel', 'quail egg']
     const proProteinPool = isCat ? CAT_PROTEINS : DOG_PROTEINS
     const featuredProtein = proProteinPool[Math.floor(Math.random() * proProteinPool.length)]
+
+    // 查询最近用过的蔬菜，生成多样性提示
+    let recentVeggieNote = ''
+    if (user && isPro) {
+      try {
+        const { data: recentRecipes } = await supabase
+          .from('recipes')
+          .select('content')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(3)
+        const recentVeggies = (recentRecipes || [])
+          .flatMap((r: any) => r.content?.ingredients || [])
+          .filter((i: any) => i.category === 'veggie')
+          .map((i: any) => i.name || i.dbName)
+          .filter(Boolean)
+          .slice(0, 5)
+        if (recentVeggies.length > 0) {
+          recentVeggieNote = `Recently used vegetables to AVOID repeating: ${recentVeggies.join(', ')}`
+        }
+      } catch {}
+    }
 
     // ── Prompt 构建 ──────────────────────────────────────────────────────────
     const freeDogIngredients = `proteins: chicken_breast, beef_lean, salmon, turkey_breast, duck_breast, cod, pork_lean, egg_cooked
@@ -227,46 +251,49 @@ Output JSON only (no markdown):
   "warnings": []
 }`
 
-    const healthNote = safeConditions.length > 0
-      ? `\nHealth restrictions:\n${safeConditions.map((c: string) => ({
-          kidney:       '- Low phosphorus: avoid spinach, legumes, excess organ meat. Fat must still reach ≥14g/1000kcal — use generous fish oil or mix cod with salmon.',
-          pancreatitis: '- Low fat: avoid fatty meats, excess egg yolk',
-          diabetes:     '- Low glycemic: avoid white rice, sweet potato excess',
-          obesity:      '- Low calorie: reduce carbohydrates and oils',
-          allergy:      '- Check for allergens in all ingredients',
-        } as Record<string, string>)[c] || '').filter(Boolean).join('\n')}
-Forbidden ingredient dbNames: ${forbiddenDbNames.join(', ')}`
-      : ''
+    const proHealthNote = safeConditions.length > 0
+      ? `Health condition restrictions:
+${safeConditions.map((c: string) => ({
+  kidney:       '- Kidney disease: avoid high-phosphorus foods (spinach, legumes, excess organ meat, high-phosphorus fish). Fat must still reach ≥14g/1000kcal — use fish oil or fatty fish.',
+  pancreatitis: '- Pancreatitis: STRICTLY LOW FAT — avoid salmon, duck, pork, egg yolk, any fatty meat. Fish oil max 0.1g/kg.',
+  diabetes:     '- Diabetes: low glycemic — avoid white rice, sweet potato excess, sugary foods.',
+  obesity:      '- Obesity: low calorie — significantly reduce carbohydrates and oils.',
+  allergy:      '- Food allergy: avoid all known allergens. Use novel protein sources when uncertain.',
+} as Record<string, string>)[c] || '').filter(Boolean).join('\n')}`
+      : 'No restrictions — healthy pet, all safe ingredients allowed.'
 
     const proPrompt = `You are an expert pet nutritionist creating a personalized home-cooked meal recipe.
 Respond in ${language}.
 
 Pet: ${isCat ? 'Cat' : 'Dog'}${petName ? ` (${petName})` : ''}, ${weightKg}kg, ${ageMonths} months ${isPuppy ? `(${isCat ? 'KITTEN' : 'PUPPY'})` : '(adult)'}
-Health: ${petParams.healthConditions.join(', ')}
 ${portionText}
-${isCat ? 'IMPORTANT: Cat is an obligate carnivore. High protein (>50% calories), moderate fat, minimal/no carbs. Taurine MUST be present.' : ''}
-${isPuppy && !isCat ? 'PUPPY FAT REQUIREMENT: Puppies need ≥21g fat per 1000kcal. You MUST use fatty proteins (salmon, duck_breast, or egg_cooked) — do NOT rely only on lean chicken breast.' : ''}
-${healthNote}
+${proHealthNote}
 
-TODAY's featured protein: ${featuredProtein} — build the recipe around this protein unless health conditions forbid it.
+TODAY's featured protein: ${featuredProtein} — build the recipe around this unless health conditions forbid it.
+${recentVeggieNote ? recentVeggieNote + '\n' : ''}
+INGREDIENT FREEDOM — Be creative. You may use ANY safe, nutritious pet food ingredients. Consider:
+- Proteins: rabbit, lamb, venison, sardines, tuna, mackerel, beef heart, chicken heart, pork kidney, quail egg, cottage cheese
+- Vegetables: zucchini, asparagus, blueberries, butternut squash, celery, cucumber, beet, green beans
+- Vary ingredients every time — do not repeat the same combination.
 
-Calcium carbonate maximum limits:
-- Puppies under 25kg: maximum 8g per meal
-- Puppies 25kg and above: maximum 15g per meal
-- Adult dogs: no strict cap, follow calculated amount
-- All cats: maximum 3g per meal
-If calculated amount exceeds these limits, use the maximum limit value instead.
-${isCat ? 'Do NOT use spinach for cats. It contains high oxalates which cause urinary stones in cats.' : ''}
+STRICTLY FORBIDDEN (toxic — NEVER use under any circumstances):
+grapes, raisins, onions, garlic, chives, leeks, chocolate, cocoa, xylitol, macadamia nuts, avocado,
+alcohol, caffeine, raw yeast dough, green tomatoes, raw potatoes, fruit seeds/pits
+${isCat ? '\nCAT RULES: Obligate carnivore — protein >65% of calories, no grains/rice as main ingredient. Do NOT use spinach (high oxalates → urinary stones). Taurine MUST be present.' : ''}
+${!isCat && ageMonths >= 96 ? '\nSENIOR DOG (>8 years): Avoid spinach (high oxalates). Use broccoli or carrot instead.' : ''}
+${isPuppy && !isCat ? '\nPUPPY FAT REQUIREMENT: Puppies need ≥21g fat per 1000kcal. Use salmon, duck, or egg — do NOT rely only on lean chicken.' : ''}
+
+Calcium carbonate maximum: puppies <25kg → max 8g | puppies ≥25kg → max 15g | adults → follow calculated | cats → max 3g
 
 MANDATORY:
-1. Calcium source required: ~${portionGuidance.calciumCarbonate}g calcium carbonate
-2. Omega-3 required: ~${Math.max(0.5, weightKg * 0.1).toFixed(1)}ml fish oil OR fatty fish${isCat ? `\n3. Taurine required: ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g taurine supplement OR ensure meat sources provide sufficient taurine` : ''}
-${isCat ? '4' : '3'}. Steps must NOT contain gram/weight numbers
-${isCat ? '5' : '4'}. Steps must ONLY reference ingredients that appear in the ingredient list above.
-   Do NOT mention any ingredient in steps that is not listed. Do NOT add salt, oil,
-   seasoning, or any unlisted item in the steps.
-${isCat ? '6' : '5'}. Be creative with safe ingredients — vary the combination each time${!isCat && ageMonths >= 96 ? `\n${isCat ? '7' : '6'}. Avoid spinach for this senior dog (age > 8 years). Use broccoli or carrot instead.` : ''}
-${!isCat && ageMonths >= 96 ? (isCat ? '8' : '7') : (isCat ? '7' : '6')}. Provide dbName in English snake_case for each ingredient
+1. Calcium: ~${portionGuidance.calciumCarbonate}g calcium carbonate
+2. Omega-3: ~${Math.max(0.5, weightKg * 0.1).toFixed(1)}ml fish oil (mandatory — do NOT replace with cod)
+${isCat ? `3. Taurine: ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g taurine supplement OR taurine-rich meat sources
+4. Steps must NOT contain gram/weight numbers
+5. Steps must ONLY reference ingredients included in the ingredient list
+6. For each ingredient provide "dbName" in English snake_case (e.g. rabbit_meat, lamb_leg, sardines_canned, zucchini, beef_heart)` : `3. Steps must NOT contain gram/weight numbers
+4. Steps must ONLY reference ingredients included in the ingredient list
+5. For each ingredient provide "dbName" in English snake_case (e.g. rabbit_meat, lamb_leg, sardines_canned, zucchini, beef_heart)`}
 
 Output JSON only (no markdown):
 {
