@@ -276,7 +276,7 @@ Output JSON only (no markdown):
     const weightKg_         = typeof weight === 'number' ? weight : parseFloat(weight)
     const isCat_            = species === 'cat'
 
-    function syncStepsIngredients(result: any) {
+    const syncStepsIngredients = (result: any) => {
       const stepsText = (result.steps || []).join(' ').toLowerCase()
       if (!result.ingredients.some((i: any) => i.dbName === 'fish_oil') &&
           FISH_OIL_KEYWORDS.some(kw => stepsText.includes(kw))) {
