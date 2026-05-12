@@ -410,7 +410,11 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   const needsPro = key !== 'healthy' && !isPro
                   const selected = health.includes(key)
                   return (
-                    <button key={key} onClick={() => needsPro ? onAuthRequired() : toggleHealth(key)} style={{
+                    <button key={key} onClick={() => {
+                      if (needsPro && !user) { onAuthRequired(); return }
+                      if (needsPro) return  // logged-in non-Pro: hint text already shown below
+                      toggleHealth(key)
+                    }} style={{
                       padding: '5px 12px', borderRadius: 6, fontSize: 12, fontWeight: 500,
                       cursor: 'pointer', fontFamily: 'inherit',
                       border:     `1px solid ${selected ? '#7A9E7E' : 'rgba(28,26,22,0.12)'}`,
@@ -516,11 +520,6 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   background: complianceStyle.bg, color: complianceStyle.color,
                 }}>
                   {complianceStyle.prefix} {t(compliance.labelKey)}
-                </div>
-              )}
-              {!recipe && (
-                <div style={{ fontSize: 12, fontWeight: 500, color: '#7A9E7E', background: '#EBF2EC', padding: '4px 10px', borderRadius: 6 }}>
-                  {t('recipe.aafcoLabel')}
                 </div>
               )}
             </div>
