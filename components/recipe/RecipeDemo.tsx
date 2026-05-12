@@ -252,7 +252,8 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
         const names = removed.map((w: string) => w.replace('ingredient_removed:', '')).join(', ')
         showToast(t('recipe.warning.ingredient_removed', { name: names }), 'warn')
       } else {
-        showToast('✓ ' + t('compliance.label.compliant_' + (data.compliance?.standard || 'dog_adult')), 'success')
+        const toastType = data.compliance?.label === 'compliant' ? 'success' : 'warn'
+        showToast(t(data.compliance?.labelKey || ('compliance.label.compliant_' + (data.compliance?.standard || 'dog_adult'))), toastType)
       }
     } catch {
       showToast('Network error, please retry', 'error')
