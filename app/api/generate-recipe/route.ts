@@ -440,8 +440,8 @@ Output JSON only (no markdown):
       }
     }
 
-    // 合规性不足（partial / non-compliant）→ 重试一次，取更优结果
-    if (validation.complianceLabel !== 'compliant') {
+    // non-compliant（≥2 项不达标）→ 重试一次，取更优结果；partial 直接放行
+    if (validation.complianceLabel === 'non-compliant') {
       try {
         const cRetry = await openai.chat.completions.create({
           model, messages: [{ role: 'user', content: prompt }],
