@@ -204,11 +204,12 @@ Respond in ${language}.
 Pet: ${isCat ? 'Cat' : 'Dog'}, ${weightKg}kg, ${ageMonths} months ${isPuppy ? `(${isCat ? 'KITTEN' : 'PUPPY'} - higher protein/fat/calcium needed)` : '(adult)'}
 ${portionText}
 ${isCat ? 'IMPORTANT: Cat is an obligate carnivore. High protein, moderate fat, minimal carbs. Taurine is essential.' : ''}
+${isPuppy && !isCat ? 'PUPPY FAT REQUIREMENT: Puppies need ≥21g fat per 1000kcal. You MUST use fatty proteins such as salmon, duck_breast, or egg_cooked — do NOT rely only on lean chicken breast.' : ''}
 
 MANDATORY:
 1. Calcium source: calcium_carbonate ~${portionGuidance.calciumCarbonate}g
 2. Omega-3: fish_oil ~${Math.max(0.5, weightKg * 0.1).toFixed(1)}ml OR use salmon/cod
-${isCat ? `3. Taurine: taurine_supplement ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g (cats cannot synthesize taurine)` : '3. Balance protein and moderate carbs'}
+${isCat ? `3. Taurine: taurine_supplement ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g (cats cannot synthesize taurine)` : isPuppy ? '3. Use salmon, duck_breast, or egg_cooked as main protein to supply sufficient fat for puppy growth' : '3. Balance protein and moderate carbs'}
 4. Steps must NOT contain gram/weight numbers
 5. Steps must ONLY reference ingredients that appear in the ingredient list above.
    Do NOT mention any ingredient in steps that is not listed. Do NOT add salt, oil,
@@ -243,6 +244,7 @@ Pet: ${isCat ? 'Cat' : 'Dog'}${petName ? ` (${petName})` : ''}, ${weightKg}kg, $
 Health: ${petParams.healthConditions.join(', ')}
 ${portionText}
 ${isCat ? 'IMPORTANT: Cat is an obligate carnivore. High protein (>50% calories), moderate fat, minimal/no carbs. Taurine MUST be present.' : ''}
+${isPuppy && !isCat ? 'PUPPY FAT REQUIREMENT: Puppies need ≥21g fat per 1000kcal. You MUST use fatty proteins (salmon, duck_breast, or egg_cooked) — do NOT rely only on lean chicken breast.' : ''}
 ${healthNote}
 
 TODAY's featured protein: ${featuredProtein} — build the recipe around this protein unless health conditions forbid it.
@@ -445,10 +447,10 @@ Output JSON only (no markdown):
       return NextResponse.json({ error: 'INGREDIENT_MISMATCH' }, { status: 500 })
     }
 
-    // 蛋白质/脂肪严重不足 → 退还
+    // 蛋白质/脂肪同时严重不足 → 退还（只有其一不足时保留食谱，显示 non-compliant 标签）
     const isCriticalFailure =
       validation.complianceLabel === 'non-compliant' &&
-      (!validation.aafco.protein.ok || !validation.aafco.fat.ok)
+      !validation.aafco.protein.ok && !validation.aafco.fat.ok
     if (isCriticalFailure) {
       await refundCredits(supabase, user?.id, deductSource, creditSource)
       return NextResponse.json({
