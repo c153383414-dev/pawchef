@@ -6,7 +6,7 @@ const AAFCO_DOG_ADULT = {
   fat:        { min: 13.8 },
   calcium:    { min: 1250, max: 6250 },
   phosphorus: { min: 1000 },
-  caPRatio:   { min: 1.0, max: 2.0 },
+  caPRatio:   { min: 1.0, max: 2.5 },
   omega3:     { min: 110 },
   taurine:    { min: 0 },
 }
@@ -14,8 +14,8 @@ const AAFCO_DOG_PUPPY = {
   protein:    { min: 56 },
   fat:        { min: 21.3 },
   calcium:    { min: 2000, max: 6250 },
-  phosphorus: { min: 1750 },
-  caPRatio:   { min: 1.0, max: 2.0 },
+  phosphorus: { min: 1250 },
+  caPRatio:   { min: 1.0, max: 2.5 },
   omega3:     { min: 110 },
   taurine:    { min: 0 },
 }
@@ -24,7 +24,7 @@ const AAFCO_CAT_ADULT = {
   fat:        { min: 22.5 },
   calcium:    { min: 1400, max: 6250 },
   phosphorus: { min: 1260 },
-  caPRatio:   { min: 1.0, max: 2.0 },
+  caPRatio:   { min: 1.0, max: 2.5 },
   omega3:     { min: 110 },
   taurine:    { min: 250 },
 }
@@ -32,8 +32,8 @@ const AAFCO_CAT_KITTEN = {
   protein:    { min: 75 },
   fat:        { min: 22.5 },
   calcium:    { min: 2000, max: 6250 },
-  phosphorus: { min: 1750 },
-  caPRatio:   { min: 1.0, max: 2.0 },
+  phosphorus: { min: 1250 },
+  caPRatio:   { min: 1.0, max: 2.5 },
   omega3:     { min: 110 },
   taurine:    { min: 250 },
 }
