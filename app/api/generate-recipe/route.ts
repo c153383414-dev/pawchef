@@ -228,7 +228,7 @@ Output JSON only (no markdown):
 
     const healthNote = safeConditions.length > 0
       ? `\nHealth restrictions:\n${safeConditions.map((c: string) => ({
-          kidney:       '- Low phosphorus: avoid spinach, legumes, excess organ meat',
+          kidney:       '- Low phosphorus: avoid spinach, legumes, excess organ meat. Fat must still reach ≥14g/1000kcal — use generous fish oil or mix cod with salmon.',
           pancreatitis: '- Low fat: avoid fatty meats, excess egg yolk',
           diabetes:     '- Low glycemic: avoid white rice, sweet potato excess',
           obesity:      '- Low calorie: reduce carbohydrates and oils',
@@ -440,8 +440,8 @@ Output JSON only (no markdown):
       }
     }
 
-    // non-compliant（≥2 项不达标）→ 重试一次，取更优结果；partial 直接放行
-    if (validation.complianceLabel === 'non-compliant') {
+    // 合规性不足时重试：Pro 用户 partial/non-compliant 均重试；免费用户只在 non-compliant 时重试
+    if (validation.complianceLabel === 'non-compliant' || (isPro && validation.complianceLabel === 'partial')) {
       try {
         const cRetry = await openai.chat.completions.create({
           model, messages: [{ role: 'user', content: prompt }],
@@ -599,6 +599,7 @@ Output JSON only (no markdown):
       unknownIngredients: validation.unknownIngredients,
       generatedBy:        isPro ? 'claude-sonnet' : 'gpt-4o-mini',
       freeRemaining,
+      proMonthlyUsed:     deductSource === 'pro_monthly',
     })
 
   } catch (e: any) {

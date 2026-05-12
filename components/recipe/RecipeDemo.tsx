@@ -46,6 +46,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
   } | null>(null)
   const [toast,    setToast]    = useState<{ msg: string; type: 'success' | 'error' | 'warn' } | null>(null)
   const [showSignupPrompt, setShowSignupPrompt] = useState(false)
+  const [proMonthlyDelta, setProMonthlyDelta] = useState(0)
 
   const setRecipe = (r: typeof recipe) => {
     setRecipeState(r)
@@ -134,7 +135,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
   const hasPaidAI = user && (
     (user.gift_ai_points ?? 0) > 0 ||
     (user.paid_points    ?? 0) > 0 ||
-    (isPro && (user.monthly_ai_count ?? 0) < 30)
+    (isPro && ((user.monthly_ai_count ?? 0) + proMonthlyDelta) < 30)
   )
 
   const canGenerate = weightValid && (!user
@@ -150,7 +151,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
       return t('recipe.generateFree')
     }
     // Pro users always show Pro quota first, regardless of remaining free quota
-    if (isPro) return t('recipe.generatePro', { n: 30 - (user.monthly_ai_count ?? 0) })
+    if (isPro) return t('recipe.generatePro', { n: 30 - ((user.monthly_ai_count ?? 0) + proMonthlyDelta) })
     const freeLeft = freeRemaining ?? Math.max(0, (user.free_ai_limit ?? 2) - (user.free_ai_used ?? 0))
     if (hasFreeAI) return t('recipe.generateStandard', { n: freeLeft })
     if ((user.gift_ai_points ?? 0) > 0) return t('recipe.generateGift', { n: user.gift_ai_points })
@@ -244,6 +245,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
       setExpandedSub(null)
 
       if (data.freeRemaining !== undefined) setFreeRemaining(data.freeRemaining)
+      if (data.proMonthlyUsed) setProMonthlyDelta(d => d + 1)
       if (!user) setGuestUsed(true)
 
       // 显示被移除的食材警告
@@ -266,7 +268,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
   const handleSubstitute = async (ing: Ingredient, index: number) => {
     if (!user) { onAuthRequired(); return }
     const canSub = (user.gift_ai_points ?? 0) > 0 || (user.paid_points ?? 0) > 0 ||
-                   (isPro && (user.monthly_ai_count ?? 0) < 30)
+                   (isPro && ((user.monthly_ai_count ?? 0) + proMonthlyDelta) < 30)
     if (!canSub) { showToast(t('substitute.needCredits'), 'warn'); return }
 
     if (expandedSub === index) { setExpandedSub(null); return }
@@ -453,7 +455,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
             )}
             {user && isPro && (
               <div style={{ padding: '10px 14px', borderRadius: 10, background: '#FBF0E4', fontSize: 12, color: '#854F0B', lineHeight: 1.6 }}>
-                {t('recipe.proMonthUsage', { used: user.monthly_ai_count ?? 0 })}
+                {t('recipe.proMonthUsage', { used: (user.monthly_ai_count ?? 0) + proMonthlyDelta })}
               </div>
             )}
             {user && !isPro && hasFreeAI && (
