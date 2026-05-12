@@ -205,13 +205,6 @@ Pet: ${isCat ? 'Cat' : 'Dog'}, ${weightKg}kg, ${ageMonths} months ${isPuppy ? `(
 ${portionText}
 ${isCat ? 'IMPORTANT: Cat is an obligate carnivore. High protein, moderate fat, minimal carbs. Taurine is essential.' : ''}
 
-Calcium carbonate maximum limits:
-- Puppies under 25kg: maximum 8g per meal
-- Puppies 25kg and above: maximum 15g per meal
-- Adult dogs: no strict cap, follow calculated amount
-- All cats: maximum 3g per meal
-If calculated amount exceeds these limits, use the maximum limit value instead.
-
 MANDATORY:
 1. Calcium source: calcium_carbonate ~${portionGuidance.calciumCarbonate}g
 2. Omega-3: fish_oil ~${Math.max(0.5, weightKg * 0.1).toFixed(1)}ml OR use salmon/cod
@@ -264,15 +257,13 @@ ${isCat ? 'Do NOT use spinach for cats. It contains high oxalates which cause ur
 
 MANDATORY:
 1. Calcium source required: ~${portionGuidance.calciumCarbonate}g calcium carbonate
-2. Omega-3 required: ~${Math.max(0.5, weightKg * 0.1).toFixed(1)}ml fish oil OR fatty fish
-${isCat ? `3. Taurine required: ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g taurine supplement OR ensure meat sources provide sufficient taurine` : ''}
-4. Steps must NOT contain gram/weight numbers
-5. Steps must ONLY reference ingredients that appear in the ingredient list above.
+2. Omega-3 required: ~${Math.max(0.5, weightKg * 0.1).toFixed(1)}ml fish oil OR fatty fish${isCat ? `\n3. Taurine required: ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g taurine supplement OR ensure meat sources provide sufficient taurine` : ''}
+${isCat ? '4' : '3'}. Steps must NOT contain gram/weight numbers
+${isCat ? '5' : '4'}. Steps must ONLY reference ingredients that appear in the ingredient list above.
    Do NOT mention any ingredient in steps that is not listed. Do NOT add salt, oil,
    seasoning, or any unlisted item in the steps.
-6. Be creative with safe ingredients — vary the combination each time
-${!isCat && ageMonths >= 96 ? '7. Avoid spinach for this senior dog (age > 8 years). Use broccoli or carrot instead.' : ''}
-8. Provide dbName in English snake_case for each ingredient
+${isCat ? '6' : '5'}. Be creative with safe ingredients — vary the combination each time${!isCat && ageMonths >= 96 ? `\n${isCat ? '7' : '6'}. Avoid spinach for this senior dog (age > 8 years). Use broccoli or carrot instead.` : ''}
+${!isCat && ageMonths >= 96 ? (isCat ? '8' : '7') : (isCat ? '7' : '6')}. Provide dbName in English snake_case for each ingredient
 
 Output JSON only (no markdown):
 {
