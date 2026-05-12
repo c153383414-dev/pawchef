@@ -14,7 +14,7 @@ const AAFCO_DOG_PUPPY = {
   protein:    { min: 56 },
   fat:        { min: 21.3 },
   calcium:    { min: 2000, max: 6250 },
-  phosphorus: { min: 1250 },
+  phosphorus: { min: 1000 },
   caPRatio:   { min: 1.0, max: 2.5 },
   omega3:     { min: 110 },
   taurine:    { min: 0 },

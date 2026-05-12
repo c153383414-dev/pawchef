@@ -440,6 +440,45 @@ Output JSON only (no markdown):
       }
     }
 
+    // 合规性不足（partial / non-compliant）→ 重试一次，取更优结果
+    if (validation.complianceLabel !== 'compliant') {
+      try {
+        const cRetry = await openai.chat.completions.create({
+          model, messages: [{ role: 'user', content: prompt }],
+          max_tokens: maxTokens, temperature,
+        })
+        const cText  = cRetry.choices[0]?.message?.content || ''
+        const cMatch = cText.match(/\{[\s\S]*\}/)
+        if (cMatch) {
+          const cResult = JSON.parse(cMatch[0])
+          cResult.ingredients = (cResult.ingredients || []).filter((ing: any) => {
+            if (isPro && forbiddenDbNames.includes(ing.dbName)) return false
+            const food = ing.dbName ? findFood(ing.dbName, true) : null
+            return !(food && ((isCat && food.catSafe === false) || (!isCat && food.dogSafe === false)))
+          })
+          syncStepsIngredients(cResult)
+          let cIngredients = cResult.ingredients.map((ing: any) => ({
+            name: ing.name, dbName: ing.dbName, amountG: ing.amountG || 0,
+          }))
+          if (isPro) cIngredients = await resolveUnknownIngredients(cIngredients)
+          let cValidation = validateRecipe(cIngredients, petParams)
+          if (!cValidation.caloriesOk) {
+            const { scaledIngredients, revalidation } = scaleToTargetCalories(
+              cIngredients, petParams, cValidation.actualCalories
+            )
+            cIngredients  = scaledIngredients
+            cValidation   = revalidation
+          }
+          const order = { compliant: 0, partial: 1, 'non-compliant': 2 }
+          if (order[cValidation.complianceLabel] < order[validation.complianceLabel]) {
+            ingredientsForValidation = cIngredients
+            validation  = cValidation
+            aiResult    = cResult
+          }
+        }
+      } catch { /* 重试失败保留原结果 */ }
+    }
+
     // 免费用户：未知食材超30% → 退还
     if (!isPro && validation.unknownIngredients.length > 0 &&
         validation.unknownIngredients.length / (aiResult.ingredients?.length || 1) > 0.3) {
