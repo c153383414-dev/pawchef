@@ -232,6 +232,24 @@ export function validateRecipe(
     nutrients.omega3 += amountG * 300
   }
 
+  // 补脂肪（仅当脂肪不达标时追加鱼油，安全剂量上限 0.3g/kg，最多 3g）
+  if (!aafco.fat.ok) {
+    const targetFat  = (standards.fat.min / 1000) * cal
+    const fatDeficit = Math.max(0, targetFat - nutrients.fat)
+    const maxBoost   = Math.min(pet.weightKg * 0.3, 3)
+    const boostG     = Math.min(maxBoost, Math.round(fatDeficit * 10) / 10)
+    if (boostG > 0) {
+      const existing = supplements.find(s => s.dbName === 'fish_oil')
+      if (existing) {
+        existing.amountG = Math.round((existing.amountG + boostG) * 10) / 10
+      } else {
+        supplements.push({ ingredient: 'fish_oil', dbName: 'fish_oil', amountG: boostG, reasonKey: 'supplement.reason.fat_deficiency' })
+      }
+      nutrients.fat   += boostG
+      nutrients.omega3 += boostG * 300
+    }
+  }
+
   // 补牛磺酸（仅猫）
   if (pet.species === 'cat' && !aafco.taurine.ok) {
     const targetTaurine = (standards.taurine.min / 1000) * cal
@@ -246,10 +264,12 @@ export function validateRecipe(
   // 补全后重新计算合规状态
   if (supplements.length > 0) {
     const p2 = 1000 / (nutrients.calories || 1)
+    aafco.fat.value      = nutrients.fat      * p2
     aafco.calcium.value  = nutrients.calcium  * p2
     aafco.omega3.value   = nutrients.omega3   * p2
     aafco.taurine.value  = nutrients.taurine  * p2
     aafco.caPRatio.value = nutrients.phosphorus > 0 ? nutrients.calcium / nutrients.phosphorus : 0
+    aafco.fat.ok         = aafco.fat.value    >= aafco.fat.min
     aafco.calcium.ok     = aafco.calcium.value  >= aafco.calcium.min && aafco.calcium.value <= aafco.calcium.max
     aafco.omega3.ok      = aafco.omega3.value   >= aafco.omega3.min
     aafco.taurine.ok     = standards.taurine.min === 0 || aafco.taurine.value >= standards.taurine.min

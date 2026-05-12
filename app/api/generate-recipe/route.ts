@@ -178,8 +178,9 @@ export async function POST(req: NextRequest) {
     const portionText     = formatPortionGuidanceForPrompt(portionGuidance, isCat)
 
     // Pro 多样性：每次随机选一个主蛋白类型
-    const DOG_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey', 'duck', 'pork', 'cod']
-    const CAT_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey', 'duck', 'cod']
+    // cod excluded — too lean (0.7% fat) to serve as featured protein; AI can still use it in mixed recipes
+    const DOG_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey', 'duck', 'pork', 'egg']
+    const CAT_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey', 'duck']
     const proProteinPool = isCat ? CAT_PROTEINS : DOG_PROTEINS
     const featuredProtein = proProteinPool[Math.floor(Math.random() * proProteinPool.length)]
 
@@ -208,7 +209,7 @@ ${isPuppy && !isCat ? 'PUPPY FAT REQUIREMENT: Puppies need ≥21g fat per 1000kc
 
 MANDATORY:
 1. Calcium source: calcium_carbonate ~${portionGuidance.calciumCarbonate}g
-2. Omega-3: fish_oil ~${Math.max(0.5, weightKg * 0.1).toFixed(1)}ml OR use salmon/cod
+2. Omega-3: fish_oil ~${Math.max(0.5, weightKg * 0.1).toFixed(1)}ml (mandatory — do NOT replace with cod)
 ${isCat ? `3. Taurine: taurine_supplement ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g (cats cannot synthesize taurine)` : isPuppy ? '3. Use salmon, duck_breast, or egg_cooked as main protein to supply sufficient fat for puppy growth' : '3. Balance protein and moderate carbs'}
 4. Steps must NOT contain gram/weight numbers
 5. Steps must ONLY reference ingredients that appear in the ingredient list above.
