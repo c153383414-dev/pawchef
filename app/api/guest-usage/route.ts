@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/guest-usage?token=gt_xxx&fingerprint=abc
  * Returns whether this guest has already used their free recipe.

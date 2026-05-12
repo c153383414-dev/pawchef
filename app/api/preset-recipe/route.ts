@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 
+export const dynamic = 'force-dynamic'
+
 // Supported locales that may have pre-baked translations in the DB
 const SUPPORTED_LOCALES = ['zh', 'fr', 'es', 'ja', 'ko'] as const
 type SupportedLocale = typeof SUPPORTED_LOCALES[number]
