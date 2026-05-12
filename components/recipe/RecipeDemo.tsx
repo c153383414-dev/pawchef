@@ -617,6 +617,11 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   ))}
                 </div>
 
+                {/* 预混料提示：固定显示在食材列表末尾 */}
+                <div style={{ padding: '8px 12px', borderRadius: 8, background: '#F0F7F0', fontSize: 11, color: '#3B6D11', lineHeight: 1.6, border: '1px solid rgba(122,158,126,0.2)', marginBottom: 8 }}>
+                  {t(species === 'cat' ? 'recipe.premixHintCat' : 'recipe.premixHintDog')}
+                </div>
+
                 {recipe.content.warnings && recipe.content.warnings.length > 0 && (
                   <div style={{ padding: '8px 12px', borderRadius: 8, background: '#FBF0E4', marginBottom: 12, fontSize: 12, color: '#854F0B', lineHeight: 1.5 }}>
                     ⚠️ {recipe.content.warnings.join(' · ')}

@@ -41,7 +41,7 @@
   },
   "recipe": {
     "sectionTitle": "Générez une Recette Complète en 30 Secondes",
-    "sectionSubtitle": "Sélectionnez les informations de votre animal, l'IA génère instantanément une recette nutritionnellement complète basée sur les normes AAFCO",
+    "sectionSubtitle": "Sélectionnez les informations de votre animal, l'IA génère instantanément une recette maison de référence basée sur le cadre nutritionnel AAFCO",
     "selectDog": "🐕 Chien",
     "selectCat": "🐈 Chat",
     "petName": "Nom de l'animal",
@@ -60,7 +60,9 @@
     "aafcoLabel": "✓ Référencé AAFCO",
     "ingredientsLabel": "Ingrédients",
     "stepsLabel": "Étapes de préparation",
-    "disclaimer": "⚠️ Généré par IA, à titre de référence nutritionnelle uniquement. Ne remplace pas les conseils vétérinaires professionnels.",
+    "disclaimer": "Cette recette est générée par IA, basée sur le cadre nutritionnel AAFCO, uniquement à titre de référence culinaire maison. Elle ne constitue pas un plan alimentaire complet et ne remplace pas l'avis vétérinaire. Consultez un nutritionniste vétérinaire avant de l'utiliser comme alimentation unique à long terme.",
+    "premixHintDog": "💡 Pour un usage à long terme comme alimentation principale, ajoutez un complément vitamines et minéraux pour chiens (zinc, cuivre, iode, vitamine E, etc.) selon les instructions du produit",
+    "premixHintCat": "💡 Pour un usage à long terme comme alimentation principale, ajoutez un complément vitamines et minéraux pour chats (zinc, cuivre, iode, vitamine E, etc.) selon les instructions du produit",
     "proMonthUsage": "👑 Membre Pro · Utilisé {used}/30 ce mois",
     "aiCreditsLeft": "🟠 Crédits IA : {total}",
     "giftNote": "(inclut {gift} offerts, valables ce mois)",
@@ -97,8 +99,8 @@
     "allFreeUsed": "Vous avez utilisé toutes vos {n} recettes gratuites.",
     "creditsUsed": "Vos crédits IA sont épuisés.",
     "monthlyQuotaUsed": "Quota mensuel atteint. Achetez des crédits pour continuer.",
-    "disclaimer_short": "⚕ Recette générée par IA, référence nutritionnelle uniquement. Ne remplace pas l'avis vétérinaire.",
-    "disclaimer_full": "Toutes les recettes sont générées par IA selon les normes AAFCO. Référence nutritionnelle uniquement, pas un avis médical. Consultez un vétérinaire avant de nourrir.",
+    "disclaimer_short": "⚕ Recette générée par IA basée sur le cadre nutritionnel AAFCO, référence culinaire maison uniquement. Ne remplace pas l'avis vétérinaire.",
+    "disclaimer_full": "Toutes les recettes sont générées par IA basées sur le cadre nutritionnel AAFCO, référence culinaire maison uniquement. Ne constituent pas un plan alimentaire complet et ne remplacent pas l'avis vétérinaire. Consultez un nutritionniste vétérinaire avant usage à long terme.",
     "calories_warning": "⚠️ Les calories actuelles ({actual} kcal) sont hors de la plage cible {min}–{max} kcal. Ajustez les quantités.",
     "generateError": "Échec de la génération. Veuillez réessayer plus tard.",
     "error": {
@@ -292,18 +294,18 @@
   },
   "compliance": {
     "label": {
-      "compliant_dog_adult": "✓ Basé sur AAFCO Chien Adulte",
-      "compliant_dog_puppy": "✓ Basé sur AAFCO Chiot",
-      "compliant_cat_adult": "✓ Basé sur AAFCO Chat Adulte",
-      "compliant_cat_kitten": "✓ Basé sur AAFCO Chaton",
-      "partial_dog_adult": "△ Partiellement basé sur AAFCO Chien Adulte",
-      "partial_dog_puppy": "△ Partiellement basé sur AAFCO Chiot",
-      "partial_cat_adult": "△ Partiellement basé sur AAFCO Chat Adulte",
-      "partial_cat_kitten": "△ Partiellement basé sur AAFCO Chaton",
-      "non-compliant_dog_adult": "⚠ En dessous du référentiel AAFCO Chien Adulte",
-      "non-compliant_dog_puppy": "⚠ En dessous du référentiel AAFCO Chiot",
-      "non-compliant_cat_adult": "⚠ En dessous du référentiel AAFCO Chat Adulte",
-      "non-compliant_cat_kitten": "⚠ En dessous du référentiel AAFCO Chaton"
+      "compliant_dog_adult": "✓ Recette maison basée sur le cadre AAFCO (Chien Adulte)",
+      "compliant_dog_puppy": "✓ Recette maison basée sur le cadre AAFCO (Chiot)",
+      "compliant_cat_adult": "✓ Recette maison basée sur le cadre AAFCO (Chat Adulte)",
+      "compliant_cat_kitten": "✓ Recette maison basée sur le cadre AAFCO (Chaton)",
+      "partial_dog_adult": "△ Partiellement basé sur le cadre nutritionnel AAFCO (Chien Adulte)",
+      "partial_dog_puppy": "△ Partiellement basé sur le cadre nutritionnel AAFCO (Chiot)",
+      "partial_cat_adult": "△ Partiellement basé sur le cadre nutritionnel AAFCO (Chat Adulte)",
+      "partial_cat_kitten": "△ Partiellement basé sur le cadre nutritionnel AAFCO (Chaton)",
+      "non-compliant_dog_adult": "⚠ En dessous du cadre nutritionnel AAFCO (Chien Adulte)",
+      "non-compliant_dog_puppy": "⚠ En dessous du cadre nutritionnel AAFCO (Chiot)",
+      "non-compliant_cat_adult": "⚠ En dessous du cadre nutritionnel AAFCO (Chat Adulte)",
+      "non-compliant_cat_kitten": "⚠ En dessous du cadre nutritionnel AAFCO (Chaton)"
     }
   },
   "supplement": {

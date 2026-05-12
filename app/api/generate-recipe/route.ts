@@ -205,8 +205,15 @@ Pet: ${isCat ? 'Cat' : 'Dog'}, ${weightKg}kg, ${ageMonths} months ${isPuppy ? `(
 ${portionText}
 ${isCat ? 'IMPORTANT: Cat is an obligate carnivore. High protein, moderate fat, minimal carbs. Taurine is essential.' : ''}
 
+Calcium carbonate maximum limits:
+- Puppies under 25kg: maximum 8g per meal
+- Puppies 25kg and above: maximum 15g per meal
+- Adult dogs: no strict cap, follow calculated amount
+- All cats: maximum 3g per meal
+If calculated amount exceeds these limits, use the maximum limit value instead.
+
 MANDATORY:
-1. Calcium source: calcium_carbonate ~${(weightKg * (isPuppy ? 0.35 : 0.15)).toFixed(1)}g
+1. Calcium source: calcium_carbonate ~${portionGuidance.calciumCarbonate}g
 2. Omega-3: fish_oil ~${Math.max(0.5, weightKg * 0.1).toFixed(1)}ml OR use salmon/cod
 ${isCat ? `3. Taurine: taurine_supplement ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g (cats cannot synthesize taurine)` : '3. Balance protein and moderate carbs'}
 4. Steps must NOT contain gram/weight numbers
@@ -215,6 +222,7 @@ ${isCat ? `3. Taurine: taurine_supplement ~${Math.max(0.05, weightKg * 0.025).to
    seasoning, or any unlisted item in the steps.
 6. ONLY use approved ingredients (exact dbName keys):
 ${isCat ? freeCatIngredients : freeDogIngredients}
+${!isCat && ageMonths >= 96 ? '7. Avoid spinach for this senior dog (age > 8 years). Use broccoli or carrot instead.' : ''}
 
 Output JSON only (no markdown):
 {
@@ -246,8 +254,16 @@ ${healthNote}
 
 TODAY's featured protein: ${featuredProtein} — build the recipe around this protein unless health conditions forbid it.
 
+Calcium carbonate maximum limits:
+- Puppies under 25kg: maximum 8g per meal
+- Puppies 25kg and above: maximum 15g per meal
+- Adult dogs: no strict cap, follow calculated amount
+- All cats: maximum 3g per meal
+If calculated amount exceeds these limits, use the maximum limit value instead.
+${isCat ? 'Do NOT use spinach for cats. It contains high oxalates which cause urinary stones in cats.' : ''}
+
 MANDATORY:
-1. Calcium source required: ~${(weightKg * (isPuppy ? 0.35 : 0.15)).toFixed(1)}g calcium carbonate
+1. Calcium source required: ~${portionGuidance.calciumCarbonate}g calcium carbonate
 2. Omega-3 required: ~${Math.max(0.5, weightKg * 0.1).toFixed(1)}ml fish oil OR fatty fish
 ${isCat ? `3. Taurine required: ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g taurine supplement OR ensure meat sources provide sufficient taurine` : ''}
 4. Steps must NOT contain gram/weight numbers
@@ -255,7 +271,8 @@ ${isCat ? `3. Taurine required: ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g
    Do NOT mention any ingredient in steps that is not listed. Do NOT add salt, oil,
    seasoning, or any unlisted item in the steps.
 6. Be creative with safe ingredients — vary the combination each time
-6. Provide dbName in English snake_case for each ingredient
+${!isCat && ageMonths >= 96 ? '7. Avoid spinach for this senior dog (age > 8 years). Use broccoli or carrot instead.' : ''}
+8. Provide dbName in English snake_case for each ingredient
 
 Output JSON only (no markdown):
 {
@@ -319,12 +336,17 @@ Output JSON only (no markdown):
     }
 
     // ── Pro 专属：禁用食材硬校验 ──────────────────────────────────────────────
-    if (isPro && safeConditions.length > 0) {
+    if (isPro) {
       const removedItems: any[] = []
       aiResult.ingredients = aiResult.ingredients.filter((ing: any) => {
         const isForbidden = forbiddenDbNames.includes(ing.dbName)
-        if (isForbidden) removedItems.push(ing)
-        return !isForbidden
+        const food = ing.dbName ? findFood(ing.dbName, true) : null
+        const isSpeciesUnsafe = food && (
+          (isCat && food.catSafe === false) ||
+          (!isCat && food.dogSafe === false)
+        )
+        if (isForbidden || isSpeciesUnsafe) removedItems.push(ing)
+        return !isForbidden && !isSpeciesUnsafe
       })
       if (removedItems.length > 0) {
         const removedCritical = removedItems.filter((i: any) =>
@@ -381,11 +403,12 @@ Output JSON only (no markdown):
           const retryText   = retryCompletion.choices[0]?.message?.content || ''
           const retryResult = JSON.parse(retryText.replace(/```json|```/g, '').trim())
 
-          if (safeConditions.length > 0) {
-            retryResult.ingredients = retryResult.ingredients.filter(
-              (ing: any) => !forbiddenDbNames.includes(ing.dbName)
-            )
-          }
+          retryResult.ingredients = retryResult.ingredients.filter((ing: any) => {
+            if (forbiddenDbNames.includes(ing.dbName)) return false
+            const food = ing.dbName ? findFood(ing.dbName, true) : null
+            if (food && ((isCat && food.catSafe === false) || (!isCat && food.dogSafe === false))) return false
+            return true
+          })
           let retryIngredients = retryResult.ingredients.map((ing: any) => ({
             name: ing.name, dbName: ing.dbName, amountG: ing.amountG || 0,
           }))

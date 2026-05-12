@@ -41,7 +41,7 @@
   },
   "recipe": {
     "sectionTitle": "30秒で完全なレシピを生成",
-    "sectionSubtitle": "ペットの情報を選択するだけで、AIがAAFCO参照の栄養完全レシピを即時生成します",
+    "sectionSubtitle": "ペットの情報を選択するだけで、AIがAAFCO栄養フレームワークに基づく家庭料理参考レシピを即時生成します",
     "selectDog": "🐕 犬",
     "selectCat": "🐈 猫",
     "petName": "ペットの名前",
@@ -60,7 +60,9 @@
     "aafcoLabel": "✓ AAFCO参照",
     "ingredientsLabel": "食材",
     "stepsLabel": "調理手順",
-    "disclaimer": "⚠️ AI生成コンテンツです。栄養参考情報としてのみご利用ください。専門的な獣医師のアドバイスに代わるものではありません。",
+    "disclaimer": "このレシピはAIが生成し、AAFCO栄養フレームワークに基づいて設計されています。家庭料理の参考のみに留め、完全均衡食事計画を構成しません。専門的な獣医師のアドバイスに代わるものではありません。長期的な唯一の食事として使用する前に獣医栄養士に相談してください。",
+    "premixHintDog": "💡 長期的にメイン食として使用する場合は、犬用総合ビタミン・ミネラルサプリメント（亜鉛、銅、ヨウ素、ビタミンEなど）を製品の指示に従って追加することをお勧めします",
+    "premixHintCat": "💡 長期的にメイン食として使用する場合は、猫用総合ビタミン・ミネラルサプリメント（亜鉛、銅、ヨウ素、ビタミンEなど）を製品の指示に従って追加することをお勧めします",
     "proMonthUsage": "👑 Proメンバー · 今月 {used}/30 使用済み",
     "aiCreditsLeft": "🟠 AIクレジット残高: {total}",
     "giftNote": "（{gift} ギフト分を含む、今月有効）",
@@ -97,8 +99,8 @@
     "allFreeUsed": "無料レシピ{n}回をすべて使用しました。",
     "creditsUsed": "AIクレジットが残っていません。",
     "monthlyQuotaUsed": "月間クォータに達しました。クレジットを購入して続けてください。",
-    "disclaimer_short": "⚕ AIが生成したレシピです。栄養参考情報のみ。獣医師のアドバイスに代わるものではありません。",
-    "disclaimer_full": "すべてのレシピはAAFCO国際基準に従ってAIが生成しています。栄養参考情報のみで医療アドバイスではありません。給餌前に獣医師に相談してください。",
+    "disclaimer_short": "⚕ AAFCO栄養フレームワークに基づくAI生成レシピ。家庭料理の参考のみ。獣医師のアドバイスに代わるものではありません。",
+    "disclaimer_full": "すべてのレシピはAAFCO栄養フレームワークに基づいてAIが生成しています。家庭料理の参考のみで完全均衡食事計画を構成しません。専門的な獣医師のアドバイスに代わるものではありません。長期使用前に獣医栄養士に相談してください。",
     "calories_warning": "⚠️ 現在のカロリー（{actual} kcal）が目標範囲 {min}–{max} kcal を外れています。食材の量を調整してください。",
     "generateError": "生成に失敗しました。後ほど再試行してください。",
     "error": {
@@ -292,18 +294,18 @@
   },
   "compliance": {
     "label": {
-      "compliant_dog_adult": "✓ AAFCO 成犬基準参照",
-      "compliant_dog_puppy": "✓ AAFCO 子犬基準参照",
-      "compliant_cat_adult": "✓ AAFCO 成猫基準参照",
-      "compliant_cat_kitten": "✓ AAFCO 子猫基準参照",
-      "partial_dog_adult": "△ AAFCO 成犬基準部分参照",
-      "partial_dog_puppy": "△ AAFCO 子犬基準部分参照",
-      "partial_cat_adult": "△ AAFCO 成猫基準部分参照",
-      "partial_cat_kitten": "△ AAFCO 子猫基準部分参照",
-      "non-compliant_dog_adult": "⚠ AAFCO 成犬基準未達",
-      "non-compliant_dog_puppy": "⚠ AAFCO 子犬基準未達",
-      "non-compliant_cat_adult": "⚠ AAFCO 成猫基準未達",
-      "non-compliant_cat_kitten": "⚠ AAFCO 子猫基準未達"
+      "compliant_dog_adult": "✓ AAFCOフレームワークに基づく家庭料理参考レシピ（成犬）",
+      "compliant_dog_puppy": "✓ AAFCOフレームワークに基づく家庭料理参考レシピ（子犬）",
+      "compliant_cat_adult": "✓ AAFCOフレームワークに基づく家庭料理参考レシピ（成猫）",
+      "compliant_cat_kitten": "✓ AAFCOフレームワークに基づく家庭料理参考レシピ（子猫）",
+      "partial_dog_adult": "△ AAFCO栄養フレームワーク部分参照（成犬）",
+      "partial_dog_puppy": "△ AAFCO栄養フレームワーク部分参照（子犬）",
+      "partial_cat_adult": "△ AAFCO栄養フレームワーク部分参照（成猫）",
+      "partial_cat_kitten": "△ AAFCO栄養フレームワーク部分参照（子猫）",
+      "non-compliant_dog_adult": "⚠ AAFCO栄養フレームワーク参照未達（成犬）",
+      "non-compliant_dog_puppy": "⚠ AAFCO栄養フレームワーク参照未達（子犬）",
+      "non-compliant_cat_adult": "⚠ AAFCO栄養フレームワーク参照未達（成猫）",
+      "non-compliant_cat_kitten": "⚠ AAFCO栄養フレームワーク参照未達（子猫）"
     }
   },
   "supplement": {

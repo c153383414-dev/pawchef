@@ -326,8 +326,10 @@ export function calculatePortionGuidance(params: PetParams): PortionGuidance {
   const veggieG  = (targetCal * veggieRatio)  / VEGGIE_KCAL  * 100
   const carbG    = isCat ? 0 : (targetCal * carbRatio) / CARB_KCAL * 100
 
-  const fishOilG          = Math.max(0.5, params.weightKg * 0.1)
-  const calciumCarbonateG = Math.round(params.weightKg * (isPuppy ? 0.35 : 0.15) * 10) / 10
+  const fishOilG    = Math.max(0.5, params.weightKg * 0.1)
+  const rawCalcium  = Math.round(params.weightKg * (isPuppy ? 0.35 : 0.15) * 10) / 10
+  const calciumCap  = isCat ? 3 : isPuppy ? (params.weightKg < 25 ? 8 : 15) : Infinity
+  const calciumCarbonateG = Math.min(rawCalcium, calciumCap)
   const taurineG          = isCat
     ? Math.max(0.05, Math.round(params.weightKg * 0.025 * 100) / 100)
     : undefined
