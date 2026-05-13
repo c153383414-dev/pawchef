@@ -339,16 +339,15 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
 
   const applySubstitute = (ingredientIndex: number, sub: SubstituteItem) => {
     if (!recipe) return
-    const oldIng = recipe.content.ingredients[ingredientIndex]
     const newIngredients = recipe.content.ingredients.map((ing, i) =>
       i === ingredientIndex
         ? { emoji: sub.emoji, name: sub.name, dbName: sub.dbName, amount: sub.amount || `${sub.amountG}g` }
         : ing
     )
-    // 自动替换烹饪步骤中的旧食材名称（提升步骤准确性）
-    const newSteps = recipe.content.steps.map(step =>
-      oldIng?.name ? step.replaceAll(oldIng.name, sub.name) : step
-    )
+    // 使用 AI 重新生成的烹饪步骤（如有），否则保留原步骤
+    const newSteps = sub.newSteps && sub.newSteps.length > 0
+      ? sub.newSteps
+      : recipe.content.steps
     setRecipe({ ...recipe, content: { ...recipe.content, ingredients: newIngredients, steps: newSteps } })
     setExpandedSub(null)
     setSubstitutes(prev => { const next = { ...prev }; delete next[ingredientIndex]; return next })

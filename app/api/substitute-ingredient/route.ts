@@ -230,6 +230,50 @@ Output JSON only (no markdown):
       }, { status: 422 })
     }
 
+    // ── 重新生成烹饪步骤（不额外扣费，作为替换操作的一部分）─────────────────
+    let newSteps: string[] | null = null
+    try {
+      const fullNewIngredients = newIngredients.map((ing: any) => ({
+        name:   ing.name,
+        amountG: ing.amountG,
+      }))
+      const locale   = req.headers.get('x-locale') || 'zh'
+      const language = LANGUAGE_MAP[locale] || 'Chinese (Simplified)'
+      const stepsPrompt = `You are a pet chef. Generate exactly 4 cooking steps for this home-cooked pet meal.
+Respond in ${language}.
+
+Ingredients:
+${fullNewIngredients.map((i: any) => `- ${i.name} ${i.amountG}g`).join('\n')}
+
+Rules:
+1. Steps must NOT contain gram or weight numbers
+2. Steps must ONLY reference the ingredients listed above — do NOT mention any other ingredient
+3. No salt, seasoning, oil, or unlisted additives in steps
+4. Steps should be clear, practical, and match the actual cooking method for each ingredient
+5. Consider correct preparation: fish needs deboning, chicken needs thorough cooking, grains need soaking/boiling, etc.
+
+Output JSON only (no markdown):
+{"steps": ["step 1", "step 2", "step 3", "step 4"]}`
+
+      const stepsCompletion = await openai.chat.completions.create({
+        model:       'anthropic/claude-sonnet-4-5',
+        messages:    [{ role: 'user', content: stepsPrompt }],
+        max_tokens:  600,
+        temperature: 0.3,
+      })
+      const stepsText  = stepsCompletion.choices[0]?.message?.content || ''
+      const stepsMatch = stepsText.match(/\{[\s\S]*\}/)
+      if (stepsMatch) {
+        const stepsResult = JSON.parse(stepsMatch[0])
+        if (Array.isArray(stepsResult.steps) && stepsResult.steps.length > 0) {
+          newSteps = stepsResult.steps
+        }
+      }
+    } catch {
+      // 步骤生成失败时保留原步骤，不阻断主流程
+      newSteps = null
+    }
+
     // ── 积分流水 ────────────────────────────────────────────────────────────
     await supabase.from('point_transactions').insert({
       user_id:     user.id,
@@ -242,6 +286,7 @@ Output JSON only (no markdown):
       substitute: {
         ...substitute,
         amount: `${substitute.amountG}g`,
+        newSteps: newSteps ?? undefined,
       },
       proMonthlyUsed: creditSource === 'pro',
       autoAddedSupplements: validation.supplements,
