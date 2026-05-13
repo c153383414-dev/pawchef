@@ -289,7 +289,7 @@ Output JSON only (no markdown):
       ? `Health condition restrictions:
 ${safeConditions.map((c: string) => ({
   kidney:       '- Kidney disease: avoid high-phosphorus foods (spinach, legumes, excess organ meat, high-phosphorus fish). Fat must still reach ≥14g/1000kcal — use fish oil or fatty fish.',
-  pancreatitis: '- Pancreatitis: STRICTLY LOW FAT — avoid salmon, duck, pork, egg yolk, any fatty meat. Fish oil max 0.1g/kg.',
+  pancreatitis: '- Pancreatitis: STRICTLY LOW FAT — avoid salmon, sardines, mackerel, herring, duck, pork, egg yolk, any fatty fish or meat. Fish oil max 0.1g/kg. Use only lean proteins: chicken breast, turkey breast, venison, rabbit, cod.',
   diabetes:     '- Diabetes: low glycemic — avoid white rice, sweet potato excess, sugary foods.',
   obesity:      '- Obesity: low calorie — significantly reduce carbohydrates and oils.',
   allergy:      '- Food allergy: avoid all known allergens. Use novel protein sources when uncertain.',
@@ -305,7 +305,13 @@ ${proHealthNote}
 
 ${recentProteinNote ? recentProteinNote + '\n' : 'Choose a creative, varied protein source for today.\n'}${recentVeggieNote ? recentVeggieNote + '\n' : ''}${recentCarbNote ? recentCarbNote + '\n' : ''}${recentOrganNote ? recentOrganNote + '\n' : ''}
 INGREDIENT FREEDOM — Be creative. You may use ANY safe, nutritious pet food ingredients. Consider:
-- Proteins: rabbit, lamb, venison, sardines, mackerel, beef heart, chicken heart, quail egg
+- Proteins: ${
+  locale_ === 'zh'
+    ? 'duck, pork shoulder, chicken thigh, salmon, mackerel, sardines, quail egg, lamb, tuna, trout'
+    : locale_ === 'ja' || locale_ === 'ko'
+    ? 'salmon, mackerel, tuna, duck, chicken thigh, pork, egg, sardines, lamb, trout'
+    : 'turkey, lamb, salmon, duck, mackerel, sardines, chicken thigh, pork shoulder, egg, rabbit'
+}
 - Vegetables: zucchini, asparagus, blueberries, butternut squash, celery, green beans, beet
 - Vary ingredients every time — do not repeat the same combination.
 
@@ -327,7 +333,7 @@ ${isPuppy && !isCat ? '\nPUPPY FAT REQUIREMENT: Puppies need ≥21g fat per 1000
 Calcium carbonate maximum: puppies <25kg → max 8g | puppies ≥25kg → max 15g | adults → follow calculated | cats → max 3g
 
 FAT REQUIREMENT (CRITICAL — verify before finalizing):
-- Total recipe fat must be ≥ ${Math.round(portionGuidance.targetCalories * (isPuppy ? 21 : 14) / 1000 / 9 * 10) / 10}g for this pet.
+- Total recipe fat must be ≥ ${Math.round((portionGuidance.targetCalMin + portionGuidance.targetCalMax) / 2 * (isPuppy ? 21 : 14) / 1000 / 9 * 10) / 10}g for this pet.
 - Fish oil (1-2g) alone CANNOT meet this target. You MUST ensure the protein/fat sources provide sufficient fat.
 - If using lean proteins (pork loin, chicken breast, turkey breast), you MUST also include one of:
   → A high-fat secondary protein: salmon, duck, lamb, sardines, mackerel, beef heart, egg
