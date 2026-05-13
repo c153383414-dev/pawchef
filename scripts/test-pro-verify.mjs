@@ -282,9 +282,11 @@ async function main() {
   const ans = await confirm('  确认开始？(y/n): ')
   if (ans !== 'y' && ans !== 'yes') { console.log('已取消。'); return }
 
-  const ts    = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
-  const outTxt = path.join(ROOT, `verify-${ts}.txt`)
-  const txtWS  = fs.createWriteStream(outTxt)
+  const ts      = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+  const outTxt  = path.join(ROOT, `verify-${ts}.txt`)
+  const outJsonl = path.join(ROOT, `verify-${ts}.jsonl`)
+  const txtWS   = fs.createWriteStream(outTxt)
+  const jsonlWS = fs.createWriteStream(outJsonl)
   txtWS.write(`PawChef Pro 修复验证报告\n生成时间: ${new Date().toLocaleString()}\n总计: ${total} 条\n`)
 
   // 按组分别统计
@@ -297,7 +299,8 @@ async function main() {
 
   const t0 = Date.now()
   let done = 0
-  const allResults = new Array(total).fill(null)
+  const allResults     = new Array(total).fill(null)
+  const allJsonlLines  = new Array(total).fill(null)
 
   await runPool(
     tasks.map((def, idx) => async () => {
@@ -349,13 +352,26 @@ async function main() {
         ? `\n#${num} ERROR ${group} ${species} ${conditions.join('+')} ${locale}: ${errMsg}`
         : `\n#${num} [${group}] [${locale}] ${species} ${weight}kg ${age} [${conditions.join('+')}]\n  标题: ${result.title}\n  蛋白: ${proteinName}  |  食材: ${(result.ingredients||[]).map(i=>i.name).join(', ')}\n  警告: ${(result.warnings||[]).join('; ')||'（无）'}${fattyHit.length>0?`\n  ⚠️ 高脂鱼类: ${fattyHit.join(', ')}`:''}${(result.warnings||[]).length>0?'\n  AI警告: '+(result.warnings||[]).join('; '):''}`
       allResults[idx] = line
+
+      // 写入 JSONL（每行一个完整 JSON 对象）
+      allJsonlLines[idx] = JSON.stringify({
+        num, group, locale, species, weightKg: weight, age,
+        conditions, error: errMsg || null,
+        title:       result.title       || null,
+        ingredients: result.ingredients || [],
+        steps:       result.steps       || [],
+        warnings:    result.warnings    || [],
+        fattyFishDetected: fattyHit,
+        mainProtein: proteinName,
+      })
     }),
     CONCURRENCY,
     () => {}
   )
 
   // 写入文件
-  for (const r of allResults) if (r) txtWS.write(r + '\n')
+  for (const r of allResults)     if (r) txtWS.write(r + '\n')
+  for (const j of allJsonlLines)  if (j) jsonlWS.write(j + '\n')
 
   // ── 汇总报告 ──────────────────────────────────────────────────────────────────
   const sep = '═'.repeat(65)
@@ -408,8 +424,12 @@ async function main() {
   txtWS.write(`en鹿肉占比: ${(enVenison/enTotal*100).toFixed(1)}%\n`)
   txtWS.write(`zh蛋白Top5: ${top(zh.proteins)}\nen蛋白Top5: ${top(en.proteins)}\n`)
 
-  await new Promise(r => txtWS.end(r))
-  console.log(`\n  📄 报告: ${outTxt}`)
+  await Promise.all([
+    new Promise(r => txtWS.end(r)),
+    new Promise(r => jsonlWS.end(r)),
+  ])
+  console.log(`\n  📄 报告 (txt):  ${outTxt}`)
+  console.log(`  📦 数据 (jsonl): ${outJsonl}`)
 }
 
 main().catch(e => { console.error('Fatal:', e); process.exit(1) })
