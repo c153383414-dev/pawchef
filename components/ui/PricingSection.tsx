@@ -85,8 +85,7 @@ export default function PricingSection({ onSignup, t }: Props) {
           )}
           <div style={{ ...divStyle, background: 'rgba(253,250,245,0.15)' }} />
           <div style={{ ...secLabel, color: 'rgba(253,250,245,0.4)' }}>{t('pricing.aiSection')}</div>
-          <Feature text={t('pricing.feat.aiGenCount', { n: billing === 'monthly' ? '30' : '60' })} featured />
-          <Feature text={t('pricing.feat.substCount', { n: billing === 'monthly' ? '20' : '40' })} featured />
+          <Feature text={t('pricing.feat.aiQuotaTotal', { n: billing === 'monthly' ? '30' : '60' })} featured />
           <Feature text={t('pricing.feat.mealPlanCount', { n: billing === 'monthly' ? '2' : '4' })} featured />
           <Feature text={t('pricing.feat.healthMode')} featured />
           <div style={{ ...secLabel, color: 'rgba(253,250,245,0.4)' }}>{t('pricing.valueSection')}</div>

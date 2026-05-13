@@ -339,12 +339,17 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
 
   const applySubstitute = (ingredientIndex: number, sub: SubstituteItem) => {
     if (!recipe) return
+    const oldIng = recipe.content.ingredients[ingredientIndex]
     const newIngredients = recipe.content.ingredients.map((ing, i) =>
       i === ingredientIndex
         ? { emoji: sub.emoji, name: sub.name, dbName: sub.dbName, amount: sub.amount || `${sub.amountG}g` }
         : ing
     )
-    setRecipe({ ...recipe, content: { ...recipe.content, ingredients: newIngredients } })
+    // 自动替换烹饪步骤中的旧食材名称（提升步骤准确性）
+    const newSteps = recipe.content.steps.map(step =>
+      oldIng?.name ? step.replaceAll(oldIng.name, sub.name) : step
+    )
+    setRecipe({ ...recipe, content: { ...recipe.content, ingredients: newIngredients, steps: newSteps } })
     setExpandedSub(null)
     setSubstitutes(prev => { const next = { ...prev }; delete next[ingredientIndex]; return next })
     showToast(t('substitute.applied'), 'success')
@@ -615,7 +620,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                           borderRadius: '0 0 8px 8px', background: '#F7FCF8', padding: '10px 12px',
                         }}>
                           <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.5)', marginBottom: 8, fontWeight: 500 }}>
-                            {t('substitute.suggestions', { name: ing.name })} · <span style={{ color: '#C8813A' }}>{t('substitute.creditUsed')}</span>
+                            {t('substitute.suggestions', { name: ing.name })} · <span style={{ color: isPro ? '#7A9E7E' : '#C8813A' }}>{isPro ? t('substitute.creditUsedPro') : t('substitute.creditUsed')}</span>
                           </div>
                           <div style={{ padding: '8px 10px', borderRadius: 8, background: '#FDFAF5', border: '1px solid rgba(28,26,22,0.08)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>

@@ -293,6 +293,13 @@ ${isPuppy && !isCat ? '\nPUPPY FAT REQUIREMENT: Puppies need ≥21g fat per 1000
 
 Calcium carbonate maximum: puppies <25kg → max 8g | puppies ≥25kg → max 15g | adults → follow calculated | cats → max 3g
 
+FAT REQUIREMENT (CRITICAL — verify before finalizing):
+- Total recipe fat must be ≥ ${Math.round(portionGuidance.targetCalories * (isPuppy ? 21 : 14) / 1000 / 9 * 10) / 10}g for this pet.
+- Fish oil (1-2g) alone CANNOT meet this target. You MUST ensure the protein/fat sources provide sufficient fat.
+- If using lean proteins (pork loin, chicken breast, turkey breast), you MUST also include one of:
+  → A high-fat secondary protein: salmon, duck, lamb, sardines, mackerel, beef heart, egg
+  → OR switch to a fattier primary protein altogether.
+
 MANDATORY:
 1. Calcium: ~${portionGuidance.calciumCarbonate}g calcium carbonate
 2. Omega-3: ~${Math.max(0.5, weightKg * 0.1).toFixed(1)}ml fish oil (mandatory — do NOT replace with cod)
