@@ -109,10 +109,16 @@ export async function POST(req: NextRequest) {
       }, { status: 422 })
     }
 
-    // 排除过敏食材 + 已存在于食谱中的食材
+    // 判断原食材是否为高脂食材（用于排除过瘦的替换候选）
+    const originalFoodForFat = findFood(targetDbName || targetIngredient, !!targetDbName)
+    const isOriginalFatty = (originalFoodForFat?.nutrients?.fat ?? 0) > 5
+
+    // 排除过敏食材 + 已存在于食谱中的食材 + 脂肪差异过大的候选
     const safeAllowed = allowedFoods.filter(f =>
       !existingDbNames.has(f.dbName) &&
-      !allergens.some((a: string) => f.names.some(n => n.toLowerCase().includes(a.toLowerCase())))
+      !allergens.some((a: string) => f.names.some(n => n.toLowerCase().includes(a.toLowerCase()))) &&
+      // 原食材是高脂食材时（如三文鱼 12g fat/100g），排除极低脂的候选（如鳕鱼 0.7g fat/100g）
+      !(isOriginalFatty && (f.nutrients?.fat ?? 0) < 1)
     )
     // 如果过滤后没有选项，退化到只排除过敏（保留已有食材，但不推荐重复）
     const candidateFoods = safeAllowed.length > 0
@@ -120,7 +126,10 @@ export async function POST(req: NextRequest) {
       : allowedFoods.filter(f =>
           !allergens.some((a: string) => f.names.some(n => n.toLowerCase().includes(a.toLowerCase())))
         )
-    const allowedDbNames  = candidateFoods.map(f => f.dbName).join(', ')
+
+    // 打乱候选顺序，避免 AI 总是选列表第一项
+    const shuffledCandidates = [...candidateFoods].sort(() => Math.random() - 0.5)
+    const allowedDbNames  = shuffledCandidates.map(f => f.dbName).join(', ')
     const existingNote    = existingDbNames.size > 0
       ? `Already in recipe - DO NOT suggest these: ${Array.from(existingDbNames).join(', ')}`
       : ''
@@ -163,11 +172,11 @@ Output JSON only (no markdown):
     }
 
     // ── 白名单验证（AI 可能忽略约束）──────────────────────────────────────────
-    const allowedSet = new Set(candidateFoods.map(f => f.dbName))
+    const allowedSet = new Set(shuffledCandidates.map(f => f.dbName))
     if (!allowedSet.has(substitute.dbName)) {
-      // 随机选择候选食材（避免总是返回列表第一项）
-      const fallbackIdx = Math.floor(Math.random() * Math.min(candidateFoods.length, 5))
-      const fallback = candidateFoods[fallbackIdx]
+      // 随机选择候选食材（已打乱顺序，取前5中随机一个）
+      const fallbackIdx = Math.floor(Math.random() * Math.min(shuffledCandidates.length, 5))
+      const fallback = shuffledCandidates[fallbackIdx]
       substitute = {
         name:         fallback.names[0],
         dbName:       fallback.dbName,
@@ -234,6 +243,7 @@ Output JSON only (no markdown):
         ...substitute,
         amount: `${substitute.amountG}g`,
       },
+      proMonthlyUsed: creditSource === 'pro',
       autoAddedSupplements: validation.supplements,
       updatedCompliance: {
         label:    validation.complianceLabel,
@@ -254,7 +264,7 @@ Output JSON only (no markdown):
 }
 
 async function refundCredit(supabase: any, userId: string, source: string) {
-  await supabase.rpc('refund_ai_credit', {
-    p_user_id: userId, p_source: source, p_cost: 1,
-  }).catch(() => {})
+  try {
+    await supabase.rpc('refund_ai_credit', { p_user_id: userId, p_source: source, p_cost: 1 })
+  } catch {}
 }

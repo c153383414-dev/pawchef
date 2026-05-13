@@ -63,19 +63,8 @@ export default function SignupPrompt({ t, onSignup, onLogin, onClose }: Props) {
           {t('signupPrompt.ctaSignup')}
         </button>
 
-        <button
-          onClick={() => window.location.href = '/pricing'}
-          style={{
-            width: '100%', padding: '12px 24px', borderRadius: 10,
-            background: 'transparent', color: '#C8813A',
-            border: '1px solid #C8813A', cursor: 'pointer', fontSize: 14, fontWeight: 500,
-            fontFamily: 'inherit', marginBottom: 16,
-          }}>
-          {t('signupPrompt.ctaBuy')}
-        </button>
-
         {/* Login link */}
-        <p style={{ fontSize: 13, color: 'rgba(28,26,22,0.5)' }}>
+        <p style={{ fontSize: 13, color: 'rgba(28,26,22,0.5)', marginTop: 4 }}>
           <span
             onClick={onLogin}
             style={{ cursor: 'pointer', textDecoration: 'underline', color: '#185FA5' }}>

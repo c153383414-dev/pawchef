@@ -276,8 +276,13 @@ INGREDIENT FREEDOM — Be creative. You may use ANY safe, nutritious pet food in
 - Vegetables: zucchini, asparagus, blueberries, butternut squash, celery, green beans, beet
 - Vary ingredients every time — do not repeat the same combination.
 
-CARB RULE: Use at most ONE carb source per recipe (e.g. sweet potato OR brown rice — NEVER both).
-Total carbohydrates must stay below 20% of total calories. Dogs do not need heavy carb loads.
+CARB RULE (CRITICAL — calculate before finalizing):
+- Total carbohydrates from ALL sources combined must contribute LESS than 20% of total recipe calories.
+- Formula: Σ(ingredient_carb_grams × 4) ÷ total_recipe_kcal < 0.20
+- IMPORTANT: Fruits count toward the carb limit. Cranberries, blueberries, apple, banana = HIGH sugar.
+- Starchy vegetables also count: sweet potato, pumpkin (large), carrot (large), beet.
+- Use at most ONE high-carb ingredient. High-carb = rice, millet, oats, sweet potato, potato, apple, banana, cranberry, or any fruit used in quantity.
+- Prioritize protein and fat. Dogs and cats evolved as carnivores — carbs are optional filler, not a base.
 
 STRICTLY FORBIDDEN (toxic — NEVER use under any circumstances):
 grapes, raisins, onions, garlic, chives, leeks, chocolate, cocoa, xylitol, macadamia nuts, avocado,

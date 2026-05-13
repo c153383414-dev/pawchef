@@ -50,12 +50,23 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
 
   const setRecipe = (r: typeof recipe) => {
     setRecipeState(r)
-    if (!user && r) {
-      try { localStorage.setItem('pawchef_guest_recipe', JSON.stringify(r)) } catch {}
-    } else if (!r) {
-      try { localStorage.removeItem('pawchef_guest_recipe') } catch {}
+    // 登录用户用独立 key 存储，访客用通用 key
+    const storageKey = user ? `pawchef_recipe_${user.id}` : 'pawchef_guest_recipe'
+    if (r) {
+      try { localStorage.setItem(storageKey, JSON.stringify(r)) } catch {}
+    } else {
+      try { localStorage.removeItem(storageKey) } catch {}
     }
   }
+
+  // 登录用户：从 localStorage 恢复上次生成的食谱（页面刷新后不丢失）
+  useEffect(() => {
+    if (!user?.id) return
+    try {
+      const cached = localStorage.getItem(`pawchef_recipe_${user.id}`)
+      if (cached) setRecipeState(JSON.parse(cached))
+    } catch {}
+  }, [user?.id])
 
   const { guestToken, fingerprint } = useGuestToken()
   const [guestUsed,    setGuestUsed]    = useState(false)
@@ -315,6 +326,9 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
         setRecipeState(prev => prev ? { ...prev, compliance: { ...prev.compliance!, ...data.updatedCompliance } } : prev)
       }
 
+      // Pro 月度用量同步（替换也消耗 pro_monthly 配额）
+      if (data.proMonthlyUsed) setProMonthlyDelta(d => d + 1)
+
       showToast(isPro ? t('substitute.creditUsedPro') : t('substitute.creditUsed'), 'success')
     } catch {
       showToast('Network error', 'error')
@@ -438,13 +452,15 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                 })}
               </div>
               {!isPro && user && (
+                // 已登录非 Pro：引导订阅，点击滚到定价区
                 <div style={{ fontSize: 11, color: '#C8813A', marginTop: 6 }}>
-                  {t('recipe.healthLockedHint')} <span style={{ cursor: 'pointer', textDecoration: 'underline' }} onClick={() => onAuthRequired()}>{t('recipe.healthLockedLogin')}</span>
+                  {t('recipe.healthLockedHint')} <span style={{ cursor: 'pointer', textDecoration: 'underline' }} onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>{t('recipe.healthLockedLogin')}</span>
                 </div>
               )}
               {!user && (
+                // 未登录：需要先登录才能订阅 Pro
                 <div style={{ fontSize: 11, color: '#C8813A', marginTop: 6 }}>
-                  {t('recipe.healthLockedHint')} <span style={{ cursor: 'pointer', textDecoration: 'underline' }} onClick={() => onAuthRequired()}>{t('recipe.healthLockedLogin')}</span>
+                  {t('recipe.healthLockedNoLogin')} <span style={{ cursor: 'pointer', textDecoration: 'underline' }} onClick={() => onAuthRequired()}>{t('recipe.healthLockedLoginAction')}</span>
                 </div>
               )}
             </div>
