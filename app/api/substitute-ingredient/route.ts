@@ -113,18 +113,20 @@ export async function POST(req: NextRequest) {
     const originalFoodForFat = findFood(targetDbName || targetIngredient, !!targetDbName)
     const isOriginalFatty = (originalFoodForFat?.nutrients?.fat ?? 0) > 5
 
-    // 排除过敏食材 + 已存在于食谱中的食材 + 脂肪差异过大的候选
+    // 排除：已在食谱 + 过敏 + 病症禁忌(forbiddenFor) + 极端脂肪差异
+    // 注：forbiddenFor 在此处过滤，确保 AI 调用前已排除禁忌食材，避免无效 API 成本
     const safeAllowed = allowedFoods.filter(f =>
       !existingDbNames.has(f.dbName) &&
       !allergens.some((a: string) => f.names.some(n => n.toLowerCase().includes(a.toLowerCase()))) &&
-      // 原食材是高脂食材时（如三文鱼 12g fat/100g），排除极低脂的候选（如鳕鱼 0.7g fat/100g）
+      !conditions.some((c: string) => f.forbiddenFor.includes(c as any)) &&
       !(isOriginalFatty && (f.nutrients?.fat ?? 0) < 1)
     )
-    // 如果过滤后没有选项，退化到只排除过敏（保留已有食材，但不推荐重复）
+    // 降级：过滤后无候选时，仅保留过敏+禁忌过滤（允许已在食谱的食材作为候选）
     const candidateFoods = safeAllowed.length > 0
       ? safeAllowed
       : allowedFoods.filter(f =>
-          !allergens.some((a: string) => f.names.some(n => n.toLowerCase().includes(a.toLowerCase())))
+          !allergens.some((a: string) => f.names.some(n => n.toLowerCase().includes(a.toLowerCase()))) &&
+          !conditions.some((c: string) => f.forbiddenFor.includes(c as any))
         )
 
     // 打乱候选顺序，避免 AI 总是选列表第一项
@@ -187,16 +189,6 @@ Output JSON only (no markdown):
       }
     }
 
-    // ── 双重安全检查：forbiddenFor ─────────────────────────────────────────
-    const subFood = findFood(substitute.dbName, true)
-    if (subFood && conditions.some((c: string) => subFood.forbiddenFor.includes(c as any))) {
-      await refundCredit(supabase, user.id, creditSource)
-      return NextResponse.json({
-        error:      'SUBSTITUTE_SAFETY_VIOLATION',
-        messageKey: 'substitute.error.safety_violation',
-      }, { status: 422 })
-    }
-
     // ── 替换后重新校验整份食谱 ─────────────────────────────────────────────
     const petParams: PetParams = {
       weightKg:         pet.weightKg || 5,
@@ -218,17 +210,11 @@ Output JSON only (no markdown):
 
     const validation = validateRecipe(newIngredients, petParams)
 
-    // 蛋白质/脂肪严重不足 → 退还
-    const isCritical =
-      validation.complianceLabel === 'non-compliant' &&
-      (!validation.aafco.protein.ok || !validation.aafco.fat.ok)
-    if (isCritical) {
-      await refundCredit(supabase, user.id, creditSource)
-      return NextResponse.json({
-        error:      'SUBSTITUTE_NUTRITION_FAILURE',
-        messageKey: 'substitute.error.nutrition_failure',
-      }, { status: 422 })
-    }
+    // 营养偏差 → 软警告（不硬拒，不退费，让用户自决）
+    const nutritionWarnings: string[] = []
+    if (!validation.aafco.protein.ok) nutritionWarnings.push('protein_low')
+    if (!validation.aafco.fat.ok)     nutritionWarnings.push('fat_low')
+    if (validation.complianceLabel === 'non-compliant') nutritionWarnings.push('non_compliant')
 
     // ── 重新生成烹饪步骤（不额外扣费，作为替换操作的一部分）─────────────────
     let newSteps: string[] | null = null
@@ -285,8 +271,9 @@ Output JSON only (no markdown):
     return NextResponse.json({
       substitute: {
         ...substitute,
-        amount: `${substitute.amountG}g`,
-        newSteps: newSteps ?? undefined,
+        amount:           `${substitute.amountG}g`,
+        newSteps:         newSteps ?? undefined,
+        nutritionWarnings: nutritionWarnings.length > 0 ? nutritionWarnings : undefined,
       },
       proMonthlyUsed: creditSource === 'pro',
       autoAddedSupplements: validation.supplements,

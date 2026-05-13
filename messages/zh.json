@@ -360,6 +360,11 @@
     "error": {
       "safety_violation": "替代食材不符合宠物健康要求，已取消",
       "nutrition_failure": "替换后营养校验不通过，已取消"
+    },
+    "warn": {
+      "proteinLow": "替换后蛋白质偏低",
+      "fatLow": "替换后脂肪偏低，建议增加鱼油",
+      "nonCompliant": "替换后营养不达标，建议重新生成"
     }
   },
   "mealPlan": {

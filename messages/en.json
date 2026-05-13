@@ -320,6 +320,11 @@
     "error": {
       "safety_violation": "Substitute does not meet pet health requirements, cancelled",
       "nutrition_failure": "Post-substitution nutrition check failed, cancelled"
+    },
+    "warn": {
+      "proteinLow": "Protein may be low after substitution",
+      "fatLow": "Fat may be low after substitution, consider adding fish oil",
+      "nonCompliant": "Nutrition below standard after substitution, consider regenerating"
     }
   },
   "mealPlan": {

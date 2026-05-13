@@ -529,16 +529,14 @@ Output JSON only (no markdown):
       return NextResponse.json({ error: 'INGREDIENT_MISMATCH' }, { status: 500 })
     }
 
-    // 蛋白质/脂肪同时严重不足 → 退还（只有其一不足时保留食谱，显示 non-compliant 标签）
-    const isCriticalFailure =
-      validation.complianceLabel === 'non-compliant' &&
-      !validation.aafco.protein.ok && !validation.aafco.fat.ok
-    if (isCriticalFailure) {
-      await refundCredits(supabase, user?.id, deductSource, creditSource)
-      return NextResponse.json({
-        error:      'NUTRITION_CRITICAL_FAILURE',
-        messageKey: 'recipe.error.nutrition_failure',
-      }, { status: 422 })
+    // 蛋白质/脂肪严重不足 → 不再硬拒，返回食谱但带 non-compliant 标签
+    // 用户通过合规性标签感知问题，可选择重新生成，不浪费已消耗的 API 成本
+    if (validation.complianceLabel === 'non-compliant' &&
+        !validation.aafco.protein.ok && !validation.aafco.fat.ok) {
+      aiResult.warnings = [
+        ...(aiResult.warnings || []),
+        'nutrition_critical_warning',
+      ]
     }
 
     // ── 用缩放后克重更新主食材，合并补充剂 ──────────────────────────────────

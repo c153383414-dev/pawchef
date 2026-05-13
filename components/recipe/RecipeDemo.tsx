@@ -22,6 +22,17 @@ const HEALTH_OPTIONS = [
 
 const AGE_OPTIONS = ['<1yr', '1yr', '2yr', '3yr', '5yr', '7yr', '10yr', '12yr+']
 
+// ── 错误码格式化（dev 显示详情，prod 显示错误码）──────────────────────────────
+const DEBUG = process.env.NEXT_PUBLIC_DEBUG_ERRORS === 'true'
+function formatApiError(data: { error?: string; messageKey?: string; detail?: string }, status?: number): string {
+  const code = data.error || `HTTP_${status}`
+  if (DEBUG) {
+    const extra = [data.messageKey, data.detail].filter(Boolean).join(' | ')
+    return extra ? `[${code}] ${extra}` : `[${code}]`
+  }
+  return `[${code}]`
+}
+
 // 年龄字符串 → 月份（传给 substitute API 用）
 function parseAgeToMonths(age: string): number {
   if (age === '<1yr') return 6
@@ -230,13 +241,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
         if (err === 'AUTH_REQUIRED' || err === 'GUEST_TOKEN_MISSING') {
           showToast('会话已过期，请刷新页面后重新登录', 'error'); return
         }
-        if (err === 'FORBIDDEN_INGREDIENT_REMOVED') {
-          showToast(t('recipe.error.forbidden_ingredient', { name: (data.removedItems || []).join(', ') }), 'error'); return
-        }
-        if (err === 'NUTRITION_CRITICAL_FAILURE') {
-          showToast(t('recipe.error.nutrition_failure'), 'error'); return
-        }
-        showToast(data.error || t('recipe.generateError'), 'error')
+        showToast(formatApiError(data, res.status), 'error')
         return
       }
 
@@ -312,10 +317,8 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
       })
       const data = await res.json()
       if (!res.ok) {
-        const msgKey = data.messageKey
-        if (msgKey) showToast(t(msgKey), 'error')
-        else if (res.status === 402) showToast('🟠 ' + t('substitute.needCredits'), 'error')
-        else showToast(data.error || 'Failed', 'error')
+        if (res.status === 402) showToast('🟠 ' + t('substitute.needCredits'), 'error')
+        else showToast(formatApiError(data, res.status), 'error')
         return
       }
       setSubstitutes(prev => ({ ...prev, [index]: data.substitute }))
@@ -636,6 +639,15 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                             </div>
                             {substitutes[i].reason && (
                               <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.5)', lineHeight: 1.4 }}>{substitutes[i].reason}</div>
+                            )}
+                            {substitutes[i].nutritionWarnings && substitutes[i].nutritionWarnings!.length > 0 && (
+                              <div style={{ marginTop: 6, padding: '4px 8px', borderRadius: 5, background: '#FBF0E4', border: '1px solid rgba(200,129,58,0.25)', fontSize: 11, color: '#854F0B', lineHeight: 1.4 }}>
+                                ⚠️ {substitutes[i].nutritionWarnings!.map(w =>
+                                  w === 'protein_low'  ? t('substitute.warn.proteinLow')  :
+                                  w === 'fat_low'      ? t('substitute.warn.fatLow')      :
+                                  w === 'non_compliant'? t('substitute.warn.nonCompliant') : w
+                                ).join(' · ')}
+                              </div>
                             )}
                           </div>
                           <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>

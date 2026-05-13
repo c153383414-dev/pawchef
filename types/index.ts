@@ -66,14 +66,16 @@ export interface Ingredient {
 }
 
 export interface SubstituteItem {
-  name:           string
-  dbName?:        string
-  amount:         string
-  amountG?:       number
-  emoji:          string
-  reason:         string
-  nutrition_note: string
-  autoFallback?:  boolean
+  name:               string
+  dbName?:            string
+  amount:             string
+  amountG?:           number
+  emoji:              string
+  reason:             string
+  nutrition_note:     string
+  autoFallback?:      boolean
+  newSteps?:          string[]    // 替换后重新生成的烹饪步骤
+  nutritionWarnings?: string[]    // ['protein_low','fat_low','non_compliant'] 软警告
 }
 
 export interface NutritionInfo {
