@@ -30,14 +30,14 @@ export const NUTRITION_DB: FoodItem[] = [
   // ── 蛋白质类 ──
   {
     id: 'chicken_breast', dbName: 'chicken_breast',
-    names: ['鸡胸肉', '去皮鸡胸肉', '鸡肉', 'chicken breast', 'chicken'],
+    names: ['鸡胸肉', '去皮鸡胸肉', '鸡肉', '鸡', 'chicken breast', 'chicken', 'chicken meat', 'chicken_meat'],
     category: 'protein',
     nutrients: { calories: 165, protein: 31, fat: 3.6, carbs: 0, calcium: 15, phosphorus: 220, omega3: 60, taurine: 180, vitaminA: 21, vitaminD: 4, zinc: 1.0, iodine: 7 },
     dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: []
   },
   {
     id: 'beef_lean', dbName: 'beef_lean',
-    names: ['瘦牛肉', '牛肉', 'lean beef', 'beef'],
+    names: ['瘦牛肉', '牛肉', '牛', 'lean beef', 'beef', 'beef meat', 'ground beef', 'minced beef'],
     category: 'protein',
     nutrients: { calories: 158, protein: 26, fat: 5.5, carbs: 0, calcium: 18, phosphorus: 198, omega3: 40, taurine: 360, vitaminA: 0, vitaminD: 0, zinc: 5.8, iodine: 8 },
     dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['pancreatitis']
@@ -52,7 +52,7 @@ export const NUTRITION_DB: FoodItem[] = [
   },
   {
     id: 'turkey_breast', dbName: 'turkey_breast',
-    names: ['火鸡胸肉', '火鸡肉', 'turkey breast', 'turkey'],
+    names: ['火鸡胸肉', '火鸡肉', '火鸡', 'turkey breast', 'turkey', 'turkey meat', 'turkey_meat'],
     category: 'protein',
     nutrients: { calories: 135, protein: 30, fat: 1.5, carbs: 0, calcium: 14, phosphorus: 215, omega3: 30, taurine: 306, vitaminA: 0, vitaminD: 0, zinc: 1.5, iodine: 7 },
     dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: []
@@ -85,6 +85,95 @@ export const NUTRITION_DB: FoodItem[] = [
     nutrients: { calories: 155, protein: 13, fat: 11, carbs: 1.1, calcium: 50, phosphorus: 172, omega3: 80, taurine: 0, vitaminA: 160, vitaminD: 87, zinc: 1.3, iodine: 25 },
     dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['pancreatitis'],
     notes: '必须全熟，生蛋白含抗生物素蛋白'
+  },
+  // ── Pro 扩展蛋白质类（防止 USDA API 返回错误值）──
+  {
+    id: 'beef_heart', dbName: 'beef_heart',
+    names: ['牛心', '牛心肉', 'beef heart', 'heart'],
+    category: 'protein',
+    nutrients: { calories: 112, protein: 17, fat: 4.7, carbs: 0.1, calcium: 7, phosphorus: 212, omega3: 50, taurine: 65, vitaminA: 0, vitaminD: 0, zinc: 1.7, iodine: 5 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: [],
+    notes: '富含牛磺酸和CoQ10，优质器官肉'
+  },
+  {
+    id: 'rabbit_meat', dbName: 'rabbit_meat',
+    names: ['兔肉', 'rabbit', 'rabbit meat'],
+    category: 'protein',
+    nutrients: { calories: 136, protein: 20, fat: 5.5, carbs: 0, calcium: 19, phosphorus: 199, omega3: 120, taurine: 30, vitaminA: 0, vitaminD: 0, zinc: 1.3, iodine: 6 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: []
+  },
+  {
+    id: 'lamb_leg', dbName: 'lamb_leg',
+    names: ['羊肉', '羊腿肉', 'lamb', 'lamb leg', 'lamb meat'],
+    category: 'protein',
+    nutrients: { calories: 195, protein: 21, fat: 12, carbs: 0, calcium: 18, phosphorus: 175, omega3: 100, taurine: 40, vitaminA: 0, vitaminD: 0, zinc: 3.4, iodine: 5 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['pancreatitis']
+  },
+  {
+    id: 'sardines_canned', dbName: 'sardines_canned',
+    names: ['沙丁鱼', '罐头沙丁鱼', 'sardines', 'sardine', 'sardines canned'],
+    category: 'protein',
+    nutrients: { calories: 208, protein: 25, fat: 11, carbs: 0, calcium: 382, phosphorus: 490, omega3: 1480, taurine: 100, vitaminA: 30, vitaminD: 193, zinc: 1.3, iodine: 40 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['pancreatitis', 'kidney'],
+    notes: '钙磷极高，肾病慎用；选无盐款'
+  },
+  {
+    id: 'mackerel', dbName: 'mackerel',
+    names: ['鲭鱼', '青花鱼', 'mackerel'],
+    category: 'protein',
+    nutrients: { calories: 205, protein: 19, fat: 14, carbs: 0, calcium: 12, phosphorus: 217, omega3: 2670, taurine: 80, vitaminA: 50, vitaminD: 360, zinc: 0.8, iodine: 45 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['pancreatitis']
+  },
+  {
+    id: 'venison', dbName: 'venison',
+    names: ['鹿肉', 'venison', 'deer meat'],
+    category: 'protein',
+    nutrients: { calories: 158, protein: 26, fat: 5.0, carbs: 0, calcium: 6, phosphorus: 210, omega3: 80, taurine: 35, vitaminA: 0, vitaminD: 0, zinc: 2.8, iodine: 5 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: []
+  },
+  {
+    id: 'quail_egg', dbName: 'quail_egg',
+    names: ['鹌鹑蛋', 'quail egg', 'quail eggs'],
+    category: 'protein',
+    nutrients: { calories: 158, protein: 13, fat: 11, carbs: 0.4, calcium: 64, phosphorus: 226, omega3: 80, taurine: 0, vitaminA: 156, vitaminD: 80, zinc: 1.5, iodine: 22 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['pancreatitis'],
+    notes: '必须全熟'
+  },
+  // ── Pro 扩展蔬菜类 ──
+  {
+    id: 'zucchini', dbName: 'zucchini',
+    names: ['西葫芦', '节瓜', 'zucchini', 'courgette'],
+    category: 'veggie',
+    nutrients: { calories: 17, protein: 1.2, fat: 0.3, carbs: 3.1, calcium: 16, phosphorus: 38, omega3: 0, taurine: 0, vitaminA: 10, vitaminD: 0, zinc: 0.3, iodine: 3 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: []
+  },
+  {
+    id: 'asparagus', dbName: 'asparagus',
+    names: ['芦笋', 'asparagus'],
+    category: 'veggie',
+    nutrients: { calories: 20, protein: 2.2, fat: 0.1, carbs: 3.9, calcium: 24, phosphorus: 52, omega3: 0, taurine: 0, vitaminA: 38, vitaminD: 0, zinc: 0.5, iodine: 2 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: []
+  },
+  {
+    id: 'blueberry', dbName: 'blueberry',
+    names: ['蓝莓', 'blueberry', 'blueberries'],
+    category: 'veggie',
+    nutrients: { calories: 57, protein: 0.7, fat: 0.3, carbs: 14.5, calcium: 6, phosphorus: 12, omega3: 0, taurine: 0, vitaminA: 3, vitaminD: 0, zinc: 0.2, iodine: 1 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['diabetes']
+  },
+  {
+    id: 'celery', dbName: 'celery',
+    names: ['芹菜', 'celery'],
+    category: 'veggie',
+    nutrients: { calories: 14, protein: 0.7, fat: 0.2, carbs: 3.0, calcium: 40, phosphorus: 25, omega3: 0, taurine: 0, vitaminA: 22, vitaminD: 0, zinc: 0.1, iodine: 2 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: []
+  },
+  {
+    id: 'green_beans', dbName: 'green_beans',
+    names: ['四季豆', '绿豆角', 'green beans', 'string beans'],
+    category: 'veggie',
+    nutrients: { calories: 31, protein: 1.8, fat: 0.2, carbs: 7.0, calcium: 37, phosphorus: 38, omega3: 0, taurine: 0, vitaminA: 35, vitaminD: 0, zinc: 0.2, iodine: 3 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: []
   },
   // ── 内脏类 ──
   {

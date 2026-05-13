@@ -272,9 +272,12 @@ ${proHealthNote}
 TODAY's featured protein: ${featuredProtein} — build the recipe around this unless health conditions forbid it.
 ${recentVeggieNote ? recentVeggieNote + '\n' : ''}
 INGREDIENT FREEDOM — Be creative. You may use ANY safe, nutritious pet food ingredients. Consider:
-- Proteins: rabbit, lamb, venison, sardines, tuna, mackerel, beef heart, chicken heart, pork kidney, quail egg, cottage cheese
-- Vegetables: zucchini, asparagus, blueberries, butternut squash, celery, cucumber, beet, green beans
+- Proteins: rabbit, lamb, venison, sardines, mackerel, beef heart, chicken heart, quail egg
+- Vegetables: zucchini, asparagus, blueberries, butternut squash, celery, green beans, beet
 - Vary ingredients every time — do not repeat the same combination.
+
+CARB RULE: Use at most ONE carb source per recipe (e.g. sweet potato OR brown rice — NEVER both).
+Total carbohydrates must stay below 20% of total calories. Dogs do not need heavy carb loads.
 
 STRICTLY FORBIDDEN (toxic — NEVER use under any circumstances):
 grapes, raisins, onions, garlic, chives, leeks, chocolate, cocoa, xylitol, macadamia nuts, avocado,

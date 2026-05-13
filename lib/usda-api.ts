@@ -18,7 +18,10 @@ export async function resolveUnknownIngredients(
 
   for (const ing of ingredients) {
     // Skip ingredients already in local nutrition DB — trust curated data over USDA
-    const localMatch = findFood(ing.dbName, true) || findFood(ing.name, false)
+    // Try: 1) exact dbName match  2) fuzzy name match  3) fuzzy dbName match (catches 'turkey_meat' → turkey_breast)
+    const localMatch = findFood(ing.dbName, true)
+                    || findFood(ing.name, false)
+                    || findFood(ing.dbName, false)
     if (localMatch) {
       resolved.push(ing)
       continue
