@@ -33,6 +33,8 @@ export async function POST(req: NextRequest) {
       allergens = [],
     } = body
 
+    const targetCategory: string | undefined = body.targetCategory
+
     if (!targetIngredient || !pet?.species) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
@@ -71,10 +73,19 @@ export async function POST(req: NextRequest) {
       creditSource === 'pro'  ? 'pro_monthly'    : 'paid_points'
 
     // ── 构建白名单 ──────────────────────────────────────────────────────────
-    const conditions   = (pet.healthConditions || []).filter((c: string) => c !== 'healthy')
-    const targetFood   = findFood(targetDbName || targetIngredient, !!targetDbName)
-    const category     = targetFood?.category || 'protein'
-    const species      = pet.species as 'dog' | 'cat'
+    const conditions = (pet.healthConditions || []).filter((c: string) => c !== 'healthy')
+    const targetFood = findFood(targetDbName || targetIngredient, !!targetDbName)
+                    || findFood(targetIngredient, false)
+    // 优先用 DB 查到的 category，其次用前端传来的 targetCategory，最后才兜底 protein
+    const category   = targetFood?.category || targetCategory || 'protein'
+    const species    = pet.species as 'dog' | 'cat'
+
+    // 已在食谱中的食材 dbName（排除被替换的那个，避免建议已有食材）
+    const existingDbNames = new Set(
+      (currentRecipe?.ingredients || [])
+        .filter((ing: any) => ing.dbName && ing.dbName !== targetDbName)
+        .map((ing: any) => ing.dbName as string)
+    )
 
     const allowedFoods = getAllowedFoodsByCategory(category, conditions, species)
 
@@ -86,12 +97,21 @@ export async function POST(req: NextRequest) {
       }, { status: 422 })
     }
 
-    // 排除过敏食材
-    const safeAllowed    = allowedFoods.filter(f =>
+    // 排除过敏食材 + 已存在于食谱中的食材
+    const safeAllowed = allowedFoods.filter(f =>
+      !existingDbNames.has(f.dbName) &&
       !allergens.some((a: string) => f.names.some(n => n.toLowerCase().includes(a.toLowerCase())))
     )
-    const candidateFoods = safeAllowed.length > 0 ? safeAllowed : allowedFoods
-    const allowedDbNames = candidateFoods.map(f => f.dbName).join(', ')
+    // 如果过滤后没有选项，退化到只排除过敏（保留已有食材，但不推荐重复）
+    const candidateFoods = safeAllowed.length > 0
+      ? safeAllowed
+      : allowedFoods.filter(f =>
+          !allergens.some((a: string) => f.names.some(n => n.toLowerCase().includes(a.toLowerCase())))
+        )
+    const allowedDbNames  = candidateFoods.map(f => f.dbName).join(', ')
+    const existingNote    = existingDbNames.size > 0
+      ? `Already in recipe - DO NOT suggest these: ${Array.from(existingDbNames).join(', ')}`
+      : ''
 
     // ── 调用 Claude Sonnet ─────────────────────────────────────────────────
     const locale   = req.headers.get('x-locale') || 'zh'
@@ -100,11 +120,14 @@ export async function POST(req: NextRequest) {
     const substitutePrompt = `You are a pet nutritionist. Recommend ONE substitute ingredient.
 Respond in ${language}.
 
-Replacing: ${targetIngredient} (${category})
+Replacing: ${targetIngredient} (category: ${category})
 Pet: ${species}, ${pet.weightKg || 5}kg, health: ${(pet.healthConditions || ['healthy']).join(', ')}
 ${species === 'cat' ? 'Cat is an obligate carnivore - prioritize protein, avoid high carb substitutes.' : ''}
-Allowed dbName keys ONLY: ${allowedDbNames}
+Allowed dbName keys ONLY (pick from this list): ${allowedDbNames}
+${existingNote}
 ${allergens.length > 0 ? `Allergens to avoid: ${allergens.join(', ')}` : ''}
+
+IMPORTANT: You MUST pick a dbName from the allowed list. Do NOT suggest any ingredient already in the recipe.
 
 Output JSON only (no markdown):
 { "name": "ingredient name in ${language}", "dbName": "exact_key_from_allowed_list", "amountG": 50, "emoji": "🍗", "reason": "brief reason in ${language}" }`

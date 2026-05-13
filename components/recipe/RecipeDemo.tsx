@@ -265,16 +265,20 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
   }
 
   // ── Substitute ───────────────────────────────────────────────────────────
-  const handleSubstitute = async (ing: Ingredient, index: number) => {
+  const handleSubstitute = async (ing: Ingredient, index: number, forceRefresh = false) => {
     if (!user) { onAuthRequired(); return }
     const canSub = (user.gift_ai_points ?? 0) > 0 || (user.paid_points ?? 0) > 0 ||
                    (isPro && ((user.monthly_ai_count ?? 0) + proMonthlyDelta) < 30)
     if (!canSub) { showToast(t('substitute.needCredits'), 'warn'); return }
 
-    if (expandedSub === index) { setExpandedSub(null); return }
-    if (substitutes[index])   { setExpandedSub(index); return }
+    // 折叠：再次点击同一个且没有强制刷新
+    if (expandedSub === index && !forceRefresh) { setExpandedSub(null); return }
 
     setSubstituting(index)
+    // 强制刷新时清除旧结果
+    if (forceRefresh) {
+      setSubstitutes(prev => { const next = { ...prev }; delete next[index]; return next })
+    }
     try {
       const res = await fetch('/api/substitute-ingredient', {
         method:  'POST',
@@ -282,6 +286,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
         body:    JSON.stringify({
           targetIngredient: ing.name,
           targetDbName:     ing.dbName,
+          targetCategory:   ing.category,
           currentRecipe:    { ingredients: recipe?.content.ingredients || [] },
           pet: {
             species,
@@ -611,9 +616,17 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                               <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.5)', lineHeight: 1.4 }}>{substitutes[i].reason}</div>
                             )}
                           </div>
-                          <button onClick={() => setExpandedSub(null)} style={{ marginTop: 8, fontSize: 11, color: 'rgba(28,26,22,0.4)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
-                            {t('substitute.collapse')}
-                          </button>
+                          <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                            <button
+                              onClick={() => handleSubstitute(ing, i, true)}
+                              disabled={substituting === i}
+                              style={{ fontSize: 11, color: '#854F0B', background: 'none', border: 'none', cursor: substituting === i ? 'wait' : 'pointer', fontFamily: 'inherit', padding: 0 }}>
+                              {substituting === i ? '…' : `↻ ${t('substitute.tryAnother')}`}
+                            </button>
+                            <button onClick={() => setExpandedSub(null)} style={{ fontSize: 11, color: 'rgba(28,26,22,0.4)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
+                              {t('substitute.collapse')}
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>

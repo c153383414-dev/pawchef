@@ -345,6 +345,7 @@
     "btn": "🔄",
     "apply": "应用",
     "collapse": "收起",
+    "tryAnother": "换一个",
     "suggestions": "替换 {name}",
     "creditUsed": "已消耗 1 🟠 AI 积分",
     "loading": "查询中...",
