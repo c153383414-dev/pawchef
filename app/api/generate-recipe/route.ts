@@ -177,33 +177,70 @@ export async function POST(req: NextRequest) {
     const portionGuidance = calculatePortionGuidance(petParams)
     const portionText     = formatPortionGuidanceForPrompt(portionGuidance, isCat)
 
-    // Pro 多样性：每次随机选一个主蛋白类型
-    // cod excluded — too lean (0.7% fat); expanded pool for more variety
+    // Pro 多样性：每次随机选一个主蛋白类型（排除近期用过的）
     const DOG_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey', 'duck', 'pork', 'egg',
                           'rabbit', 'lamb', 'sardines', 'mackerel', 'beef heart', 'venison']
     const CAT_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey', 'duck',
                           'rabbit', 'lamb', 'sardines', 'mackerel', 'quail egg']
     const proProteinPool = isCat ? CAT_PROTEINS : DOG_PROTEINS
-    const featuredProtein = proProteinPool[Math.floor(Math.random() * proProteinPool.length)]
 
-    // 查询最近用过的蔬菜，生成多样性提示
-    let recentVeggieNote = ''
-    if (user && isPro) {
+    // 免费用户蛋白池（只含 DB 白名单内的食材）
+    const FREE_DOG_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey breast', 'duck breast', 'pork', 'egg']
+    const FREE_CAT_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey breast', 'duck breast', 'egg']
+    const freeProteinPool = isCat ? FREE_CAT_PROTEINS : FREE_DOG_PROTEINS
+
+    // 查询最近用过的蔬菜和蛋白质，生成多样性提示
+    let recentVeggieNote   = ''
+    let recentProteinNote  = ''
+    let featuredProtein    = proProteinPool[Math.floor(Math.random() * proProteinPool.length)]
+    let freeFeatureProtein = freeProteinPool[Math.floor(Math.random() * freeProteinPool.length)]
+
+    if (user) {
       try {
         const { data: recentRecipes } = await supabase
           .from('recipes')
           .select('content')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
-          .limit(3)
-        const recentVeggies = (recentRecipes || [])
-          .flatMap((r: any) => r.content?.ingredients || [])
+          .limit(5)
+
+        const recentIngredients = (recentRecipes || []).flatMap((r: any) => r.content?.ingredients || [])
+
+        // 近期蔬菜（Pro + 免费都追踪）
+        const recentVeggies = recentIngredients
           .filter((i: any) => i.category === 'veggie')
           .map((i: any) => i.name || i.dbName)
-          .filter(Boolean)
-          .slice(0, 5)
+          .filter(Boolean).slice(0, 5)
         if (recentVeggies.length > 0) {
           recentVeggieNote = `Recently used vegetables to AVOID repeating: ${recentVeggies.join(', ')}`
+        }
+
+        // 近期蛋白质（用于排除，避免连续相同）
+        const recentProteins = recentIngredients
+          .filter((i: any) => i.category === 'protein')
+          .map((i: any) => i.dbName || i.name)
+          .filter(Boolean)
+        const recentProteinNames = [...new Set(recentProteins)].slice(0, 3)
+
+        if (isPro && recentProteinNames.length > 0) {
+          // Pro：从池中排除最近用过的，确保多样性
+          const freshPool = proProteinPool.filter(
+            p => !recentProteinNames.some(r => p.toLowerCase().includes(r.toLowerCase()) || r.toLowerCase().includes(p.toLowerCase()))
+          )
+          if (freshPool.length > 0) {
+            featuredProtein = freshPool[Math.floor(Math.random() * freshPool.length)]
+          }
+          recentProteinNote = `Recently used proteins to AVOID repeating: ${recentProteinNames.join(', ')}`
+        }
+
+        if (!isPro && recentProteinNames.length > 0) {
+          // 免费用户：也尝试换蛋白质
+          const freshFreePool = freeProteinPool.filter(
+            p => !recentProteinNames.some(r => p.toLowerCase().includes(r.toLowerCase()) || r.toLowerCase().includes(p.toLowerCase()))
+          )
+          if (freshFreePool.length > 0) {
+            freeFeatureProtein = freshFreePool[Math.floor(Math.random() * freshFreePool.length)]
+          }
         }
       } catch {}
     }
@@ -228,7 +265,8 @@ Respond in ${language}.
 
 Pet: ${isCat ? 'Cat' : 'Dog'}, ${weightKg}kg, ${ageMonths} months ${isPuppy ? `(${isCat ? 'KITTEN' : 'PUPPY'} - higher protein/fat/calcium needed)` : '(adult)'}
 ${portionText}
-${isCat ? 'IMPORTANT: Cat is an obligate carnivore. High protein, moderate fat, minimal carbs. Taurine is essential.' : ''}
+TODAY's featured protein: ${freeFeatureProtein} — build the recipe around this protein.
+${recentVeggieNote ? recentVeggieNote + '\n' : ''}${isCat ? 'IMPORTANT: Cat is an obligate carnivore. High protein, moderate fat, minimal carbs. Taurine is essential.' : ''}
 ${isPuppy && !isCat ? 'PUPPY FAT REQUIREMENT: Puppies need ≥21g fat per 1000kcal. You MUST use fatty proteins such as salmon, duck_breast, or egg_cooked — do NOT rely only on lean chicken breast.' : ''}
 
 MANDATORY:
@@ -270,7 +308,7 @@ ${portionText}
 ${proHealthNote}
 
 TODAY's featured protein: ${featuredProtein} — build the recipe around this unless health conditions forbid it.
-${recentVeggieNote ? recentVeggieNote + '\n' : ''}
+${recentVeggieNote ? recentVeggieNote + '\n' : ''}${recentProteinNote ? recentProteinNote + '\n' : ''}
 INGREDIENT FREEDOM — Be creative. You may use ANY safe, nutritious pet food ingredients. Consider:
 - Proteins: rabbit, lamb, venison, sardines, mackerel, beef heart, chicken heart, quail egg
 - Vegetables: zucchini, asparagus, blueberries, butternut squash, celery, green beans, beet
