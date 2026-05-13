@@ -77,7 +77,10 @@ export async function POST(req: NextRequest) {
     const targetFood = findFood(targetDbName || targetIngredient, !!targetDbName)
                     || findFood(targetIngredient, false)
     // 优先用 DB 查到的 category，其次用前端传来的 targetCategory，最后才兜底 protein
-    const category   = targetFood?.category || targetCategory || 'protein'
+    const VALID_CATEGORIES = ['protein', 'organ', 'veggie', 'carb', 'supplement', 'oil'] as const
+    type FoodCategory = typeof VALID_CATEGORIES[number]
+    const rawCategory = targetFood?.category || targetCategory || 'protein'
+    const category = (VALID_CATEGORIES.includes(rawCategory as FoodCategory) ? rawCategory : 'protein') as FoodCategory
     const species    = pet.species as 'dog' | 'cat'
 
     // 已在食谱中的食材 dbName（排除被替换的那个，避免建议已有食材）
