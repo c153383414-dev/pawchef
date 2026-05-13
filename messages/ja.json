@@ -11,17 +11,18 @@
     "aiPoints": "AIクレジット"
   },
   "hero": {
-    "badge": "ASPCA · AAFCO · FEDIAF 国際基準準拠",
+    "badge": "ASPCA · AAFCO · FEDIAF ペット栄養フレームワーク参照",
     "title": "愛ペットのための",
     "titleHighlight": "専用レシピを作成",
-    "subtitle": "AAFCO基準に準拠したAI生成の栄養完全なレシピ。病気のペットにも対応。",
+    "subtitle": "国際ペット栄養フレームワークを参照したAI生成の栄養完全なレシピ。病気のペットにも対応。",
     "ctaMain": "無料でレシピ生成 →",
+    "ctaLoggedIn": "マイレシピを生成 →",
     "ctaSecondary": "サンプルを見る",
     "freeNote": "✓ クレジットカード不要 · 1回無料 · 登録不要",
     "stat1Label": "食材安全データ",
     "stat2Label": "無料AIレシピ",
-    "stat3Label": "AAFCO参照",
-    "stat4Label": "月額固定費"
+    "stat3Label": "健康状態モード",
+    "stat4Label": "レシピ生成速度"
   },
   "features": {
     "sectionLabel": "主な機能",
@@ -239,7 +240,7 @@
     "loginLink": "すでにアカウントをお持ちですか？ログイン"
   },
   "footer": {
-    "description": "ASPCA · AAFCO · FEDIAF 国際基準に厳密に準拠した、AI搭載ペット栄養レシピプラットフォーム",
+    "description": "ASPCA · AAFCO · FEDIAF ペット栄養フレームワークを参照したAI搭載ペット栄養レシピプラットフォーム",
     "product": "製品",
     "features": "機能",
     "safety": "食材安全",
@@ -317,6 +318,8 @@
   },
   "substitute": {
     "no_options": "この食材の適切な代替品が見つかりませんでした",
+    "creditUsed": "🟠 AIクレジット1つ使用",
+    "creditUsedPro": "✓ Pro代替食材1回使用",
     "error": {
       "safety_violation": "代替食材がペットの健康要件を満たしていないためキャンセルしました",
       "nutrition_failure": "代替後の栄養チェックに失敗したためキャンセルしました"

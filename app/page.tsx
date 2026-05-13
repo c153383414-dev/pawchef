@@ -175,14 +175,14 @@ export default function HomePage() {
           )}
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={() => scrollTo('demo')} style={{ padding: '14px 32px', borderRadius: 10, background: '#1C1A16', color: '#FDFAF5', fontSize: 16, fontWeight: 500, border: 'none', cursor: 'pointer' }}>
-              {t('hero.ctaMain')}
+              {user ? t('hero.ctaLoggedIn') : t('hero.ctaMain')}
             </button>
             <button onClick={() => scrollTo('demo')} style={{ padding: '14px 32px', borderRadius: 10, background: '#FDFAF5', color: '#1C1A16', fontSize: 16, fontWeight: 500, border: '1px solid rgba(28,26,22,0.12)', cursor: 'pointer' }}>
               {t('hero.ctaSecondary')}
             </button>
           </div>
           <div style={{ display: 'flex', gap: 40, justifyContent: 'center', marginTop: 60, flexWrap: 'wrap' }}>
-            {[['60+', t('hero.stat1Label')], ['3', t('hero.stat2Label')], ['100%', t('hero.stat3Label')], ['$0', t('hero.stat4Label')]].map(([n, l]) => (
+            {[['60+', t('hero.stat1Label')], ['2', t('hero.stat2Label')], ['6', t('hero.stat3Label')], ['30s', t('hero.stat4Label')]].map(([n, l]) => (
               <div key={l} style={{ textAlign: 'center' }}>
                 <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 28, fontWeight: 700 }}>{n}</div>
                 <div style={{ fontSize: 12, color: 'rgba(28,26,22,0.6)', marginTop: 2 }}>{l}</div>
@@ -195,8 +195,8 @@ export default function HomePage() {
       {/* MARQUEE */}
       <div style={{ background: '#1C1A16', color: '#FDFAF5', padding: '14px 0', overflow: 'hidden' }}>
         <div style={{ display: 'flex', gap: 48, animation: 'marquee 20s linear infinite', whiteSpace: 'nowrap' }}>
-          {['AAFCO', 'ASPCA', 'FEDIAF', 'AI Recipes', 'Kidney Disease', 'Pancreatitis', 'GDPR', 'Multi-language',
-            'AAFCO', 'ASPCA', 'FEDIAF', 'AI Recipes', 'Kidney Disease', 'Pancreatitis', 'GDPR', 'Multi-language'].map((item, i) => (
+          {['Pet Nutrition', 'Safety Verified', 'Vet Reference', 'AI Recipes', 'Kidney Disease', 'Pancreatitis', 'GDPR', 'Multi-language',
+            'Pet Nutrition', 'Safety Verified', 'Vet Reference', 'AI Recipes', 'Kidney Disease', 'Pancreatitis', 'GDPR', 'Multi-language'].map((item, i) => (
             <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, opacity: 0.85 }}>
               <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#C8813A', display: 'inline-block' }} />
               {item}

@@ -11,17 +11,18 @@
     "aiPoints": "Crédits IA"
   },
   "hero": {
-    "badge": "Basé sur les normes ASPCA · AAFCO · FEDIAF",
+    "badge": "En référence aux cadres ASPCA · AAFCO · FEDIAF",
     "title": "Recettes personnalisées",
     "titleHighlight": "pour votre animal",
-    "subtitle": "Recettes nutritives générées par IA pour chiens et chats, conformes aux normes vétérinaires internationales.",
+    "subtitle": "Recettes nutritives générées par IA pour chiens et chats, en référence aux cadres nutritionnels internationaux.",
     "ctaMain": "Générer une recette gratuitement →",
+    "ctaLoggedIn": "Générer ma recette →",
     "ctaSecondary": "Voir des exemples",
     "freeNote": "✓ Aucune carte requise · 1 recette gratuite · Sans inscription",
     "stat1Label": "Base de données sécurité",
     "stat2Label": "Recettes IA gratuites",
-    "stat3Label": "Référencé AAFCO",
-    "stat4Label": "Coût mensuel fixe"
+    "stat3Label": "Modes de santé",
+    "stat4Label": "Vitesse de génération"
   },
   "features": {
     "sectionLabel": "Fonctionnalités Principales",
@@ -239,7 +240,7 @@
     "loginLink": "Déjà un compte ? Connexion"
   },
   "footer": {
-    "description": "Plateforme de recettes nutritionnelles pour animaux avec IA, suivant strictement les normes internationales ASPCA · AAFCO · FEDIAF",
+    "description": "Plateforme de recettes nutritionnelles pour animaux avec IA, en référence aux cadres ASPCA · AAFCO · FEDIAF",
     "product": "Produit",
     "features": "Fonctionnalités",
     "safety": "Sécurité Alimentaire",
@@ -317,6 +318,8 @@
   },
   "substitute": {
     "no_options": "Aucun substitut adéquat trouvé pour cet ingrédient",
+    "creditUsed": "1 🟠 crédit IA utilisé",
+    "creditUsedPro": "✓ 1 substitution Pro utilisée",
     "error": {
       "safety_violation": "Le substitut ne répond pas aux exigences de santé, annulé",
       "nutrition_failure": "La vérification nutritionnelle post-substitution a échoué, annulé"

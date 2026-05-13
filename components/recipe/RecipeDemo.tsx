@@ -273,6 +273,8 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
 
     // 折叠：再次点击同一个且没有强制刷新
     if (expandedSub === index && !forceRefresh) { setExpandedSub(null); return }
+    // 有缓存且不强制刷新：直接展开，不消耗积分
+    if (substitutes[index] && !forceRefresh) { setExpandedSub(index); return }
 
     setSubstituting(index)
     // 强制刷新时清除旧结果
@@ -313,7 +315,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
         setRecipeState(prev => prev ? { ...prev, compliance: { ...prev.compliance!, ...data.updatedCompliance } } : prev)
       }
 
-      showToast(t('substitute.creditUsed'), 'success')
+      showToast(isPro ? t('substitute.creditUsedPro') : t('substitute.creditUsed'), 'success')
     } catch {
       showToast('Network error', 'error')
     } finally {

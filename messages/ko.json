@@ -11,17 +11,18 @@
     "aiPoints": "AI 크레딧"
   },
   "hero": {
-    "badge": "ASPCA · AAFCO · FEDIAF 국제 기준 기반",
+    "badge": "ASPCA · AAFCO · FEDIAF 반려동물 영양 프레임워크 참조",
     "title": "반려동물을 위한",
     "titleHighlight": "맞춤 레시피 제작",
-    "subtitle": "AAFCO 기준을 준수하는 AI 생성 영양 완전 레시피. 질환이 있는 반려동물도 적용 가능.",
+    "subtitle": "국제 반려동물 영양 프레임워크를 참조한 AI 생성 영양 완전 레시피. 질환이 있는 반려동물도 적용 가능.",
     "ctaMain": "무료 레시피 생성 →",
+    "ctaLoggedIn": "내 레시피 생성 →",
     "ctaSecondary": "예시 보기",
     "freeNote": "✓ 신용카드 불필요 · 1회 무료 레시피 · 회원가입 불필요",
     "stat1Label": "식재료 안전 데이터",
     "stat2Label": "무료 AI 레시피",
-    "stat3Label": "AAFCO 참조",
-    "stat4Label": "월 고정 비용"
+    "stat3Label": "건강 조건 모드",
+    "stat4Label": "레시피 생성 속도"
   },
   "features": {
     "sectionLabel": "핵심 기능",
@@ -239,7 +240,7 @@
     "loginLink": "이미 계정이 있으신가요? 로그인"
   },
   "footer": {
-    "description": "ASPCA · AAFCO · FEDIAF 국제 기준을 엄격히 준수하는 AI 기반 반려동물 영양 레시피 플랫폼",
+    "description": "ASPCA · AAFCO · FEDIAF 반려동물 영양 프레임워크를 참조하는 AI 기반 반려동물 영양 레시피 플랫폼",
     "product": "제품",
     "features": "기능",
     "safety": "식재료 안전",
@@ -317,6 +318,8 @@
   },
   "substitute": {
     "no_options": "이 식재료에 적합한 대체 재료를 찾을 수 없습니다",
+    "creditUsed": "🟠 AI 크레딧 1개 사용",
+    "creditUsedPro": "✓ Pro 재료 대체 1회 사용",
     "error": {
       "safety_violation": "대체 재료가 반려동물 건강 요구 사항을 충족하지 않아 취소되었습니다",
       "nutrition_failure": "대체 후 영양 검증에 실패하여 취소되었습니다"

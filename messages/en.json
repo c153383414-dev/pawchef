@@ -11,17 +11,18 @@
     "aiPoints": "AI Credits"
   },
   "hero": {
-    "badge": "Based on ASPCA · AAFCO · FEDIAF Standards",
+    "badge": "Referenced from ASPCA · AAFCO · FEDIAF Pet Nutrition Frameworks",
     "title": "Create Custom Recipes",
     "titleHighlight": "For Your Pet",
-    "subtitle": "AI-powered nutritionally complete recipes for dogs and cats, following international veterinary nutrition standards. Suitable for pets with health conditions.",
+    "subtitle": "AI-powered nutritionally complete recipes for dogs and cats, referenced against international pet nutrition frameworks. Suitable for pets with health conditions.",
     "ctaMain": "Generate Recipe Free →",
+    "ctaLoggedIn": "Generate My Recipe →",
     "ctaSecondary": "View Sample Recipes",
     "freeNote": "✓ No credit card needed · 1 free recipe · No signup required",
     "stat1Label": "Food Safety Database",
     "stat2Label": "Free AI Recipes",
-    "stat3Label": "AAFCO Referenced",
-    "stat4Label": "Monthly Fixed Cost"
+    "stat3Label": "Health Condition Modes",
+    "stat4Label": "Recipe Generation Speed"
   },
   "features": {
     "sectionLabel": "Core Features",
@@ -239,7 +240,7 @@
     "loginLink": "Already have an account? Login"
   },
   "footer": {
-    "description": "AI-powered pet nutrition recipe platform, strictly following ASPCA · AAFCO · FEDIAF international standards",
+    "description": "AI-powered pet nutrition recipe platform, referencing ASPCA · AAFCO · FEDIAF pet nutrition frameworks",
     "product": "Product",
     "features": "Features",
     "safety": "Food Safety",
@@ -308,6 +309,7 @@
     "tryAnother": "Try another",
     "suggestions": "Replace {name}",
     "creditUsed": "1 🟠 AI credit used",
+    "creditUsedPro": "✓ 1 Pro ingredient substitution used",
     "loading": "Searching...",
     "needCredits": "Needs 1 🟠 AI credit or Pro",
     "applied": "✓ Ingredient replaced",

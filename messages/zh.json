@@ -11,17 +11,18 @@
     "aiPoints": "AI积分"
   },
   "hero": {
-    "badge": "基于 ASPCA · AAFCO · FEDIAF 国际标准",
+    "badge": "参照 ASPCA · AAFCO · FEDIAF 宠物营养框架",
     "title": "为你的宠物定制",
     "titleHighlight": "专属食谱",
-    "subtitle": "AI 秒级生成营养完整的猫狗食谱，严格遵循国际兽医营养标准，病宠也适用。",
+    "subtitle": "AI 秒级生成营养完整的猫狗食谱，参照国际宠物营养框架，病宠也适用。",
     "ctaMain": "免费生成食谱 →",
+    "ctaLoggedIn": "生成我的食谱 →",
     "ctaSecondary": "查看示例食谱",
     "freeNote": "✓ 无需信用卡 · 1次免费食谱 · 无需注册",
     "stat1Label": "食材安全数据",
     "stat2Label": "免费AI食谱",
-    "stat3Label": "AAFCO合规",
-    "stat4Label": "月固定成本"
+    "stat3Label": "疾病调节模式",
+    "stat4Label": "食谱生成速度"
   },
   "features": {
     "sectionLabel": "核心功能",
@@ -279,7 +280,7 @@
     "loginLink": "已有账户？立即登录"
   },
   "footer": {
-    "description": "AI 宠物营养食谱平台，严格遵循 ASPCA · AAFCO · FEDIAF 国际标准",
+    "description": "AI 宠物营养食谱平台，参照 ASPCA · AAFCO · FEDIAF 宠物营养框架",
     "product": "产品",
     "features": "功能介绍",
     "safety": "食材安全",
@@ -348,6 +349,7 @@
     "tryAnother": "换一个",
     "suggestions": "替换 {name}",
     "creditUsed": "已消耗 1 🟠 AI 积分",
+    "creditUsedPro": "✓ 已使用 1 次 Pro 食材替换",
     "loading": "查询中...",
     "needCredits": "需要 1 🟠 AI 积分或 Pro",
     "applied": "✓ 食材已替换",

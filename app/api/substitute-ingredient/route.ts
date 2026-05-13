@@ -39,6 +39,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
+    // ── 获取原食材用量 ─────────────────────────────────────────────────────
+    const originalIngredient = (currentRecipe?.ingredients || []).find(
+      (ing: any) => (targetDbName && ing.dbName === targetDbName) || ing.name === targetIngredient
+    )
+    const originalAmountG: number =
+      originalIngredient?.amountG ||
+      (originalIngredient?.amount ? parseInt(String(originalIngredient.amount)) : 0) ||
+      50
+
     // ── 积分检查：仅 gift/paid/pro 可用，不消耗 free_ai_quota ──
     const { data: profile } = await supabase
       .from('profiles')
@@ -133,7 +142,7 @@ ${allergens.length > 0 ? `Allergens to avoid: ${allergens.join(', ')}` : ''}
 IMPORTANT: You MUST pick a dbName from the allowed list. Do NOT suggest any ingredient already in the recipe.
 
 Output JSON only (no markdown):
-{ "name": "ingredient name in ${language}", "dbName": "exact_key_from_allowed_list", "amountG": 50, "emoji": "🍗", "reason": "brief reason in ${language}" }`
+{ "name": "ingredient name in ${language}", "dbName": "exact_key_from_allowed_list", "amountG": ${originalAmountG}, "emoji": "🍗", "reason": "brief reason in ${language}" }`
 
     let substitute: any
     try {
@@ -141,7 +150,7 @@ Output JSON only (no markdown):
         model:       'anthropic/claude-sonnet-4-5',
         messages:    [{ role: 'user', content: substitutePrompt }],
         max_tokens:  400,
-        temperature: 0.5,
+        temperature: 0.8,
       })
       const text      = completion.choices[0]?.message?.content || ''
       const jsonMatch = text.match(/\{[\s\S]*\}/)
@@ -156,11 +165,13 @@ Output JSON only (no markdown):
     // ── 白名单验证（AI 可能忽略约束）──────────────────────────────────────────
     const allowedSet = new Set(candidateFoods.map(f => f.dbName))
     if (!allowedSet.has(substitute.dbName)) {
-      const fallback = candidateFoods[0]
+      // 随机选择候选食材（避免总是返回列表第一项）
+      const fallbackIdx = Math.floor(Math.random() * Math.min(candidateFoods.length, 5))
+      const fallback = candidateFoods[fallbackIdx]
       substitute = {
         name:         fallback.names[0],
         dbName:       fallback.dbName,
-        amountG:      substitute.amountG || 50,
+        amountG:      substitute.amountG || originalAmountG,
         emoji:        '🍽️',
         reason:       substitute.reason || '',
         autoFallback: true,
@@ -183,6 +194,11 @@ Output JSON only (no markdown):
       ageMonths:        pet.ageMonths || 36,
       species,
       healthConditions: pet.healthConditions || ['healthy'],
+    }
+
+    // 如果 AI 给出的用量远小于原食材（原食材>100g 且建议<原食材30%），退回原食材用量
+    if (originalAmountG > 100 && substitute.amountG < originalAmountG * 0.3) {
+      substitute.amountG = originalAmountG
     }
 
     const newIngredients = (currentRecipe?.ingredients || []).map((ing: any) =>
