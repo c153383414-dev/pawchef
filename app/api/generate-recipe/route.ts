@@ -177,22 +177,14 @@ export async function POST(req: NextRequest) {
     const portionGuidance = calculatePortionGuidance(petParams)
     const portionText     = formatPortionGuidanceForPrompt(portionGuidance, isCat)
 
-    // Pro 多样性：每次随机选一个主蛋白类型（排除近期用过的）
-    const DOG_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey', 'duck', 'pork', 'egg',
-                          'rabbit', 'lamb', 'sardines', 'mackerel', 'beef heart', 'venison']
-    const CAT_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey', 'duck',
-                          'rabbit', 'lamb', 'sardines', 'mackerel', 'quail egg']
-    const proProteinPool = isCat ? CAT_PROTEINS : DOG_PROTEINS
-
-    // 免费用户蛋白池（只含 DB 白名单内的食材）
+    // 免费用户蛋白池（固定白名单，安全可控）
     const FREE_DOG_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey breast', 'duck breast', 'pork', 'egg']
     const FREE_CAT_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey breast', 'duck breast', 'egg']
     const freeProteinPool = isCat ? FREE_CAT_PROTEINS : FREE_DOG_PROTEINS
 
     // 查询最近用过的蔬菜和蛋白质，生成多样性提示
     let recentVeggieNote   = ''
-    let recentProteinNote  = ''
-    let featuredProtein    = proProteinPool[Math.floor(Math.random() * proProteinPool.length)]
+    let recentProteinNote  = ''  // Pro：告知 AI 避开，让 AI 自由选（无固定池天花板）
     let freeFeatureProtein = freeProteinPool[Math.floor(Math.random() * freeProteinPool.length)]
 
     if (user) {
@@ -215,26 +207,21 @@ export async function POST(req: NextRequest) {
           recentVeggieNote = `Recently used vegetables to AVOID repeating: ${recentVeggies.join(', ')}`
         }
 
-        // 近期蛋白质（用于排除，避免连续相同）
+        // 近期蛋白质
         const recentProteins = recentIngredients
           .filter((i: any) => i.category === 'protein')
           .map((i: any) => i.dbName || i.name)
           .filter(Boolean)
-        const recentProteinNames = [...new Set(recentProteins)].slice(0, 3)
+        const recentProteinNames = [...new Set(recentProteins)].slice(0, 4)
 
         if (isPro && recentProteinNames.length > 0) {
-          // Pro：从池中排除最近用过的，确保多样性
-          const freshPool = proProteinPool.filter(
-            p => !recentProteinNames.some(r => p.toLowerCase().includes(r.toLowerCase()) || r.toLowerCase().includes(p.toLowerCase()))
-          )
-          if (freshPool.length > 0) {
-            featuredProtein = freshPool[Math.floor(Math.random() * freshPool.length)]
-          }
-          recentProteinNote = `Recently used proteins to AVOID repeating: ${recentProteinNames.join(', ')}`
+          // Pro：不用固定池，直接告诉 AI 避开什么，AI 从训练知识自由选择
+          // 这样候选从13种扩展到 AI 知道的所有宠物安全蛋白质，无天花板
+          recentProteinNote = `Recently used proteins: ${recentProteinNames.join(', ')}. You MUST choose a DIFFERENT protein not in this list — be creative and vary the protein source.`
         }
 
         if (!isPro && recentProteinNames.length > 0) {
-          // 免费用户：也尝试换蛋白质
+          // 免费用户：在固定白名单内轮换
           const freshFreePool = freeProteinPool.filter(
             p => !recentProteinNames.some(r => p.toLowerCase().includes(r.toLowerCase()) || r.toLowerCase().includes(p.toLowerCase()))
           )
@@ -307,8 +294,7 @@ Pet: ${isCat ? 'Cat' : 'Dog'}${petName ? ` (${petName})` : ''}, ${weightKg}kg, $
 ${portionText}
 ${proHealthNote}
 
-TODAY's featured protein: ${featuredProtein} — build the recipe around this unless health conditions forbid it.
-${recentVeggieNote ? recentVeggieNote + '\n' : ''}${recentProteinNote ? recentProteinNote + '\n' : ''}
+${recentProteinNote ? recentProteinNote + '\n' : 'Choose a creative, varied protein source for today.\n'}${recentVeggieNote ? recentVeggieNote + '\n' : ''}
 INGREDIENT FREEDOM — Be creative. You may use ANY safe, nutritious pet food ingredients. Consider:
 - Proteins: rabbit, lamb, venison, sardines, mackerel, beef heart, chicken heart, quail egg
 - Vegetables: zucchini, asparagus, blueberries, butternut squash, celery, green beans, beet
