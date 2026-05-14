@@ -118,6 +118,7 @@
     "nutritionLogic": "营养逻辑说明",
     "organNote": "器官肉（肝脏/心脏等）富含维生素 A、B12 与铁，建议占总食量 5–10%，不宜超量",
     "pancreatitisNote": "低脂模式已激活：脂肪严格控制在 AAFCO 安全上限内，避免胰腺炎复发",
+    "riskTitle": "注意事项",
     "error": {
       "forbidden_ingredient": "⚠️ 部分食材因健康状况限制已被调整",
       "nutrition_failure": "🚨 食谱营养不达标，请重新生成"
@@ -424,6 +425,44 @@
       "omega3_deficiency": "鱼类食材 Omega-3 不足，鱼油补充 EPA+DHA，支持皮毛光泽与关节健康",
       "fat_and_omega3_deficiency": "脂肪与 Omega-3 均低于标准，鱼油同时补足两项，避免皮肤干燥",
       "taurine_deficiency": "猫咪无法自行合成牛磺酸，缺乏会导致心脏病与失明，必须外源补充"
+    }
+  },
+  "suitable": {
+    "healthyAdult": "✓ 健康成犬",
+    "highProtein": "💪 高蛋白配方",
+    "lean": "🥗 低脂配方",
+    "weightControl": "⚖️ 体重控制",
+    "kidney": "🫘 肾脏支持",
+    "lowFat": "🥗 低脂专属",
+    "diabetes": "🩺 血糖友好",
+    "novelProtein": "🔄 新蛋白配方",
+    "puppy": "🐶 幼犬专属"
+  },
+  "risk": {
+    "lowFatNotForPuppies": "本食谱脂肪偏低，不适合幼犬（幼犬需 ≥21g 脂肪/1000kcal）",
+    "consultVet": "有慢性病史的宠物，建议定期配合兽医随访，监测营养指标",
+    "organModeration": "器官肉每周喂食不超过 2 次，过量维生素 A 可能积累至毒性水平",
+    "longTermPremix": "长期作为唯一主食，建议额外添加犬猫综合维矿补充剂（锌、铜、碘等微量元素）"
+  },
+  "ingredient": {
+    "note": {
+      "liver": "维生素 A、B12、铁质丰富 · 每周限量，不超过总食量 10%",
+      "gizzard": "低脂高蛋白 · 富含锌、硒，助消化",
+      "heart": "天然牛磺酸来源 · 含 CoQ10，支持心脏健康",
+      "salmon": "高 Omega-3（EPA+DHA）· 抗炎，改善皮毛光泽",
+      "mackerel": "Omega-3 最丰富的鱼类之一 · 富含维生素 D",
+      "sardines": "天然钙磷来源 · 选无盐款，肾病慎用",
+      "beef": "高锌高铁 · 富含牛磺酸，肌肉维护",
+      "lamb": "低致敏蛋白 · 适合食物过敏宠物",
+      "rabbit": "极低脂肪 · 优质瘦蛋白，适合体重控制",
+      "egg": "完整氨基酸谱 · 高生物利用率，需全熟",
+      "pumpkin": "可溶性膳食纤维 · 改善消化，缓解便秘或腹泻",
+      "broccoli": "富含维生素 C、K · 抗氧化，支持免疫",
+      "carrot": "β-胡萝卜素来源 · 支持视力与皮肤健康",
+      "blueberry": "花青素抗氧化 · 低热量，适量点缀",
+      "sweet_potato": "膳食纤维与维生素 A · 糖尿病宠物限量",
+      "spinach": "草酸含量高 · 肾病、泌尿问题禁用",
+      "green_peas": "植物蛋白补充 · 肾病宠物限量使用"
     }
   },
   "feedingLog": {

@@ -118,6 +118,7 @@
     "nutritionLogic": "Nutrition Logic",
     "organNote": "Organ meat (liver, heart, etc.) is rich in Vitamin A, B12 and iron — recommended at 5–10% of total food, not more",
     "pancreatitisNote": "Low-fat mode active: fat is strictly controlled within AAFCO safety limits to prevent pancreatitis relapse",
+    "riskTitle": "Important Notes",
     "error": {
       "forbidden_ingredient": "⚠️ Some ingredients were adjusted due to health condition restrictions",
       "nutrition_failure": "🚨 Recipe nutrition does not meet standards. Please regenerate."
@@ -384,6 +385,44 @@
       "omega3_deficiency": "Omega-3 from food sources insufficient — fish oil provides EPA+DHA for coat health and joint support",
       "fat_and_omega3_deficiency": "Both fat and Omega-3 below standard — fish oil addresses both to prevent dry skin",
       "taurine_deficiency": "Cats cannot synthesize taurine — deficiency causes heart disease and blindness, must be supplemented externally"
+    }
+  },
+  "suitable": {
+    "healthyAdult": "✓ Healthy Adult",
+    "highProtein": "💪 High Protein",
+    "lean": "🥗 Low Fat",
+    "weightControl": "⚖️ Weight Control",
+    "kidney": "🫘 Kidney Support",
+    "lowFat": "🥗 Low Fat Diet",
+    "diabetes": "🩺 Diabetes Friendly",
+    "novelProtein": "🔄 Novel Protein",
+    "puppy": "🐶 Puppy Formula"
+  },
+  "risk": {
+    "lowFatNotForPuppies": "This recipe is low in fat — not suitable for puppies (puppies need ≥21g fat/1000kcal)",
+    "consultVet": "Pets with chronic conditions should have regular vet check-ups to monitor nutritional markers",
+    "organModeration": "Organ meat max 2×/week — excess Vitamin A can accumulate to toxic levels",
+    "longTermPremix": "For long-term sole feeding, add a dog/cat multivitamin & mineral supplement (zinc, copper, iodine, etc.)"
+  },
+  "ingredient": {
+    "note": {
+      "liver": "Rich in Vitamin A, B12 & iron · Limit to 10% of total food per serving",
+      "gizzard": "Low fat, high protein · Rich in zinc & selenium, aids digestion",
+      "heart": "Natural taurine source · Contains CoQ10 for heart health",
+      "salmon": "High Omega-3 (EPA+DHA) · Anti-inflammatory, improves coat shine",
+      "mackerel": "One of the richest fish in Omega-3 · High Vitamin D",
+      "sardines": "Natural calcium & phosphorus · Choose unsalted, caution for kidney disease",
+      "beef": "High zinc & iron · Rich in taurine, supports muscle maintenance",
+      "lamb": "Low-allergen protein · Good choice for food-sensitive pets",
+      "rabbit": "Very low fat · Lean protein, ideal for weight management",
+      "egg": "Complete amino acid profile · High bioavailability, must be fully cooked",
+      "pumpkin": "Soluble dietary fiber · Relieves constipation or diarrhea",
+      "broccoli": "Rich in Vitamin C & K · Antioxidant, supports immunity",
+      "carrot": "Beta-carotene source · Supports vision and skin health",
+      "blueberry": "Anthocyanin antioxidant · Low calorie, use as a small addition",
+      "sweet_potato": "Dietary fiber & Vitamin A · Limit for diabetic pets",
+      "spinach": "High oxalic acid · Avoid for kidney disease or urinary issues",
+      "green_peas": "Plant protein boost · Limit for pets with kidney conditions"
     }
   },
   "feedingLog": {

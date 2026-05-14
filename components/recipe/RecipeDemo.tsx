@@ -41,6 +41,28 @@ function parseAgeToMonths(age: string): number {
   return match ? parseInt(match[1]) * 12 : 36
 }
 
+const INGREDIENT_NOTES: Record<string, string> = {
+  chicken_liver:    'ingredient.note.liver',
+  chicken_gizzard:  'ingredient.note.gizzard',
+  salmon:           'ingredient.note.salmon',
+  mackerel:         'ingredient.note.mackerel',
+  sardines_canned:  'ingredient.note.sardines',
+  beef_lean:        'ingredient.note.beef',
+  beef_heart:       'ingredient.note.heart',
+  rabbit_meat:      'ingredient.note.rabbit',
+  lamb_leg:         'ingredient.note.lamb',
+  egg_cooked:       'ingredient.note.egg',
+  pumpkin:          'ingredient.note.pumpkin',
+  broccoli:         'ingredient.note.broccoli',
+  carrot:           'ingredient.note.carrot',
+  blueberry:        'ingredient.note.blueberry',
+  sweet_potato:     'ingredient.note.sweet_potato',
+  spinach:          'ingredient.note.spinach',
+  green_peas:       'ingredient.note.green_peas',
+}
+
+const PREFS_KEY = 'pawchef_form_prefs'
+
 export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
   const [species,  setSpecies]  = useState<'dog' | 'cat'>('dog')
   const [petName,  setPetName]  = useState('')
@@ -78,6 +100,26 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
       if (cached) setRecipeState(JSON.parse(cached))
     } catch {}
   }, [user?.id])
+
+  // 表单偏好记忆：首次挂载时恢复上次设置
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(PREFS_KEY)
+      if (saved) {
+        const p = JSON.parse(saved)
+        if (p.species) setSpecies(p.species)
+        if (p.weight)  setWeight(p.weight)
+        if (p.age)     setAge(p.age)
+        if (p.health)  setHealth(p.health)
+        if (p.petName) setPetName(p.petName)
+      }
+    } catch {}
+  }, [])
+
+  // 表单偏好变化时自动保存
+  useEffect(() => {
+    try { localStorage.setItem(PREFS_KEY, JSON.stringify({ species, weight, age, health, petName })) } catch {}
+  }, [species, weight, age, health, petName])
 
   const { guestToken, fingerprint } = useGuestToken()
   const [guestUsed,    setGuestUsed]    = useState(false)
@@ -588,6 +630,38 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
           <div style={{ padding: 20 }}>
             {recipe ? (
               <>
+                {/* 适合谁标签 */}
+                {(() => {
+                  const kcal  = parseFloat(recipe.nutrition.calories.replace(/[^0-9.]/g, '')) || 1
+                  const protG = parseFloat(recipe.nutrition.protein.replace(/[^0-9.]/g, '')) || 0
+                  const fatG  = parseFloat(recipe.nutrition.fat.replace(/[^0-9.]/g, ''))     || 0
+                  const pPct  = protG * 4 / kcal * 100
+                  const fPct  = fatG  * 9 / kcal * 100
+
+                  const tags: { key: string; bg: string; color: string }[] = []
+                  if (health.includes('kidney'))         tags.push({ key: 'suitable.kidney',        bg: '#EBF2EC', color: '#3B6D11' })
+                  if (health.includes('pancreatitis'))   tags.push({ key: 'suitable.lowFat',         bg: '#FBF0E4', color: '#854F0B' })
+                  if (health.includes('obesity'))        tags.push({ key: 'suitable.weightControl',  bg: '#FBF0E4', color: '#854F0B' })
+                  if (health.includes('diabetes'))       tags.push({ key: 'suitable.diabetes',       bg: '#EBF2EC', color: '#3B6D11' })
+                  if (health.includes('allergy'))        tags.push({ key: 'suitable.novelProtein',   bg: '#F0EEF7', color: '#5B4E8A' })
+                  if (isPuppy)                           tags.push({ key: 'suitable.puppy',          bg: '#EBF2EC', color: '#3B6D11' })
+                  if (health.includes('healthy') && !isPuppy) {
+                    if (pPct > 55) tags.push({ key: 'suitable.highProtein',  bg: '#EBF2EC', color: '#3B6D11' })
+                    if (fPct < 20) tags.push({ key: 'suitable.lean',         bg: '#F7F3EC', color: '#854F0B' })
+                    tags.push({ key: 'suitable.healthyAdult', bg: '#F7F3EC', color: 'rgba(28,26,22,0.6)' })
+                  }
+                  if (!tags.length) return null
+                  return (
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+                      {tags.map(tag => (
+                        <span key={tag.key} style={{ fontSize: 11, fontWeight: 500, padding: '3px 8px', borderRadius: 5, background: tag.bg, color: tag.color }}>
+                          {t(tag.key)}
+                        </span>
+                      ))}
+                    </div>
+                  )
+                })()}
+
                 {/* 热量偏差提示 */}
                 {compliance && !compliance.caloriesOk && (
                   <div style={{ padding: '6px 10px', borderRadius: 6, background: '#FBF0E4', fontSize: 11, color: '#854F0B', marginBottom: 10 }}>
@@ -622,6 +696,11 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                       }}>
                         <span style={{ fontSize: 13, flex: 1 }}>
                           {ing.emoji} {ing.name}
+                          {!ing.autoAdded && ing.dbName && INGREDIENT_NOTES[ing.dbName] && (
+                            <span style={{ display: 'block', fontSize: 10, color: 'rgba(28,26,22,0.38)', marginTop: 1, lineHeight: 1.4, fontWeight: 400 }}>
+                              {t(INGREDIENT_NOTES[ing.dbName])}
+                            </span>
+                          )}
                         </span>
                         <span style={{ color: 'rgba(28,26,22,0.6)', fontWeight: 500, fontSize: 13, flexShrink: 0 }}>{ing.amount}</span>
                         {ing.autoAdded && ing.reasonKey && (
@@ -800,6 +879,25 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                           ⚠️ {t('recipe.pancreatitisNote')}
                         </div>
                       )}
+
+                      {/* 风险提醒 */}
+                      {(() => {
+                        const risks: string[] = []
+                        if (!isPuppy && fPct < 18) risks.push('risk.lowFatNotForPuppies')
+                        if (!health.includes('healthy')) risks.push('risk.consultVet')
+                        if (hasOrgan) risks.push('risk.organModeration')
+                        risks.push('risk.longTermPremix')
+                        return risks.length > 0 ? (
+                          <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(28,26,22,0.08)' }}>
+                            <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(28,26,22,0.4)', marginBottom: 5, letterSpacing: '0.03em' }}>{t('recipe.riskTitle')}</div>
+                            {risks.map(r => (
+                              <div key={r} style={{ fontSize: 11, color: 'rgba(28,26,22,0.5)', lineHeight: 1.5, marginBottom: 2 }}>
+                                · {t(r)}
+                              </div>
+                            ))}
+                          </div>
+                        ) : null
+                      })()}
                     </div>
                   )
                 })()}
