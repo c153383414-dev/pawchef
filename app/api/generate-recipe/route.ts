@@ -256,8 +256,21 @@ export async function POST(req: NextRequest) {
     const FREE_CAT_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey breast', 'duck breast']
     const freeProteinPool = isCat ? FREE_CAT_PROTEINS : FREE_DOG_PROTEINS
 
-    // Pro季节性主推蛋白（按季度轮换：Q1=lamb Q2=sardines Q3=duck Q4=salmon）
-    const PRO_SEASONAL_PROTEINS = ['lamb', 'sardines', 'duck', 'salmon']
+    // Pro季节性主推蛋白（按月轮换，12种，确保每月不同）
+    const PRO_SEASONAL_PROTEINS = [
+      'lamb',     // 1月
+      'trout',    // 2月
+      'sardines', // 3月
+      'rabbit',   // 4月
+      'duck',     // 5月
+      'tuna',     // 6月
+      'salmon',   // 7月
+      'venison',  // 8月
+      'mackerel', // 9月
+      'beef',     // 10月
+      'cod',      // 11月
+      'turkey',   // 12月
+    ]
 
     // 查询最近用过的食材，生成多样性提示（蛋白质/蔬菜/碳水/内脏全追踪）
     let recentVeggieNote   = ''
@@ -297,13 +310,13 @@ export async function POST(req: NextRequest) {
           recentProteinNote = `Recently used proteins: ${recentProteinNames.join(', ')}. You MUST choose a DIFFERENT protein — be creative.`
 
         if (isPro) {
-          const quarter = Math.floor(new Date().getMonth() / 3)
-          const seasonalProtein = PRO_SEASONAL_PROTEINS[quarter]
+          const month = new Date().getMonth()  // 0-11
+          const seasonalProtein = PRO_SEASONAL_PROTEINS[month]
           const seasonalConflict = recentProteinNames.some(r =>
             r.toLowerCase().includes(seasonalProtein) || seasonalProtein.includes(r.toLowerCase())
           )
           if (!seasonalConflict)
-            proFeaturedNote = `TODAY's featured protein: ${seasonalProtein} — build the recipe around this protein.`
+            proFeaturedNote = `Suggested protein for this month: ${seasonalProtein} — consider featuring it if appropriate.`
         }
 
         if (!isPro && recentProteinNames.length > 0) {
@@ -469,7 +482,7 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
 
     const model       = isPro ? MODEL_PREMIUM : MODEL_FREE
     const prompt      = isPro ? proPrompt     : freePrompt
-    const maxTokens   = isPro ? 2000          : 1200
+    const maxTokens   = isPro ? 3500          : 1200
     const temperature = isPro ? 0.9           : 0.7   // Pro: higher temp for more diversity
 
     // ── AI 调用 ──────────────────────────────────────────────────────────────
