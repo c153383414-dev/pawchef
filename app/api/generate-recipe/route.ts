@@ -13,7 +13,7 @@ const openai = new OpenAI({
 })
 
 const MODEL_FREE    = 'anthropic/claude-3-5-haiku'
-const MODEL_PREMIUM = 'anthropic/claude-sonnet-4-5'
+const MODEL_PREMIUM = 'google/gemini-3.1-pro-preview'
 
 const LANGUAGE_MAP: Record<string, string> = {
   en: 'English', zh: 'Chinese (Simplified)', es: 'Spanish',
@@ -780,7 +780,7 @@ Output JSON only (no markdown):
         autoAddedSupplements: validation.supplements,
       },
       unknownIngredients: validation.unknownIngredients,
-      generatedBy:        isPro ? 'claude-sonnet' : 'gpt-4o-mini',
+      generatedBy:        isPro ? 'gemini-3.1-pro' : 'claude-haiku',
       freeRemaining,
       proMonthlyUsed:     deductSource === 'pro_monthly',
     })
