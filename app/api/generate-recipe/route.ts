@@ -599,13 +599,14 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
       }
     }
 
-    // 合规性不足时重试：Pro 最多 2 次，免费最多 1 次
-    const maxRetries = isPro ? 2 : 1
+    // 合规性重试：仅在 non-compliant（≥2项失败）时重试，partial（1项轻微不达标）直接返回
+    // partial 触发重试会导致 89% 的食谱额外调用一次 AI，费用翻倍但改善有限
+    const maxRetries = 1
     const order = { compliant: 0, partial: 1, 'non-compliant': 2 }
     let retryCount = 0
     while (
       retryCount < maxRetries &&
-      (validation.complianceLabel === 'non-compliant' || (isPro && validation.complianceLabel === 'partial'))
+      validation.complianceLabel === 'non-compliant'
     ) {
       retryCount++
       try {
@@ -807,7 +808,7 @@ function parseAIJson(text: string): any {
   // 策略3：整体直接解析
   try { return JSON.parse(text.trim()) } catch {}
 
-  throw new Error(`AI response format error: ${text.slice(0, 300)}`)
+  throw new Error('AI response format error')
 }
 
 // ── 退还积分辅助函数 ─────────────────────────────────────────────────────────
