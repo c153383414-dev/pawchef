@@ -492,7 +492,7 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
         max_tokens: maxTokens, temperature,
       })
       const text = completion.choices[0]?.message?.content || ''
-      console.error('[parseAIJson DEBUG] raw response (first 500 chars):', JSON.stringify(text.slice(0, 500)))
+      console.error('[AI-CALL#1] model:', model, '| content len:', text.length, '| first 400:', JSON.stringify(text.slice(0, 400)))
       aiResult   = parseAIJson(text)
       syncStepsIngredients(aiResult)
     } catch (aiError: any) {
@@ -548,6 +548,7 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
 
       } else if (isPro) {
         // 偏差 > 50%，Pro 用户：重新生成一次（最多1次）
+        console.error('[AI-CALL#2-calorie-retry] calorieDiff:', calorieDiff.toFixed(2), 'actual:', validation.actualCalories, 'target:', targetMid)
         try {
           const retryCompletion = await openai.chat.completions.create({
             model, messages: [{ role: 'user', content: prompt }],
@@ -624,6 +625,7 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
         const complianceHint = failedItems.length > 0
           ? `\n\nCRITICAL CORRECTION NEEDED (attempt ${retryCount}): The previous attempt failed AAFCO compliance. Fix ONLY these issues:\n${failedItems.map(f => `- ${f}`).join('\n')}\nDo not change ingredients that are already correct.`
           : ''
+        console.error('[AI-CALL#3-compliance-retry] label:', validation.complianceLabel, 'failures:', failedItems.length)
         const cRetry = await openai.chat.completions.create({
           model, messages: [{ role: 'user', content: prompt + complianceHint }],
           max_tokens: maxTokens, temperature,
