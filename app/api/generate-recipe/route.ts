@@ -357,7 +357,7 @@ ${isCat ? `3. Taurine: taurine_supplement ~${Math.max(0.05, weightKg * 0.025).to
 ${isCat ? freeCatIngredients : freeDogIngredients}
 ${isPuppy && !isCat ? `7. PUPPY energy density: protein must be ≥65% of food weight. Grains/carbs (rice, millet, oats) MAX 15g TOTAL. Total veggies combined MAX ${Math.round(Math.max(weightKg * 8, 10))}g. Spinach MAX 10g (oxalates block calcium absorption).` : !isCat && ageMonths >= 96 ? '7. Avoid spinach for this senior dog (age > 8 years). Use broccoli or carrot instead.' : ''}
 
-Output JSON only (no markdown):
+CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text before or after. Start your response with { and end with }.
 {
   "title": "title in ${language}",
   "ingredients": [{ "name": "ingredient name in ${language}", "dbName": "exact_key", "amountG": 50, "category": "protein|organ|veggie|carb|supplement|oil", "emoji": "🍗" }],
@@ -444,7 +444,7 @@ ${isCat ? `3. Taurine: ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g taurine 
 4. Steps must ONLY reference ingredients included in the ingredient list
 5. For each ingredient provide "dbName" in English snake_case (e.g. rabbit_meat, lamb_leg, sardines_canned, zucchini, beef_heart)`}
 
-Output JSON only (no markdown):
+CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text before or after. Start your response with { and end with }.
 {
   "title": "title in ${language}",
   "ingredients": [{ "name": "ingredient name in ${language}", "dbName": "english_snake_case", "amountG": 50, "category": "protein|organ|veggie|carb|supplement|oil", "emoji": "🍗" }],
@@ -790,12 +790,24 @@ Output JSON only (no markdown):
 
 // ── AI 响应 JSON 解析（兼容 Gemini markdown 代码块包裹）────────────────────────
 function parseAIJson(text: string): any {
-  // 优先剥离 ```json ... ``` 或 ``` ... ``` 包裹
-  const stripped = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
-  // 再提取第一个完整 JSON 对象
-  const match = stripped.match(/\{[\s\S]*\}/)
-  if (!match) throw new Error('AI response format error')
-  return JSON.parse(match[0])
+  // 策略1：提取 ```json ... ``` 或 ``` ... ``` 代码块内容（Gemini 常见格式）
+  const codeBlock = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
+  if (codeBlock) {
+    try { return JSON.parse(codeBlock[1]) } catch {}
+    // 代码块内容解析失败，继续尝试其他策略
+  }
+
+  // 策略2：从文本中提取第一个 { 到最后一个 } 之间的内容
+  const first = text.indexOf('{')
+  const last  = text.lastIndexOf('}')
+  if (first !== -1 && last > first) {
+    try { return JSON.parse(text.slice(first, last + 1)) } catch {}
+  }
+
+  // 策略3：整体直接解析
+  try { return JSON.parse(text.trim()) } catch {}
+
+  throw new Error('AI response format error')
 }
 
 // ── 退还积分辅助函数 ─────────────────────────────────────────────────────────
