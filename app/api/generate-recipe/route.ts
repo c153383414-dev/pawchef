@@ -13,7 +13,7 @@ const openai = new OpenAI({
 })
 
 const MODEL_FREE    = 'anthropic/claude-3-5-haiku'
-const MODEL_PREMIUM = 'google/gemini-2.5-flash-preview'
+const MODEL_PREMIUM = 'google/gemini-3.1-pro-preview'
 
 const LANGUAGE_MAP: Record<string, string> = {
   en: 'English', zh: 'Chinese (Simplified)', es: 'Spanish',
@@ -485,12 +485,16 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
       }
     }
 
+    // Gemini reasoning 模型需要关闭思维链输出并强制 JSON，避免返回纯推理文字
+    const geminiExtras = isPro ? { include_reasoning: false, response_format: { type: 'json_object' } } : {}
+
     let aiResult: any
     try {
       const completion = await openai.chat.completions.create({
         model, messages: [{ role: 'user', content: prompt }],
         max_tokens: maxTokens, temperature,
-      })
+        ...geminiExtras,
+      } as any)
       const text = completion.choices[0]?.message?.content || ''
       console.error('[AI-CALL#1] model:', model, '| content len:', text.length, '| first 400:', JSON.stringify(text.slice(0, 400)))
       aiResult   = parseAIJson(text)
@@ -553,7 +557,8 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
           const retryCompletion = await openai.chat.completions.create({
             model, messages: [{ role: 'user', content: prompt }],
             max_tokens: maxTokens, temperature,
-          })
+            ...geminiExtras,
+          } as any)
           const retryText   = retryCompletion.choices[0]?.message?.content || ''
           const retryResult = parseAIJson(retryText)
 
@@ -629,7 +634,8 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
         const cRetry = await openai.chat.completions.create({
           model, messages: [{ role: 'user', content: prompt + complianceHint }],
           max_tokens: maxTokens, temperature,
-        })
+          ...geminiExtras,
+        } as any)
         const cText  = cRetry.choices[0]?.message?.content || ''
         let cResult: any
         try { cResult = parseAIJson(cText) } catch { break }
@@ -781,7 +787,7 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
         autoAddedSupplements: validation.supplements,
       },
       unknownIngredients: validation.unknownIngredients,
-      generatedBy:        isPro ? 'gemini-2.5-flash' : 'claude-haiku',
+      generatedBy:        isPro ? 'gemini-3.1-pro' : 'claude-haiku',
       freeRemaining,
       proMonthlyUsed:     deductSource === 'pro_monthly',
     })
