@@ -726,15 +726,20 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
     // ── 用缩放后克重更新主食材，合并补充剂 ──────────────────────────────────
     const mainIngredientDbNames = new Set(
       ingredientsForValidation
-        .filter((ing: { dbName?: string }) => {
+        .filter((ing: { dbName?: string; category?: string }) => {
           const food = ing.dbName ? findFood(ing.dbName, true) : undefined
-          return !['supplement', 'oil'].includes(food?.category || '')
+          const dbCategory = food?.category || ing.category || ''
+          return !['supplement', 'oil'].includes(dbCategory)
         })
         .map((ing: { dbName?: string }) => ing.dbName)
     )
 
     const scaledMainIngredients = (aiResult.ingredients || [])
-      .filter((ing: any) => mainIngredientDbNames.has(ing.dbName) || !['supplement', 'oil'].includes(ing.category))
+      .filter((ing: any) => {
+        const food = ing.dbName ? findFood(ing.dbName, true) : undefined
+        const dbCategory = food?.category || ing.category || ''
+        return mainIngredientDbNames.has(ing.dbName) && !['supplement', 'oil'].includes(dbCategory)
+      })
       .map((ing: any) => {
         const scaled = ingredientsForValidation.find((s: any) => s.dbName === ing.dbName)
         return {

@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Profile, Ingredient, RecipeContent, NutritionInfo, RecipeCompliance, SubstituteItem } from '@/types'
 import { useGuestToken } from '@/hooks/useGuestToken'
 import SignupPrompt from '@/components/ui/SignupPrompt'
@@ -64,6 +65,7 @@ const INGREDIENT_NOTES: Record<string, string> = {
 const PREFS_KEY = 'pawchef_form_prefs'
 
 export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
+  const router = useRouter()
   const [species,  setSpecies]  = useState<'dog' | 'cat'>('dog')
   const [petName,  setPetName]  = useState('')
   const [weight,   setWeight]   = useState('8')
@@ -306,7 +308,10 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
       setExpandedSub(null)
 
       if (data.freeRemaining !== undefined) setFreeRemaining(data.freeRemaining)
-      if (data.proMonthlyUsed) setProMonthlyDelta(d => d + 1)
+      if (data.proMonthlyUsed) {
+        setProMonthlyDelta(d => d + 1)
+        router.refresh()
+      }
       if (!user) setGuestUsed(true)
 
       // Pro 自动记录喂食日志
