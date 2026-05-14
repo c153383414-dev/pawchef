@@ -208,12 +208,12 @@ export async function POST(req: NextRequest) {
         const recentIngredients = (recentRecipes || []).flatMap((r: any) => r.content?.ingredients || [])
 
         const pickRecent = (category: string, n: number) =>
-          [...new Set(
+          Array.from(new Set(
             recentIngredients
               .filter((i: any) => i.category === category)
               .map((i: any) => i.dbName || i.name)
               .filter(Boolean)
-          )].slice(0, n) as string[]
+          )).slice(0, n) as string[]
 
         // 蔬菜（Pro + 免费）
         const recentVeggies = pickRecent('veggie', 5)
