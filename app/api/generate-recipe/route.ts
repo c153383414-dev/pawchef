@@ -135,12 +135,6 @@ export async function POST(req: NextRequest) {
     const ip       = getClientIp(req)
     const locale_  = locale || 'en'
 
-    console.log('[generate-recipe] auth:', {
-      userId: user?.id ?? 'null',
-      authErr: authErr?.message ?? 'none',
-      hasGuestToken: !!guestToken,
-    })
-
     // ── 体重防篡改校验 ────────────────────────────────────────────────────────
     const weightNum = typeof weight === 'number' ? weight : parseFloat(weight)
     const maxWeight = species === 'cat' ? 15 : 100
@@ -262,11 +256,15 @@ export async function POST(req: NextRequest) {
     const FREE_CAT_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey breast', 'duck breast', 'egg']
     const freeProteinPool = isCat ? FREE_CAT_PROTEINS : FREE_DOG_PROTEINS
 
+    // Pro季节性主推蛋白（按季度轮换：Q1=lamb Q2=sardines Q3=duck Q4=salmon）
+    const PRO_SEASONAL_PROTEINS = ['lamb', 'sardines', 'duck', 'salmon']
+
     // 查询最近用过的食材，生成多样性提示（蛋白质/蔬菜/碳水/内脏全追踪）
     let recentVeggieNote   = ''
     let recentProteinNote  = ''
     let recentCarbNote     = ''
     let recentOrganNote    = ''
+    let proFeaturedNote    = ''
     let freeFeatureProtein = freeProteinPool[Math.floor(Math.random() * freeProteinPool.length)]
 
     if (user) {
@@ -297,6 +295,16 @@ export async function POST(req: NextRequest) {
         const recentProteinNames = pickRecent('protein', 4)
         if (isPro && recentProteinNames.length > 0)
           recentProteinNote = `Recently used proteins: ${recentProteinNames.join(', ')}. You MUST choose a DIFFERENT protein — be creative.`
+
+        if (isPro) {
+          const quarter = Math.floor(new Date().getMonth() / 3)
+          const seasonalProtein = PRO_SEASONAL_PROTEINS[quarter]
+          const seasonalConflict = recentProteinNames.some(r =>
+            r.toLowerCase().includes(seasonalProtein) || seasonalProtein.includes(r.toLowerCase())
+          )
+          if (!seasonalConflict)
+            proFeaturedNote = `TODAY's featured protein: ${seasonalProtein} — build the recipe around this protein.`
+        }
 
         if (!isPro && recentProteinNames.length > 0) {
           const freshFreePool = freeProteinPool.filter(
@@ -383,7 +391,7 @@ Pet: ${isCat ? 'Cat' : 'Dog'}${petName ? ` (${petName})` : ''}, ${weightKg}kg, $
 ${portionText}
 ${proHealthNote}
 
-${recentProteinNote ? recentProteinNote + '\n' : 'Choose a creative, varied protein source for today.\n'}${recentVeggieNote ? recentVeggieNote + '\n' : ''}${recentCarbNote ? recentCarbNote + '\n' : ''}${recentOrganNote ? recentOrganNote + '\n' : ''}
+${recentProteinNote ? recentProteinNote + '\n' : ''}${proFeaturedNote ? proFeaturedNote + '\n' : !recentProteinNote ? 'Choose a creative, varied protein source for today.\n' : ''}${recentVeggieNote ? recentVeggieNote + '\n' : ''}${recentCarbNote ? recentCarbNote + '\n' : ''}${recentOrganNote ? recentOrganNote + '\n' : ''}
 INGREDIENT FREEDOM — Be creative. You may use ANY safe, nutritious pet food ingredients. Consider:
 - Proteins: ${
   locale_ === 'zh'
@@ -496,7 +504,7 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
         ...geminiExtras,
       } as any)
       const text = completion.choices[0]?.message?.content || ''
-      console.error('[AI-CALL#1] model:', model, '| content len:', text.length, '| first 400:', JSON.stringify(text.slice(0, 400)))
+
       aiResult   = parseAIJson(text)
       syncStepsIngredients(aiResult)
     } catch (aiError: any) {
