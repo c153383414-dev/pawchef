@@ -292,7 +292,7 @@ ${isCat ? `3. Taurine: taurine_supplement ~${Math.max(0.05, weightKg * 0.025).to
    seasoning, or any unlisted item in the steps.
 6. ONLY use approved ingredients (exact dbName keys):
 ${isCat ? freeCatIngredients : freeDogIngredients}
-${!isCat && ageMonths >= 96 ? '7. Avoid spinach for this senior dog (age > 8 years). Use broccoli or carrot instead.' : ''}
+${isPuppy && !isCat ? '7. Spinach MAX 10g for puppies (high oxalates block calcium absorption — critical for bone development). Prefer broccoli, carrot, or pumpkin instead.' : !isCat && ageMonths >= 96 ? '7. Avoid spinach for this senior dog (age > 8 years). Use broccoli or carrot instead.' : ''}
 
 Output JSON only (no markdown):
 {
@@ -346,7 +346,7 @@ grapes, raisins, onions, garlic, chives, leeks, chocolate, cocoa, xylitol, macad
 alcohol, caffeine, raw yeast dough, green tomatoes, raw potatoes, fruit seeds/pits
 ${isCat ? '\nCAT RULES: Obligate carnivore — protein >65% of calories, no grains/rice as main ingredient. Do NOT use spinach (high oxalates → urinary stones). Taurine MUST be present.' : ''}
 ${!isCat && ageMonths >= 96 ? '\nSENIOR DOG (>8 years): Avoid spinach (high oxalates). Use broccoli or carrot instead.' : ''}
-${isPuppy && !isCat ? '\nPUPPY FAT REQUIREMENT: Puppies need ≥21g fat per 1000kcal. Use salmon, duck, or egg — do NOT rely only on lean chicken.' : ''}
+${isPuppy && !isCat ? '\nPUPPY RULES:\n- Fat ≥21g per 1000kcal: use salmon, duck, or egg — do NOT rely only on lean chicken.\n- Spinach MAX 10g (oxalates block calcium absorption critical for bone development). Prefer broccoli, carrot, pumpkin.\n- Include small amount of organ meat (5–10g liver or heart) for vitamin A, copper, B12.' : ''}
 
 Calcium carbonate maximum: puppies <25kg → max 8g | puppies ≥25kg → max 15g | adults → follow calculated | cats → max 3g
 
