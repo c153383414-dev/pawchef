@@ -13,7 +13,7 @@ const openai = new OpenAI({
 })
 
 const MODEL_FREE    = 'anthropic/claude-3-5-haiku'
-const MODEL_PREMIUM = 'google/gemini-3.1-pro-preview'
+const MODEL_PREMIUM = 'google/gemini-3.1-flash-lite'
 
 const LANGUAGE_MAP: Record<string, string> = {
   en: 'English', zh: 'Chinese (Simplified)', es: 'Spanish',
