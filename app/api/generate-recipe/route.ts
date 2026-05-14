@@ -799,14 +799,16 @@ async function refundCredits(
   creditSource: string | null
 ) {
   if (!userId || source === 'guest') return
-  if (source === 'free_ai_quota') {
-    await supabase.rpc('refund_free_ai', { p_user_id: userId }).catch(() => {})
-  } else {
-    const src = creditSource ||
-      (source === 'gift_ai_points' ? 'gift' :
-       source === 'paid_points'    ? 'paid' : 'pro')
-    await supabase.rpc('refund_ai_credit', {
-      p_user_id: userId, p_source: src, p_cost: 1,
-    }).catch(() => {})
-  }
+  try {
+    if (source === 'free_ai_quota') {
+      await supabase.rpc('refund_free_ai', { p_user_id: userId })
+    } else {
+      const src = creditSource ||
+        (source === 'gift_ai_points' ? 'gift' :
+         source === 'paid_points'    ? 'paid' : 'pro')
+      await supabase.rpc('refund_ai_credit', {
+        p_user_id: userId, p_source: src, p_cost: 1,
+      })
+    }
+  } catch { /* 退款失败静默处理，不影响主流程 */ }
 }
