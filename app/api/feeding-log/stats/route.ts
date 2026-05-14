@@ -53,7 +53,10 @@ export async function GET(req: NextRequest) {
 
     // Extract calories from nutrition field
     let totalCalories = 0
+    let totalProteinG = 0
+    let totalFatG = 0
     let calorieCount = 0
+    let macroCount = 0
     const ingredientCount: Record<string, number> = {}
     const proteinCount: Record<string, number> = {}
 
@@ -65,7 +68,7 @@ export async function GET(req: NextRequest) {
       const dayOfMonth = fedDate.getDate()
       const weekIndex = Math.min(Math.floor((dayOfMonth - 1) / 7), 3)
 
-      // Parse calories
+      // Parse calories + macros
       if (log.nutrition?.calories) {
         const cal = parseInt(String(log.nutrition.calories).replace(/[^0-9]/g, ''))
         if (!isNaN(cal) && cal > 0) {
@@ -73,6 +76,15 @@ export async function GET(req: NextRequest) {
           calorieCount++
           weeklyCalorieSums[weekIndex] += cal
           weeklyCalorieCounts[weekIndex]++
+        }
+      }
+      if (log.nutrition?.protein && log.nutrition?.fat) {
+        const prot = parseFloat(String(log.nutrition.protein).replace(/[^0-9.]/g, ''))
+        const fat  = parseFloat(String(log.nutrition.fat).replace(/[^0-9.]/g, ''))
+        if (!isNaN(prot) && !isNaN(fat)) {
+          totalProteinG += prot
+          totalFatG += fat
+          macroCount++
         }
       }
 
@@ -121,10 +133,15 @@ export async function GET(req: NextRequest) {
       ? Math.round((logsWithNutrition / totalFeedings) * 100) + '%'
       : '0%'
 
+    const avgDailyProtein = macroCount > 0 ? Math.round(totalProteinG / macroCount) : null
+    const avgDailyFat     = macroCount > 0 ? Math.round(totalFatG     / macroCount) : null
+
     return NextResponse.json({
       month: targetMonth,
       totalFeedings,
       avgDailyCalories,
+      avgDailyProtein,
+      avgDailyFat,
       proteinBreakdown,
       weeklyCalories,
       mostUsedIngredients,

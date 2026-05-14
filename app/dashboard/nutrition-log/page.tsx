@@ -11,7 +11,7 @@ interface FeedingLog {
   meal_title: string
   meal_type: string
   ingredients: any[] | null
-  nutrition: { calories?: string } | null
+  nutrition: { calories?: string; protein?: string; fat?: string; carbs?: string; compliance?: string } | null
   fed_at: string
   notes: string | null
 }
@@ -20,10 +20,20 @@ interface Stats {
   month: string
   totalFeedings: number
   avgDailyCalories: number
+  avgDailyProtein: number | null
+  avgDailyFat: number | null
   proteinBreakdown: { source: string; percentage: number }[]
   weeklyCalories: number[]
   mostUsedIngredients: string[]
   aafcoCompliance: string
+}
+
+interface EditFormData {
+  pet_name: string
+  meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+  fed_at: string
+  notes: string
+  ingredients: any[]
 }
 
 interface LogFormData {
@@ -45,6 +55,9 @@ export default function NutritionLogPage() {
   const [showModal, setShowModal] = useState(false)
   const [saving, setSaving] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [editLog, setEditLog] = useState<FeedingLog | null>(null)
+  const [editForm, setEditForm] = useState<EditFormData | null>(null)
+  const [editSaving, setEditSaving] = useState(false)
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
   const [form, setForm] = useState<LogFormData>({
     pet_name: '', meal_title: '', meal_type: 'breakfast',
@@ -133,6 +146,63 @@ export default function NutritionLogPage() {
     }
   }
 
+  const openEdit = (log: FeedingLog) => {
+    setEditLog(log)
+    setEditForm({
+      pet_name:    log.pet_name || '',
+      meal_type:   (log.meal_type as any) || 'dinner',
+      fed_at:      new Date(log.fed_at).toISOString().slice(0, 16),
+      notes:       log.notes || '',
+      ingredients: log.ingredients ? JSON.parse(JSON.stringify(log.ingredients)) : [],
+    })
+  }
+
+  const saveEdit = async () => {
+    if (!editLog || !editForm) return
+    setEditSaving(true)
+    try {
+      // 重算营养：用修改后的食材列表更新热量（若有原始宏量数据则等比缩放）
+      const origTotal = (editLog.ingredients || []).reduce((s: number, i: any) => s + (i.amountG || 0), 0)
+      const newTotal  = editForm.ingredients.reduce((s: number, i: any) => s + (i.amountG || 0), 0)
+      const scale = origTotal > 0 ? newTotal / origTotal : 1
+      const origNutrition = editLog.nutrition
+      const nutrition = origNutrition ? {
+        ...origNutrition,
+        calories: origNutrition.calories ? String(Math.round(parseFloat(origNutrition.calories) * scale)) : origNutrition.calories,
+        protein:  origNutrition.protein  ? String(Math.round(parseFloat(origNutrition.protein)  * scale * 10) / 10) : origNutrition.protein,
+        fat:      origNutrition.fat      ? String(Math.round(parseFloat(origNutrition.fat)      * scale * 10) / 10) : origNutrition.fat,
+        carbs:    origNutrition.carbs    ? String(Math.round(parseFloat(origNutrition.carbs)    * scale * 10) / 10) : origNutrition.carbs,
+      } : null
+
+      const res = await fetch('/api/feeding-log', {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          id:          editLog.id,
+          pet_name:    editForm.pet_name || null,
+          meal_type:   editForm.meal_type,
+          fed_at:      new Date(editForm.fed_at).toISOString(),
+          notes:       editForm.notes || null,
+          ingredients: editForm.ingredients,
+          nutrition,
+        }),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setLogs(prev => prev.map(l => l.id === updated.id ? updated : l))
+        setEditLog(null)
+        setEditForm(null)
+        showToast('✓ 已更新')
+        if (profile) loadData(profile.id)
+      } else {
+        const d = await res.json()
+        showToast(d.error || '更新失败', false)
+      }
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
   const exportReport = async () => {
     setExporting(true)
     try {
@@ -204,7 +274,8 @@ export default function NutritionLogPage() {
             {[
               { label: '喂食次数', value: stats.totalFeedings + ' 次', icon: '🍽️' },
               { label: '日均热量', value: stats.avgDailyCalories > 0 ? stats.avgDailyCalories + ' kcal' : '—', icon: '🔥' },
-              { label: 'AAFCO 合规率', value: stats.aafcoCompliance, icon: '✓' },
+              { label: '日均蛋白质', value: stats.avgDailyProtein != null ? stats.avgDailyProtein + ' g' : '—', icon: '🥩' },
+              { label: '日均脂肪', value: stats.avgDailyFat != null ? stats.avgDailyFat + ' g' : '—', icon: '🫒' },
             ].map(s => (
               <div key={s.label} style={{ background: '#F7F3EC', borderRadius: 14, padding: 20, border: '1px solid rgba(28,26,22,0.08)' }}>
                 <div style={{ fontSize: 24, marginBottom: 8 }}>{s.icon}</div>
@@ -310,7 +381,16 @@ export default function NutritionLogPage() {
                   </div>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
                     {log.nutrition?.calories && (
-                      <span style={{ fontSize: 12, color: '#854F0B', background: '#FBF0E4', padding: '3px 8px', borderRadius: 5 }}>{log.nutrition.calories}</span>
+                      <span style={{ fontSize: 12, color: '#854F0B', background: '#FBF0E4', padding: '3px 8px', borderRadius: 5 }}>
+                        {log.nutrition.calories.replace(/[^0-9]/g, '')} kcal
+                      </span>
+                    )}
+                    {profile?.is_pro && (
+                      <button
+                        onClick={() => openEdit(log)}
+                        style={{ padding: '4px 10px', borderRadius: 6, background: 'transparent', border: '1px solid rgba(28,26,22,0.12)', fontSize: 12, cursor: 'pointer', color: 'rgba(28,26,22,0.6)', fontFamily: 'inherit' }}>
+                        编辑
+                      </button>
                     )}
                     <button
                       onClick={() => deleteLog(log.id)}
@@ -376,6 +456,89 @@ export default function NutritionLogPage() {
                 disabled={saving || !form.meal_title.trim()}
                 style={{ flex: 2, padding: '12px', borderRadius: 8, background: saving || !form.meal_title.trim() ? 'rgba(28,26,22,0.2)' : '#1C1A16', color: '#FDFAF5', border: 'none', fontSize: 14, cursor: saving ? 'wait' : 'pointer', fontFamily: 'inherit', fontWeight: 500 }}>
                 {saving ? '保存中…' : '保存'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit log modal */}
+      {editLog && editForm && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(28,26,22,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 500, padding: 16 }}>
+          <div style={{ background: '#FDFAF5', borderRadius: 20, padding: 32, width: '100%', maxWidth: 520, boxShadow: '0 20px 60px rgba(28,26,22,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, fontWeight: 700, marginBottom: 4 }}>修改喂食记录</h2>
+            <p style={{ fontSize: 13, color: 'rgba(28,26,22,0.45)', marginBottom: 20 }}>{editLog.meal_title}</p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <input
+                value={editForm.pet_name} onChange={e => setEditForm(f => f && ({ ...f, pet_name: e.target.value }))}
+                placeholder="宠物名字（可选）"
+                style={modalInput}
+              />
+              <select value={editForm.meal_type} onChange={e => setEditForm(f => f && ({ ...f, meal_type: e.target.value as any }))} style={modalInput}>
+                <option value="breakfast">🌅 早餐</option>
+                <option value="lunch">☀️ 午餐</option>
+                <option value="dinner">🌆 晚餐</option>
+                <option value="snack">🍪 零食</option>
+              </select>
+              <input
+                value={editForm.fed_at} onChange={e => setEditForm(f => f && ({ ...f, fed_at: e.target.value }))}
+                type="datetime-local"
+                style={modalInput}
+              />
+              <textarea
+                value={editForm.notes} onChange={e => setEditForm(f => f && ({ ...f, notes: e.target.value }))}
+                placeholder="备注（可选）"
+                rows={2}
+                style={{ ...modalInput, resize: 'vertical' }}
+              />
+
+              {/* 食材列表编辑 */}
+              {editForm.ingredients.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(28,26,22,0.5)', marginBottom: 8 }}>食材（可调整用量或删除）</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {editForm.ingredients.map((ing: any, i: number) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, background: '#F7F3EC', fontSize: 13 }}>
+                        <span style={{ flex: 1 }}>{ing.emoji} {ing.name}</span>
+                        <input
+                          type="number" min="0" step="1"
+                          value={ing.amountG ?? ''}
+                          onChange={e => setEditForm(f => {
+                            if (!f) return f
+                            const ings = [...f.ingredients]
+                            ings[i] = { ...ings[i], amountG: Number(e.target.value), amount: e.target.value + 'g' }
+                            return { ...f, ingredients: ings }
+                          })}
+                          style={{ width: 64, padding: '4px 8px', borderRadius: 6, border: '1px solid rgba(28,26,22,0.15)', background: '#FDFAF5', fontFamily: 'inherit', fontSize: 13, textAlign: 'right' }}
+                        />
+                        <span style={{ fontSize: 12, color: 'rgba(28,26,22,0.4)', width: 20 }}>g</span>
+                        <button
+                          onClick={() => setEditForm(f => f && ({ ...f, ingredients: f.ingredients.filter((_: any, j: number) => j !== i) }))}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(28,26,22,0.35)', fontSize: 16, lineHeight: 1, padding: '0 2px' }}>
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.4)', marginTop: 6 }}>
+                    修改用量后热量将按比例重算
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+              <button
+                onClick={() => { setEditLog(null); setEditForm(null) }}
+                style={{ flex: 1, padding: '12px', borderRadius: 8, background: 'transparent', border: '1px solid rgba(28,26,22,0.15)', fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', color: 'rgba(28,26,22,0.6)' }}>
+                取消
+              </button>
+              <button
+                onClick={saveEdit}
+                disabled={editSaving}
+                style={{ flex: 2, padding: '12px', borderRadius: 8, background: editSaving ? 'rgba(28,26,22,0.2)' : '#1C1A16', color: '#FDFAF5', border: 'none', fontSize: 14, cursor: editSaving ? 'wait' : 'pointer', fontFamily: 'inherit', fontWeight: 500 }}>
+                {editSaving ? '保存中…' : '保存修改'}
               </button>
             </div>
           </div>

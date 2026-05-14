@@ -106,6 +106,15 @@
     "disclaimer_full": "All recipes are AI-generated based on the AAFCO nutritional framework, for home-cooked food reference only. They do not constitute a complete balanced diet plan and do not replace professional veterinary advice. Consult a veterinary nutritionist before using as a sole long-term diet.",
     "calories_warning": "⚠️ Current calories ({actual} kcal) are outside the target range {min}–{max} kcal. Please adjust ingredient amounts.",
     "generateError": "Generation failed. Please try again later.",
+    "autoLogged": "Auto-logged to feeding diary",
+    "viewLog": "View / Edit",
+    "shoppingList": "Shopping List",
+    "shopProtein": "Proteins",
+    "shopVeggie": "Vegetables",
+    "shopCarb": "Grains",
+    "shopSupplement": "Supplements",
+    "shopCopy": "Copy List",
+    "shopCopied": "Copied",
     "error": {
       "forbidden_ingredient": "⚠️ Some ingredients were adjusted due to health condition restrictions",
       "nutrition_failure": "🚨 Recipe nutrition does not meet standards. Please regenerate."

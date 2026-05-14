@@ -91,6 +91,39 @@ export async function GET(req: NextRequest) {
   }
 }
 
+export async function PUT(req: NextRequest) {
+  try {
+    const supabase = await createServerSupabaseClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: '请先登录' }, { status: 401 })
+
+    const { id, pet_name, meal_type, fed_at, notes, ingredients, nutrition } = await req.json()
+    if (!id) return NextResponse.json({ error: '缺少记录ID' }, { status: 400 })
+
+    const { data, error } = await supabase
+      .from('feeding_logs')
+      .update({
+        pet_name:    pet_name ?? null,
+        meal_type,
+        fed_at,
+        notes:       notes ?? null,
+        ingredients: ingredients ?? null,
+        nutrition:   nutrition ?? null,
+      })
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .select()
+      .single()
+
+    if (error) return NextResponse.json({ error: '更新失败' }, { status: 500 })
+
+    return NextResponse.json(data)
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message || '服务器错误' }, { status: 500 })
+  }
+}
+
 export async function DELETE(req: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()

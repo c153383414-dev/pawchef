@@ -106,6 +106,15 @@
     "disclaimer_full": "本平台所有食谱均由 AI 生成，基于 AAFCO 营养框架设计，仅供家庭鲜食参考，不构成完整均衡主食方案，不替代专业兽医建议。长期作为唯一主食前请咨询兽医营养师。",
     "calories_warning": "⚠️ 当前热量（{actual} kcal）不在目标范围 {min}–{max} kcal 内，请适量调整食材用量。",
     "generateError": "生成失败，请稍后重试。",
+    "autoLogged": "已自动记录至喂食日志",
+    "viewLog": "查看 / 修改",
+    "shoppingList": "购物清单",
+    "shopProtein": "蛋白质",
+    "shopVeggie": "蔬菜",
+    "shopCarb": "主食",
+    "shopSupplement": "补充剂",
+    "shopCopy": "复制清单",
+    "shopCopied": "已复制",
     "error": {
       "forbidden_ingredient": "⚠️ 部分食材因健康状况限制已被调整",
       "nutrition_failure": "🚨 食谱营养不达标，请重新生成"

@@ -91,6 +91,9 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
   const [expandedSub,  setExpandedSub]  = useState<number | null>(null)
 
   const [freeRemaining, setFreeRemaining] = useState<number | null>(null)
+  const [showShoppingList, setShowShoppingList] = useState(false)
+  const [autoLogged,       setAutoLogged]       = useState(false)
+  const [copyDone,         setCopyDone]         = useState(false)
 
   // 检查访客是否已用过
   useEffect(() => {
@@ -263,6 +266,29 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
       if (data.freeRemaining !== undefined) setFreeRemaining(data.freeRemaining)
       if (data.proMonthlyUsed) setProMonthlyDelta(d => d + 1)
       if (!user) setGuestUsed(true)
+
+      // Pro 自动记录喂食日志
+      if (isPro && user) {
+        setAutoLogged(false)
+        fetch('/api/feeding-log', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({
+            pet_name:    petName || null,
+            meal_title:  data.title,
+            meal_type:   'dinner',
+            ingredients: data.ingredients || [],
+            nutrition: {
+              calories:   data.nutrition?.calories,
+              protein:    data.nutrition?.protein,
+              fat:        data.nutrition?.fat,
+              carbs:      data.nutrition?.carbs,
+              compliance: data.compliance?.label,
+            },
+            fed_at: new Date().toISOString(),
+          }),
+        }).then(r => { if (r.ok) setAutoLogged(true) }).catch(() => {})
+      }
 
       // 显示被移除的食材警告
       const removed = (data.warnings || []).filter((w: string) => w.startsWith('ingredient_removed:'))
@@ -709,6 +735,88 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                     </div>
                   ))}
                 </div>
+
+                {/* Pro 自动记录 badge */}
+                {autoLogged && (
+                  <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#3B6D11' }}>
+                    <span>✅ {t('recipe.autoLogged')}</span>
+                    <a href="/dashboard/nutrition-log" style={{ color: '#7A9E7E', textDecoration: 'underline' }}>{t('recipe.viewLog')}</a>
+                  </div>
+                )}
+
+                {/* 购物清单 */}
+                {(() => {
+                  const groups: Record<string, { emoji: string; name: string; amount: string }[]> = {
+                    protein: [], veggie: [], carb: [], supplement: [],
+                  }
+                  recipe.content.ingredients.forEach(ing => {
+                    const cat = ing.category === 'organ' ? 'protein'
+                              : ing.category === 'oil'   ? 'supplement'
+                              : (ing.category || 'supplement')
+                    if (groups[cat]) groups[cat].push({ emoji: ing.emoji || '', name: ing.name, amount: ing.amount || `${ing.amountG ?? 0}g` })
+                  })
+                  const labels: Record<string, string> = {
+                    protein:    '🥩 ' + t('recipe.shopProtein'),
+                    veggie:     '🥦 ' + t('recipe.shopVeggie'),
+                    carb:       '🌾 ' + t('recipe.shopCarb'),
+                    supplement: '💊 ' + t('recipe.shopSupplement'),
+                  }
+                  const hasItems = Object.values(groups).some(g => g.length > 0)
+                  if (!hasItems) return null
+
+                  const handleCopy = () => {
+                    const lines: string[] = [`🛒 ${recipe.title}\n`]
+                    Object.entries(groups).forEach(([cat, items]) => {
+                      if (!items.length) return
+                      lines.push(labels[cat])
+                      items.forEach(i => lines.push(`  ${i.emoji} ${i.name}  ${i.amount}`))
+                      lines.push('')
+                    })
+                    navigator.clipboard.writeText(lines.join('\n')).then(() => {
+                      setCopyDone(true)
+                      setTimeout(() => setCopyDone(false), 2000)
+                    }).catch(() => {})
+                  }
+
+                  return (
+                    <div style={{ marginTop: 14, borderTop: '1px solid rgba(28,26,22,0.08)', paddingTop: 12 }}>
+                      <button
+                        onClick={() => setShowShoppingList(v => !v)}
+                        style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 13, fontWeight: 600, color: '#1C1A16', fontFamily: 'inherit' }}>
+                        🛒 {t('recipe.shoppingList')}
+                        <span style={{ fontSize: 11, color: 'rgba(28,26,22,0.4)', fontWeight: 400 }}>{showShoppingList ? '▲' : '▼'}</span>
+                      </button>
+
+                      {showShoppingList && (
+                        <div style={{ marginTop: 10 }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 12, marginBottom: 10 }}>
+                            {Object.entries(groups).map(([cat, items]) => {
+                              if (!items.length) return null
+                              return (
+                                <div key={cat}>
+                                  <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(28,26,22,0.45)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                    {labels[cat]}
+                                  </div>
+                                  {items.map((item, i) => (
+                                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '3px 0', color: '#1C1A16' }}>
+                                      <span>{item.emoji} {item.name}</span>
+                                      <span style={{ color: 'rgba(28,26,22,0.5)', marginLeft: 8 }}>{item.amount}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )
+                            })}
+                          </div>
+                          <button
+                            onClick={handleCopy}
+                            style={{ fontSize: 12, padding: '5px 12px', borderRadius: 6, border: '1px solid rgba(28,26,22,0.15)', background: copyDone ? '#F0F7F0' : '#FDFAF5', color: copyDone ? '#3B6D11' : 'rgba(28,26,22,0.6)', cursor: 'pointer', fontFamily: 'inherit' }}>
+                            {copyDone ? '✓ ' + t('recipe.shopCopied') : t('recipe.shopCopy')}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
               </>
             ) : (
               <div style={{ textAlign: 'center', padding: '40px 20px', color: 'rgba(28,26,22,0.3)' }}>
