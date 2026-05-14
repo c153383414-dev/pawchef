@@ -325,6 +325,21 @@
       "nutrition_failure": "대체 후 영양 검증에 실패하여 취소되었습니다"
     }
   },
+  "suitable": {
+    "healthyAdult": "✓ 건강한 성체",
+    "healthyAdultDog": "✓ 건강한 성견",
+    "healthyAdultCat": "✓ 건강한 성묘",
+    "highProtein": "💪 고단백 처방",
+    "lean": "🥗 저지방 처방",
+    "weightControl": "⚖️ 체중 관리",
+    "kidney": "🫘 신장 케어",
+    "lowFat": "🥗 저지방 식단",
+    "diabetes": "🩺 당뇨 친화적",
+    "novelProtein": "🔄 새로운 단백질",
+    "puppy": "🐶 강아지 전용",
+    "kitten": "🐱 새끼고양이 전용",
+    "nutrition_critical_warning": "⚠️ 이 레시피는 단백질 또는 지방 목표치를 충족하지 않습니다 — 가끔 참고용으로만 사용하고 장기 단독 급여는 권장하지 않습니다"
+  },
   "language": {
     "select": "언어",
     "en": "English",

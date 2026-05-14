@@ -432,6 +432,9 @@
   },
   "suitable": {
     "healthyAdult": "✓ 健康成犬",
+    "healthyAdultDog": "✓ 健康成犬",
+    "healthyAdultCat": "✓ 健康成猫",
+    "nutrition_critical_warning": "⚠️ 此食谱蛋白质或脂肪不达标，请作为偶尔尝鲜参考，不建议长期单一投喂",
     "highProtein": "💪 高蛋白配方",
     "lean": "🥗 低脂配方",
     "weightControl": "⚖️ 体重控制",

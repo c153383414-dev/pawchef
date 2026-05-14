@@ -651,7 +651,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   if (health.includes('healthy') && !isPuppy) {
                     if (pPct > 55) tags.push({ key: 'suitable.highProtein',  bg: '#EBF2EC', color: '#3B6D11' })
                     if (fPct < 20) tags.push({ key: 'suitable.lean',         bg: '#F7F3EC', color: '#854F0B' })
-                    tags.push({ key: 'suitable.healthyAdult', bg: '#F7F3EC', color: 'rgba(28,26,22,0.6)' })
+                    tags.push({ key: species === 'cat' ? 'suitable.healthyAdultCat' : 'suitable.healthyAdultDog', bg: '#F7F3EC', color: 'rgba(28,26,22,0.6)' })
                   }
                   if (!tags.length) return null
                   return (
@@ -785,11 +785,18 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   {t(species === 'cat' ? 'recipe.premixHintCat' : 'recipe.premixHintDog')}
                 </div>
 
-                {recipe.content.warnings && recipe.content.warnings.length > 0 && (
-                  <div style={{ padding: '8px 12px', borderRadius: 8, background: '#FBF0E4', marginBottom: 12, fontSize: 12, color: '#854F0B', lineHeight: 1.5 }}>
-                    ⚠️ {recipe.content.warnings.join(' · ')}
-                  </div>
-                )}
+                {recipe.content.warnings && recipe.content.warnings.length > 0 && (() => {
+                  const TRANSLATABLE_WARNINGS = ['nutrition_critical_warning']
+                  const visibleWarnings = recipe.content.warnings
+                    .filter((w: string) => !w.startsWith('ingredient_removed:'))
+                    .map((w: string) => TRANSLATABLE_WARNINGS.includes(w) ? t(`suitable.${w}`) : w)
+                  if (!visibleWarnings.length) return null
+                  return (
+                    <div style={{ padding: '8px 12px', borderRadius: 8, background: '#FBF0E4', marginBottom: 12, fontSize: 12, color: '#854F0B', lineHeight: 1.5 }}>
+                      {visibleWarnings.join(' · ')}
+                    </div>
+                  )
+                })()}
 
                 <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(28,26,22,0.5)', marginBottom: 8 }}>
                   {t('recipe.stepsLabel')}

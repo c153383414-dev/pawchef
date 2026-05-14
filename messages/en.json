@@ -392,6 +392,9 @@
   },
   "suitable": {
     "healthyAdult": "✓ Healthy Adult",
+    "healthyAdultDog": "✓ Healthy Adult Dog",
+    "healthyAdultCat": "✓ Healthy Adult Cat",
+    "nutrition_critical_warning": "⚠️ This recipe does not meet protein or fat targets — treat as an occasional reference, not for long-term sole feeding",
     "highProtein": "💪 High Protein",
     "lean": "🥗 Low Fat",
     "weightControl": "⚖️ Weight Control",

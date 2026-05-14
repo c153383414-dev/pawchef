@@ -325,6 +325,21 @@
       "nutrition_failure": "代替後の栄養チェックに失敗したためキャンセルしました"
     }
   },
+  "suitable": {
+    "healthyAdult": "✓ 健康な成体",
+    "healthyAdultDog": "✓ 健康な成犬",
+    "healthyAdultCat": "✓ 健康な成猫",
+    "highProtein": "💪 高タンパク配合",
+    "lean": "🥗 低脂肪配合",
+    "weightControl": "⚖️ 体重管理",
+    "kidney": "🫘 腎臓ケア",
+    "lowFat": "🥗 低脂肪ダイエット",
+    "diabetes": "🩺 糖尿病対応",
+    "novelProtein": "🔄 新規タンパク源",
+    "puppy": "🐶 子犬用フォーミュラ",
+    "kitten": "🐱 子猫用フォーミュラ",
+    "nutrition_critical_warning": "⚠️ このレシピはタンパク質または脂質の目標値を満たしていません — 時々の参考用として使用し、長期的な単独給餌には推奨しません"
+  },
   "language": {
     "select": "言語",
     "en": "English",

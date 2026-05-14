@@ -325,6 +325,21 @@
       "nutrition_failure": "La vérification nutritionnelle post-substitution a échoué, annulé"
     }
   },
+  "suitable": {
+    "healthyAdult": "✓ Adulte en bonne santé",
+    "healthyAdultDog": "✓ Chien adulte en bonne santé",
+    "healthyAdultCat": "✓ Chat adulte en bonne santé",
+    "highProtein": "💪 Riche en protéines",
+    "lean": "🥗 Faible en graisses",
+    "weightControl": "⚖️ Contrôle du poids",
+    "kidney": "🫘 Soutien rénal",
+    "lowFat": "🥗 Régime pauvre en graisses",
+    "diabetes": "🩺 Adapté au diabète",
+    "novelProtein": "🔄 Nouvelle protéine",
+    "puppy": "🐶 Formule chiot",
+    "kitten": "🐱 Formule chaton",
+    "nutrition_critical_warning": "⚠️ Cette recette ne respecte pas les objectifs en protéines ou lipides — à utiliser occasionnellement, pas en alimentation exclusive"
+  },
   "language": {
     "select": "Langue",
     "en": "English",
