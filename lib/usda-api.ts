@@ -19,11 +19,18 @@ export async function resolveUnknownIngredients(
   for (const ing of ingredients) {
     // Skip ingredients already in local nutrition DB — trust curated data over USDA
     // Try: 1) exact dbName match  2) fuzzy name match  3) fuzzy dbName match (catches 'turkey_meat' → turkey_breast)
-    const localMatch = findFood(ing.dbName, true)
-                    || findFood(ing.name, false)
-                    || findFood(ing.dbName, false)
-    if (localMatch) {
+    const exactMatch     = findFood(ing.dbName, true)
+    const nameMatch      = findFood(ing.name, false)
+    const dbNameFuzzy    = !exactMatch && !nameMatch ? findFood(ing.dbName, false) : null
+    if (exactMatch || nameMatch) {
+      // validateRecipe can re-find these via the same lookup paths — no override needed
       resolved.push(ing)
+      continue
+    }
+    if (dbNameFuzzy) {
+      // Fuzzy dbName match only: validateRecipe won't re-find it (uses exact then name-fuzzy),
+      // so we must bake the nutrients in as override to avoid 0-kcal calculation
+      resolved.push({ ...ing, nutrientsOverride: dbNameFuzzy.nutrients })
       continue
     }
 

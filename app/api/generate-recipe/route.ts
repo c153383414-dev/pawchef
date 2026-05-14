@@ -730,12 +730,20 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
     // AI 原始输出中的油/补充剂若验证器未重新添加，保留入列表以保持步骤一致性
     const validationSupplementDbNames = new Set(validation.supplements.map(s => s.dbName))
     const scaledMainDbNames           = new Set(scaledMainIngredients.map((i: any) => i.dbName))
+    // 语义 dedup：避免 AI 用不同 dbName 添加同类补充剂（如 'taurine' vs 'taurine_supplement'）
+    const supplementCoversNutrient = (aiDbName: string) =>
+      Array.from(validationSupplementDbNames).some(vn =>
+        (vn.includes('taurine')   && (aiDbName.includes('taurine')  || aiDbName === 'taurine')) ||
+        (vn.includes('calcium')   && aiDbName.includes('calcium')) ||
+        (vn.includes('fish_oil')  && (aiDbName.includes('fish_oil') || aiDbName.includes('omega')))
+      )
     const aiRetainedSupplements = (aiResult.ingredients || [])
       .filter((ing: any) =>
         ['supplement', 'oil'].includes(ing.category) &&
         ing.dbName &&
         !validationSupplementDbNames.has(ing.dbName) &&
-        !scaledMainDbNames.has(ing.dbName)
+        !scaledMainDbNames.has(ing.dbName) &&
+        !supplementCoversNutrient(ing.dbName)
       )
       .map((ing: any) => ({
         ...ing,
