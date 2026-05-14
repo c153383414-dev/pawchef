@@ -491,10 +491,8 @@ Output JSON only (no markdown):
         model, messages: [{ role: 'user', content: prompt }],
         max_tokens: maxTokens, temperature,
       })
-      const text      = completion.choices[0]?.message?.content || ''
-      const jsonMatch = text.match(/\{[\s\S]*\}/)
-      if (!jsonMatch) throw new Error('AI response format error')
-      aiResult = JSON.parse(jsonMatch[0])
+      const text = completion.choices[0]?.message?.content || ''
+      aiResult   = parseAIJson(text)
       syncStepsIngredients(aiResult)
     } catch (aiError: any) {
       console.error('[generate-recipe] AI call failed:', aiError?.message)
@@ -555,7 +553,7 @@ Output JSON only (no markdown):
             max_tokens: maxTokens, temperature,
           })
           const retryText   = retryCompletion.choices[0]?.message?.content || ''
-          const retryResult = JSON.parse(retryText.replace(/```json|```/g, '').trim())
+          const retryResult = parseAIJson(retryText)
 
           retryResult.ingredients = retryResult.ingredients.filter((ing: any) => {
             if (forbiddenDbNames.includes(ing.dbName)) return false
@@ -629,9 +627,8 @@ Output JSON only (no markdown):
           max_tokens: maxTokens, temperature,
         })
         const cText  = cRetry.choices[0]?.message?.content || ''
-        const cMatch = cText.match(/\{[\s\S]*\}/)
-        if (!cMatch) break
-        const cResult = JSON.parse(cMatch[0])
+        let cResult: any
+        try { cResult = parseAIJson(cText) } catch { break }
         if (isPro) {
           const { sanitized, removed } = sanitizeIngredients(
             cResult.ingredients || [], forbiddenDbNames, safeConditions, isCat, portionGuidance, locale_
@@ -789,6 +786,16 @@ Output JSON only (no markdown):
     console.error('generate-recipe error:', e)
     return NextResponse.json({ error: e.message || 'Server error' }, { status: 500 })
   }
+}
+
+// ── AI 响应 JSON 解析（兼容 Gemini markdown 代码块包裹）────────────────────────
+function parseAIJson(text: string): any {
+  // 优先剥离 ```json ... ``` 或 ``` ... ``` 包裹
+  const stripped = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
+  // 再提取第一个完整 JSON 对象
+  const match = stripped.match(/\{[\s\S]*\}/)
+  if (!match) throw new Error('AI response format error')
+  return JSON.parse(match[0])
 }
 
 // ── 退还积分辅助函数 ─────────────────────────────────────────────────────────
