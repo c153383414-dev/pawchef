@@ -504,7 +504,7 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
         ...geminiExtras,
       } as any)
       const text = completion.choices[0]?.message?.content || ''
-
+      console.error('[DIAG] len:', text.length, 'content:', JSON.stringify(text.slice(0, 500)))
       aiResult   = parseAIJson(text)
       syncStepsIngredients(aiResult)
     } catch (aiError: any) {
