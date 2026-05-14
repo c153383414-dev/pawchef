@@ -638,6 +638,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   const pPct  = protG * 4 / kcal * 100
                   const fPct  = fatG  * 9 / kcal * 100
 
+                  const isPuppy = age === 'puppy' || age === 'kitten'
                   const tags: { key: string; bg: string; color: string }[] = []
                   if (health.includes('kidney'))         tags.push({ key: 'suitable.kidney',        bg: '#EBF2EC', color: '#3B6D11' })
                   if (health.includes('pancreatitis'))   tags.push({ key: 'suitable.lowFat',         bg: '#FBF0E4', color: '#854F0B' })
@@ -834,6 +835,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   const fPct = Math.round(fromFat  / total * 100)
                   const cPct = Math.round(fromCarb / total * 100)
 
+                  const isPuppy = age === 'puppy' || age === 'kitten'
                   const hasOrgan = recipe.content.ingredients.some(i => i.category === 'organ')
                   const hasPancreatitis = health.includes('pancreatitis')
 
