@@ -494,7 +494,7 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
     }
 
     // Gemini reasoning 模型需要关闭思维链输出并强制 JSON，避免返回纯推理文字
-    const geminiExtras = isPro ? { include_reasoning: false, response_format: { type: 'json_object' } } : {}
+    const geminiExtras = isPro ? { include_reasoning: false } : {}
 
     let aiResult: any
     try {
