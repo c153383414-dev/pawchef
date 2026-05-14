@@ -292,7 +292,7 @@ ${isCat ? `3. Taurine: taurine_supplement ~${Math.max(0.05, weightKg * 0.025).to
    seasoning, or any unlisted item in the steps.
 6. ONLY use approved ingredients (exact dbName keys):
 ${isCat ? freeCatIngredients : freeDogIngredients}
-${isPuppy && !isCat ? '7. Spinach MAX 10g for puppies (high oxalates block calcium absorption — critical for bone development). Prefer broccoli, carrot, or pumpkin instead.' : !isCat && ageMonths >= 96 ? '7. Avoid spinach for this senior dog (age > 8 years). Use broccoli or carrot instead.' : ''}
+${isPuppy && !isCat ? `7. PUPPY energy density: protein must be ≥65% of food weight. Total veggies combined MAX ${Math.round(Math.max(weightKg * 8, 10))}g. Spinach MAX 10g (oxalates block calcium absorption).` : !isCat && ageMonths >= 96 ? '7. Avoid spinach for this senior dog (age > 8 years). Use broccoli or carrot instead.' : ''}
 
 Output JSON only (no markdown):
 {
@@ -305,7 +305,7 @@ Output JSON only (no markdown):
     const proHealthNote = safeConditions.length > 0
       ? `Health condition restrictions:
 ${safeConditions.map((c: string) => ({
-  kidney:       '- Kidney disease: avoid high-phosphorus foods (spinach, legumes, excess organ meat, high-phosphorus fish). Fat must still reach ≥14g/1000kcal — use fish oil or fatty fish.',
+  kidney:       '- Kidney disease: avoid high-phosphorus foods (spinach, legumes, excess organ meat, high-phosphorus fish) AND high-purine foods (asparagus, sardines in excess). Fat must still reach ≥14g/1000kcal — use fish oil or fatty fish.',
   pancreatitis: '- Pancreatitis: STRICTLY LOW FAT — avoid salmon, sardines, mackerel, herring, duck, pork, egg yolk, any fatty fish or meat. Fish oil max 0.1g/kg. Use only lean proteins: chicken breast, turkey breast, venison, rabbit, cod.',
   diabetes:     '- Diabetes: low glycemic — avoid white rice, sweet potato excess, sugary foods.',
   obesity:      '- Obesity: low calorie — significantly reduce carbohydrates and oils.',
@@ -333,6 +333,11 @@ INGREDIENT FREEDOM — Be creative. You may use ANY safe, nutritious pet food in
 - Vegetables: zucchini, asparagus, blueberries, butternut squash, celery, green beans, beet
 - Vary ingredients every time — do not repeat the same combination.
 
+VEGETABLE LIMITS (apply always):
+- Beet: MAX 15g (moderate oxalates + high sugar — more causes glycemic spike)
+- Asparagus: MAX 20g (high purines — excess stresses kidneys; FORBIDDEN for kidney disease)
+- Spinach: MAX 15g adults / MAX 10g puppies (high oxalates block calcium absorption)
+
 CARB RULE (CRITICAL — calculate before finalizing):
 - Total carbohydrates from ALL sources combined must contribute LESS than 20% of total recipe calories.
 - Formula: Σ(ingredient_carb_grams × 4) ÷ total_recipe_kcal < 0.20
@@ -346,7 +351,12 @@ grapes, raisins, onions, garlic, chives, leeks, chocolate, cocoa, xylitol, macad
 alcohol, caffeine, raw yeast dough, green tomatoes, raw potatoes, fruit seeds/pits
 ${isCat ? '\nCAT RULES: Obligate carnivore — protein >65% of calories, no grains/rice as main ingredient. Do NOT use spinach (high oxalates → urinary stones). Taurine MUST be present.' : ''}
 ${!isCat && ageMonths >= 96 ? '\nSENIOR DOG (>8 years): Avoid spinach (high oxalates). Use broccoli or carrot instead.' : ''}
-${isPuppy && !isCat ? '\nPUPPY RULES:\n- Fat ≥21g per 1000kcal: use salmon, duck, or egg — do NOT rely only on lean chicken.\n- Spinach MAX 10g (oxalates block calcium absorption critical for bone development). Prefer broccoli, carrot, pumpkin.\n- Include small amount of organ meat (5–10g liver or heart) for vitamin A, copper, B12.' : ''}
+${isPuppy && !isCat ? `\nPUPPY RULES (growth stage — energy density is critical):
+- Protein + organ sources MUST be ≥65% of total food weight (excluding supplements/oils). Puppies need calorie-dense meals.
+- Total vegetables combined MAX ${Math.round(Math.max(weightKg * 8, 10))}g — vegetables are supplementary, NOT a base ingredient.
+- Fat ≥21g per 1000kcal: use salmon, duck, or egg — do NOT rely only on lean chicken.
+- Spinach MAX 10g (oxalates block calcium absorption critical for bone development). Prefer broccoli, carrot, pumpkin.
+- Include small amount of organ meat (5–10g liver or heart) for vitamin A, copper, B12.` : ''}
 
 Calcium carbonate maximum: puppies <25kg → max 8g | puppies ≥25kg → max 15g | adults → follow calculated | cats → max 3g
 
