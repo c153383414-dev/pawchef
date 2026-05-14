@@ -439,7 +439,8 @@
     "lowFat": "🥗 低脂专属",
     "diabetes": "🩺 血糖友好",
     "novelProtein": "🔄 新蛋白配方",
-    "puppy": "🐶 幼犬专属"
+    "puppy": "🐶 幼犬专属",
+    "kitten": "🐱 幼猫专属"
   },
   "risk": {
     "lowFatNotForPuppies": "本食谱脂肪偏低，不适合幼犬（幼犬需 ≥21g 脂肪/1000kcal）",

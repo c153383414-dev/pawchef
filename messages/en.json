@@ -399,7 +399,8 @@
     "lowFat": "🥗 Low Fat Diet",
     "diabetes": "🩺 Diabetes Friendly",
     "novelProtein": "🔄 Novel Protein",
-    "puppy": "🐶 Puppy Formula"
+    "puppy": "🐶 Puppy Formula",
+    "kitten": "🐱 Kitten Formula"
   },
   "risk": {
     "lowFatNotForPuppies": "This recipe is low in fat — not suitable for puppies (puppies need ≥21g fat/1000kcal)",

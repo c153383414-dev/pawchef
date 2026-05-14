@@ -647,7 +647,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   if (health.includes('obesity'))        tags.push({ key: 'suitable.weightControl',  bg: '#FBF0E4', color: '#854F0B' })
                   if (health.includes('diabetes'))       tags.push({ key: 'suitable.diabetes',       bg: '#EBF2EC', color: '#3B6D11' })
                   if (health.includes('allergy'))        tags.push({ key: 'suitable.novelProtein',   bg: '#F0EEF7', color: '#5B4E8A' })
-                  if (isPuppy)                           tags.push({ key: 'suitable.puppy',          bg: '#EBF2EC', color: '#3B6D11' })
+                  if (isPuppy)                           tags.push({ key: species === 'cat' ? 'suitable.kitten' : 'suitable.puppy', bg: '#EBF2EC', color: '#3B6D11' })
                   if (health.includes('healthy') && !isPuppy) {
                     if (pPct > 55) tags.push({ key: 'suitable.highProtein',  bg: '#EBF2EC', color: '#3B6D11' })
                     if (fPct < 20) tags.push({ key: 'suitable.lean',         bg: '#F7F3EC', color: '#854F0B' })
