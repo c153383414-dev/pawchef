@@ -648,9 +648,13 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
         // 把当前失败项注入重试 prompt，每次重试都基于最新 validation 状态
         const failedItems: string[] = []
         const av = validation.aafco
+        // 先检测碳水超标：碳水 >30% 热量是磷/蛋白质不足的根本原因，需优先修正
+        const carbCalPct = validation.nutrients.carbs * 4 / (validation.nutrients.calories || 1)
+        if (carbCalPct > 0.30)
+          failedItems.push(`carbohydrates too high (${Math.round(carbCalPct * 100)}% of calories, must be <20%) — REDUCE or REMOVE grains/starchy vegetables (rice, quinoa, pumpkin, sweet potato). Replace with more protein or low-carb vegetables (broccoli, zucchini, green beans).`)
         if (!av.protein.ok)    failedItems.push(`protein (${Math.round(av.protein.value)}g/1000kcal, need ≥${av.protein.min}g — use more meat)`)
         if (!av.fat.ok)        failedItems.push(`fat (${Math.round(av.fat.value)}g/1000kcal, need ≥${av.fat.min}g — use fattier protein like rabbit, venison, or duck)`)
-        if (!av.phosphorus.ok) failedItems.push(`phosphorus (${Math.round(av.phosphorus.value)}mg/1000kcal, need ≥${av.phosphorus.min}mg — increase total meat/fish amount)`)
+        if (!av.phosphorus.ok) failedItems.push(`phosphorus (${Math.round(av.phosphorus.value)}mg/1000kcal, need ≥${av.phosphorus.min}mg — REPLACE high-carb fillers (pumpkin, quinoa, rice) with more meat/fish; do NOT just add more total food)`)
         if (!av.caPRatio.ok)   failedItems.push(`Ca:P ratio (${av.caPRatio.value.toFixed(2)}, need 1.0–2.5 — do NOT add extra calcium, increase phosphorus-rich meat)`)
         if (!av.omega3.ok)     failedItems.push(`omega-3 (${Math.round(av.omega3.value)}mg/1000kcal, need ≥${av.omega3.min}mg — add fatty fish or fish oil)`)
         if (!av.calcium.ok)    failedItems.push(`calcium (${Math.round(av.calcium.value)}mg/1000kcal, need ${av.calcium.min}–${av.calcium.max}mg)`)
