@@ -194,6 +194,103 @@ export const NUTRITION_DB: FoodItem[] = [
     forbiddenFor: ['diabetes'], cautionFor: ['obesity'],
     maxAmountAbsoluteG: 15,
   },
+  // ── Pro 扩展器官肉（防止误匹配到普通肌肉导致营养计算错误）──
+  {
+    id: 'pork_liver', dbName: 'pork_liver',
+    names: ['猪肝', 'pork liver'],
+    category: 'organ',
+    nutrients: { calories: 130, protein: 21, fat: 3.7, carbs: 2.6, calcium: 8, phosphorus: 241, omega3: 30, taurine: 90, vitaminA: 8649, vitaminD: 40, zinc: 4.0, iodine: 14 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['kidney'],
+    notes: '维生素A含量极高，每日用量不超过总食材10%',
+    maxAmountPerKgG: 3,
+  },
+  {
+    id: 'duck_liver', dbName: 'duck_liver',
+    names: ['鸭肝', 'duck liver'],
+    category: 'organ',
+    nutrients: { calories: 136, protein: 19, fat: 4.6, carbs: 3.7, calcium: 8, phosphorus: 263, omega3: 45, taurine: 95, vitaminA: 9190, vitaminD: 35, zinc: 2.5, iodine: 11 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['kidney'],
+    notes: '维生素A含量极高，每日用量不超过总食材10%',
+    maxAmountPerKgG: 3,
+  },
+  {
+    id: 'beef_liver', dbName: 'beef_liver',
+    names: ['牛肝', 'beef liver'],
+    category: 'organ',
+    nutrients: { calories: 135, protein: 20, fat: 3.6, carbs: 3.9, calcium: 5, phosphorus: 387, omega3: 40, taurine: 68, vitaminA: 26077, vitaminD: 42, zinc: 4.0, iodine: 10 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['kidney'],
+    notes: '维生素A含量极高（牛肝>猪肝>鸡肝），每日严格限制在5%以内',
+    maxAmountPerKgG: 2,
+  },
+  {
+    id: 'duck_gizzard', dbName: 'duck_gizzard',
+    names: ['鸭胗', 'duck gizzard'],
+    category: 'organ',
+    nutrients: { calories: 100, protein: 18, fat: 2.8, carbs: 0, calcium: 9, phosphorus: 165, omega3: 20, taurine: 65, vitaminA: 55, vitaminD: 0, zinc: 2.6, iodine: 5 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: []
+  },
+  {
+    id: 'chicken_heart', dbName: 'chicken_heart',
+    names: ['鸡心', 'chicken heart'],
+    category: 'organ',
+    nutrients: { calories: 153, protein: 16, fat: 9.3, carbs: 0.1, calcium: 11, phosphorus: 198, omega3: 90, taurine: 120, vitaminA: 60, vitaminD: 0, zinc: 6.6, iodine: 8 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: [],
+    notes: '富含锌和牛磺酸，心脏类器官肉'
+  },
+  {
+    id: 'duck_heart', dbName: 'duck_heart',
+    names: ['鸭心', 'duck heart'],
+    category: 'organ',
+    nutrients: { calories: 135, protein: 16, fat: 7.5, carbs: 0.1, calcium: 10, phosphorus: 185, omega3: 80, taurine: 100, vitaminA: 50, vitaminD: 0, zinc: 5.0, iodine: 6 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: []
+  },
+  {
+    id: 'pork_heart', dbName: 'pork_heart',
+    names: ['猪心', 'pork heart'],
+    category: 'organ',
+    nutrients: { calories: 119, protein: 17, fat: 5.5, carbs: 1.2, calcium: 8, phosphorus: 213, omega3: 50, taurine: 120, vitaminA: 20, vitaminD: 0, zinc: 2.3, iodine: 6 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: []
+  },
+  {
+    id: 'lamb_kidney', dbName: 'lamb_kidney',
+    names: ['羊腰', '羊肾', 'lamb kidney'],
+    category: 'organ',
+    nutrients: { calories: 97, protein: 17, fat: 2.8, carbs: 0.8, calcium: 13, phosphorus: 233, omega3: 40, taurine: 60, vitaminA: 810, vitaminD: 30, zinc: 3.5, iodine: 25 },
+    dogSafe: true, catSafe: true, forbiddenFor: ['kidney'], cautionFor: [],
+    maxAmountPerKgG: 3,
+  },
+  {
+    id: 'quail_meat', dbName: 'quail_meat',
+    names: ['鹌鹑肉', '鹌鹑', 'quail', 'quail meat'],
+    category: 'protein',
+    nutrients: { calories: 192, protein: 22, fat: 11, carbs: 0, calcium: 13, phosphorus: 307, omega3: 80, taurine: 80, vitaminA: 30, vitaminD: 10, zinc: 3.1, iodine: 8 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: []
+  },
+  // ── Pro 扩展鱼类（常见但 DB 缺失，防止 USDA API 失效时退化为 category average）──
+  {
+    id: 'tuna', dbName: 'tuna',
+    names: ['金枪鱼', '吞拿鱼', 'tuna', 'yellowfin tuna', 'albacore'],
+    category: 'protein',
+    nutrients: { calories: 144, protein: 30, fat: 1.0, carbs: 0, calcium: 17, phosphorus: 278, omega3: 230, taurine: 300, vitaminA: 16, vitaminD: 69, zinc: 0.9, iodine: 80 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: [],
+    maxAmountPerKgG: 5,
+    notes: '低脂高蛋白，牛磺酸丰富；金枪鱼汞含量偏高，不宜每日喂食'
+  },
+  {
+    id: 'trout', dbName: 'trout',
+    names: ['鳟鱼', '虹鳟', 'trout', 'rainbow trout'],
+    category: 'protein',
+    nutrients: { calories: 190, protein: 21, fat: 11, carbs: 0, calcium: 72, phosphorus: 260, omega3: 1500, taurine: 90, vitaminA: 30, vitaminD: 370, zinc: 0.8, iodine: 40 },
+    dogSafe: true, catSafe: true, forbiddenFor: ['pancreatitis'], cautionFor: [],
+    notes: '富含 omega-3 和维生素D，钙含量高于大多数鱼类'
+  },
+  {
+    id: 'tilapia', dbName: 'tilapia',
+    names: ['罗非鱼', '非洲鲫', 'tilapia'],
+    category: 'protein',
+    nutrients: { calories: 96, protein: 20, fat: 1.7, carbs: 0, calcium: 14, phosphorus: 200, omega3: 150, taurine: 80, vitaminA: 8, vitaminD: 150, zinc: 0.5, iodine: 75 },
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: []
+  },
   // ── 内脏类 ──
   {
     id: 'chicken_liver', dbName: 'chicken_liver',
