@@ -275,7 +275,17 @@ export const NUTRITION_DB: FoodItem[] = [
     names: ['燕麦', '麦片', 'oatmeal', 'oats'],
     category: 'carb',
     nutrients: { calories: 68, protein: 2.4, fat: 1.4, carbs: 12, calcium: 9, phosphorus: 77, omega3: 0, taurine: 0, vitaminA: 0, vitaminD: 0, zinc: 0.6, iodine: 1 },
-    dogSafe: true, catSafe: false, forbiddenFor: [], cautionFor: ['diabetes']
+    dogSafe: true, catSafe: false, forbiddenFor: [], cautionFor: ['diabetes'],
+    puppyMaxAmountG: 15,
+  },
+  {
+    id: 'millet_cooked', dbName: 'millet_cooked',
+    names: ['小米', '黄米', '谷子', 'millet', 'cooked millet', 'millet porridge'],
+    category: 'carb',
+    nutrients: { calories: 119, protein: 3.5, fat: 1.0, carbs: 23.7, calcium: 3, phosphorus: 100, omega3: 0, taurine: 0, vitaminA: 0, vitaminD: 0, zinc: 0.9, iodine: 1 },
+    dogSafe: true, catSafe: false, forbiddenFor: [], cautionFor: ['diabetes', 'obesity'],
+    puppyMaxAmountG: 15,
+    notes: '碳水偏高，幼崽每餐不超过 15g',
   },
   // ── 补充剂/油脂类 ──
   {

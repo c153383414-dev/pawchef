@@ -292,7 +292,7 @@ ${isCat ? `3. Taurine: taurine_supplement ~${Math.max(0.05, weightKg * 0.025).to
    seasoning, or any unlisted item in the steps.
 6. ONLY use approved ingredients (exact dbName keys):
 ${isCat ? freeCatIngredients : freeDogIngredients}
-${isPuppy && !isCat ? `7. PUPPY energy density: protein must be ≥65% of food weight. Total veggies combined MAX ${Math.round(Math.max(weightKg * 8, 10))}g. Spinach MAX 10g (oxalates block calcium absorption).` : !isCat && ageMonths >= 96 ? '7. Avoid spinach for this senior dog (age > 8 years). Use broccoli or carrot instead.' : ''}
+${isPuppy && !isCat ? `7. PUPPY energy density: protein must be ≥65% of food weight. Grains/carbs (rice, millet, oats) MAX 15g TOTAL. Total veggies combined MAX ${Math.round(Math.max(weightKg * 8, 10))}g. Spinach MAX 10g (oxalates block calcium absorption).` : !isCat && ageMonths >= 96 ? '7. Avoid spinach for this senior dog (age > 8 years). Use broccoli or carrot instead.' : ''}
 
 Output JSON only (no markdown):
 {
@@ -357,6 +357,7 @@ ${isPuppy && !isCat ? `\nPUPPY RULES (growth stage — energy density is critica
 - Protein + organ sources MUST be ≥65% of total food weight (excluding supplements/oils). Puppies need calorie-dense meals.
 - Total vegetables combined MAX ${Math.round(Math.max(weightKg * 8, 10))}g — vegetables are supplementary, NOT a base ingredient.
 - Fat ≥21g per 1000kcal: use salmon, duck, or egg — do NOT rely only on lean chicken.
+- Grains/carbs (rice, millet, oats): MAX 15g TOTAL — protein+fat must dominate puppy meals, not starch.
 - Spinach MAX 10g (oxalates block calcium absorption critical for bone development). Prefer broccoli, carrot, pumpkin.
 - Include small amount of organ meat (5–10g liver or heart) for vitamin A, copper, B12.` : ''}
 
@@ -554,10 +555,17 @@ Output JSON only (no markdown):
       }
     }
 
-    // 合规性不足时重试：Pro 用户 partial/non-compliant 均重试；免费用户只在 non-compliant 时重试
-    if (validation.complianceLabel === 'non-compliant' || (isPro && validation.complianceLabel === 'partial')) {
+    // 合规性不足时重试：Pro 最多 2 次，免费最多 1 次（只在 non-compliant 时触发）
+    const maxRetries = isPro ? 2 : 1
+    const order = { compliant: 0, partial: 1, 'non-compliant': 2 }
+    let retryCount = 0
+    while (
+      retryCount < maxRetries &&
+      (validation.complianceLabel === 'non-compliant' || (isPro && validation.complianceLabel === 'partial'))
+    ) {
+      retryCount++
       try {
-        // 把具体失败项注入重试 prompt，让 AI 知道该修什么
+        // 把当前失败项注入重试 prompt，每次重试都基于最新 validation 状态
         const failedItems: string[] = []
         const av = validation.aafco
         if (!av.protein.ok)    failedItems.push(`protein (${Math.round(av.protein.value)}g/1000kcal, need ≥${av.protein.min}g — use more meat)`)
@@ -567,7 +575,7 @@ Output JSON only (no markdown):
         if (!av.omega3.ok)     failedItems.push(`omega-3 (${Math.round(av.omega3.value)}mg/1000kcal, need ≥${av.omega3.min}mg — add fatty fish or fish oil)`)
         if (!av.calcium.ok)    failedItems.push(`calcium (${Math.round(av.calcium.value)}mg/1000kcal, need ${av.calcium.min}–${av.calcium.max}mg)`)
         const complianceHint = failedItems.length > 0
-          ? `\n\nCRITICAL CORRECTION NEEDED: The previous attempt failed AAFCO compliance. Fix ONLY these issues:\n${failedItems.map(f => `- ${f}`).join('\n')}\nDo not change ingredients that are already correct.`
+          ? `\n\nCRITICAL CORRECTION NEEDED (attempt ${retryCount}): The previous attempt failed AAFCO compliance. Fix ONLY these issues:\n${failedItems.map(f => `- ${f}`).join('\n')}\nDo not change ingredients that are already correct.`
           : ''
         const retryPrompt = prompt + complianceHint
         const cRetry = await openai.chat.completions.create({
@@ -576,36 +584,35 @@ Output JSON only (no markdown):
         })
         const cText  = cRetry.choices[0]?.message?.content || ''
         const cMatch = cText.match(/\{[\s\S]*\}/)
-        if (cMatch) {
-          const cResult = JSON.parse(cMatch[0])
-          cResult.ingredients = (cResult.ingredients || []).filter((ing: any) => {
-            if (isPro && forbiddenDbNames.includes(ing.dbName)) return false
-            const food = ing.dbName ? findFood(ing.dbName, true) : null
-            return !(food && ((isCat && food.catSafe === false) || (!isCat && food.dogSafe === false)))
-          })
-          syncStepsIngredients(cResult)
-          let cIngredients = cResult.ingredients.map((ing: any) => ({
-            name: ing.name, dbName: ing.dbName, amountG: ing.amountG || 0,
-          }))
-          if (isPro) cIngredients = await resolveUnknownIngredients(cIngredients)
-          const { ingredients: cCappedIngredients } = validateIngredients(cIngredients, petParams)
-          cIngredients = cCappedIngredients
-          let cValidation = validateRecipe(cIngredients, petParams)
-          if (!cValidation.caloriesOk) {
-            const { scaledIngredients, revalidation } = scaleToTargetCalories(
-              cIngredients, petParams, cValidation.actualCalories
-            )
-            cIngredients  = scaledIngredients
-            cValidation   = revalidation
-          }
-          const order = { compliant: 0, partial: 1, 'non-compliant': 2 }
-          if (order[cValidation.complianceLabel] < order[validation.complianceLabel]) {
-            ingredientsForValidation = cIngredients
-            validation  = cValidation
-            aiResult    = cResult
-          }
+        if (!cMatch) break
+        const cResult = JSON.parse(cMatch[0])
+        cResult.ingredients = (cResult.ingredients || []).filter((ing: any) => {
+          if (isPro && forbiddenDbNames.includes(ing.dbName)) return false
+          const food = ing.dbName ? findFood(ing.dbName, true) : null
+          return !(food && ((isCat && food.catSafe === false) || (!isCat && food.dogSafe === false)))
+        })
+        syncStepsIngredients(cResult)
+        let cIngredients = cResult.ingredients.map((ing: any) => ({
+          name: ing.name, dbName: ing.dbName, amountG: ing.amountG || 0,
+        }))
+        if (isPro) cIngredients = await resolveUnknownIngredients(cIngredients)
+        const { ingredients: cCappedIngredients } = validateIngredients(cIngredients, petParams)
+        cIngredients = cCappedIngredients
+        let cValidation = validateRecipe(cIngredients, petParams)
+        if (!cValidation.caloriesOk) {
+          const { scaledIngredients, revalidation } = scaleToTargetCalories(
+            cIngredients, petParams, cValidation.actualCalories
+          )
+          cIngredients  = scaledIngredients
+          cValidation   = revalidation
         }
-      } catch { /* 重试失败保留原结果 */ }
+        if (order[cValidation.complianceLabel] <= order[validation.complianceLabel]) {
+          ingredientsForValidation = cIngredients
+          validation  = cValidation
+          aiResult    = cResult
+        }
+        if (validation.complianceLabel === 'compliant') break
+      } catch { break }
     }
 
     // 免费用户：未知食材超30% → 退还
