@@ -115,6 +115,9 @@
     "shopSupplement": "补充剂",
     "shopCopy": "复制清单",
     "shopCopied": "已复制",
+    "nutritionLogic": "营养逻辑说明",
+    "organNote": "器官肉（肝脏/心脏等）富含维生素 A、B12 与铁，建议占总食量 5–10%，不宜超量",
+    "pancreatitisNote": "低脂模式已激活：脂肪严格控制在 AAFCO 安全上限内，避免胰腺炎复发",
     "error": {
       "forbidden_ingredient": "⚠️ 部分食材因健康状况限制已被调整",
       "nutrition_failure": "🚨 食谱营养不达标，请重新生成"
@@ -417,9 +420,10 @@
   },
   "supplement": {
     "reason": {
-      "calcium_deficiency": "钙含量不足，自动补充",
-      "omega3_deficiency": "Omega-3 含量不足，自动补充",
-      "taurine_deficiency": "牛磺酸不足（猫咪必需），自动补充"
+      "calcium_deficiency": "食谱天然钙含量低于 AAFCO 标准，碳酸钙是最纯净的补钙来源，无副作用",
+      "omega3_deficiency": "鱼类食材 Omega-3 不足，鱼油补充 EPA+DHA，支持皮毛光泽与关节健康",
+      "fat_and_omega3_deficiency": "脂肪与 Omega-3 均低于标准，鱼油同时补足两项，避免皮肤干燥",
+      "taurine_deficiency": "猫咪无法自行合成牛磺酸，缺乏会导致心脏病与失明，必须外源补充"
     }
   },
   "feedingLog": {

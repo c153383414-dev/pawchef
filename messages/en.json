@@ -115,6 +115,9 @@
     "shopSupplement": "Supplements",
     "shopCopy": "Copy List",
     "shopCopied": "Copied",
+    "nutritionLogic": "Nutrition Logic",
+    "organNote": "Organ meat (liver, heart, etc.) is rich in Vitamin A, B12 and iron — recommended at 5–10% of total food, not more",
+    "pancreatitisNote": "Low-fat mode active: fat is strictly controlled within AAFCO safety limits to prevent pancreatitis relapse",
     "error": {
       "forbidden_ingredient": "⚠️ Some ingredients were adjusted due to health condition restrictions",
       "nutrition_failure": "🚨 Recipe nutrition does not meet standards. Please regenerate."
@@ -377,9 +380,10 @@
   },
   "supplement": {
     "reason": {
-      "calcium_deficiency": "Calcium deficient, auto-supplemented",
-      "omega3_deficiency": "Omega-3 deficient, auto-supplemented",
-      "taurine_deficiency": "Taurine deficient (essential for cats), auto-supplemented"
+      "calcium_deficiency": "Natural calcium falls below AAFCO standard — calcium carbonate is the purest source with no side effects",
+      "omega3_deficiency": "Omega-3 from food sources insufficient — fish oil provides EPA+DHA for coat health and joint support",
+      "fat_and_omega3_deficiency": "Both fat and Omega-3 below standard — fish oil addresses both to prevent dry skin",
+      "taurine_deficiency": "Cats cannot synthesize taurine — deficiency causes heart disease and blindness, must be supplemented externally"
     }
   },
   "feedingLog": {

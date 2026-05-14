@@ -624,6 +624,11 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                           {ing.emoji} {ing.name}
                         </span>
                         <span style={{ color: 'rgba(28,26,22,0.6)', fontWeight: 500, fontSize: 13, flexShrink: 0 }}>{ing.amount}</span>
+                        {ing.autoAdded && ing.reasonKey && (
+                          <span style={{ fontSize: 10, color: '#3B6D11', background: 'rgba(59,109,17,0.08)', padding: '2px 6px', borderRadius: 4, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                            {t(ing.reasonKey)}
+                          </span>
+                        )}
                         {user && !ing.autoAdded && (
                           <button
                             onClick={() => handleSubstitute(ing, i)}
@@ -735,6 +740,69 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                     </div>
                   ))}
                 </div>
+
+                {/* 营养解析面板 */}
+                {(() => {
+                  const kcal  = parseFloat(recipe.nutrition.calories.replace(/[^0-9.]/g, '')) || 0
+                  const protG = parseFloat(recipe.nutrition.protein.replace(/[^0-9.]/g, ''))  || 0
+                  const fatG  = parseFloat(recipe.nutrition.fat.replace(/[^0-9.]/g, ''))      || 0
+                  const carbG = parseFloat(recipe.nutrition.carbs.replace(/[^0-9.]/g, ''))    || 0
+                  const fromProt = protG * 4
+                  const fromFat  = fatG  * 9
+                  const fromCarb = carbG * 4
+                  const total    = fromProt + fromFat + fromCarb || 1
+                  const pPct = Math.round(fromProt / total * 100)
+                  const fPct = Math.round(fromFat  / total * 100)
+                  const cPct = Math.round(fromCarb / total * 100)
+
+                  const hasOrgan = recipe.content.ingredients.some(i => i.category === 'organ')
+                  const hasPancreatitis = health.includes('pancreatitis')
+
+                  return (
+                    <div style={{ marginTop: 14, padding: '12px 14px', borderRadius: 10, background: '#F7F3EC', border: '1px solid rgba(28,26,22,0.08)' }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(28,26,22,0.55)', marginBottom: 10, letterSpacing: '0.03em' }}>
+                        {t('recipe.nutritionLogic')}
+                      </div>
+
+                      {/* 宏量热量比 */}
+                      {kcal > 0 && (
+                        <div style={{ marginBottom: 10 }}>
+                          <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', marginBottom: 5 }}>
+                            <div style={{ width: `${pPct}%`, background: '#7A9E7E' }} title={`蛋白质 ${pPct}%`} />
+                            <div style={{ width: `${fPct}%`, background: '#C8813A' }} title={`脂肪 ${fPct}%`} />
+                            <div style={{ width: `${cPct}%`, background: '#D4B896' }} title={`碳水 ${cPct}%`} />
+                          </div>
+                          <div style={{ display: 'flex', gap: 12, fontSize: 11, color: 'rgba(28,26,22,0.55)' }}>
+                            <span><span style={{ color: '#7A9E7E', fontWeight: 600 }}>■</span> {t('recipe.nutriProtein')} {pPct}%</span>
+                            <span><span style={{ color: '#C8813A', fontWeight: 600 }}>■</span> {t('recipe.nutriFat')} {fPct}%</span>
+                            <span><span style={{ color: '#D4B896', fontWeight: 600 }}>■</span> {t('recipe.nutriCarbs')} {cPct}%</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 自动补充说明 */}
+                      {recipe.content.ingredients.filter(i => i.autoAdded && i.reasonKey).map((ing, i) => (
+                        <div key={i} style={{ fontSize: 11, color: '#3B6D11', marginBottom: 4, lineHeight: 1.5 }}>
+                          ✓ {ing.emoji} <strong>{ing.name}</strong>：{t(ing.reasonKey!)}
+                        </div>
+                      ))}
+
+                      {/* 器官肉说明 */}
+                      {hasOrgan && (
+                        <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.55)', marginTop: 4, lineHeight: 1.5 }}>
+                          🫀 {t('recipe.organNote')}
+                        </div>
+                      )}
+
+                      {/* 低脂模式说明 */}
+                      {hasPancreatitis && (
+                        <div style={{ fontSize: 11, color: '#854F0B', marginTop: 4, lineHeight: 1.5 }}>
+                          ⚠️ {t('recipe.pancreatitisNote')}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
 
                 {/* Pro 自动记录 badge */}
                 {autoLogged && (
