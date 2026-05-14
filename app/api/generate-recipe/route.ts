@@ -349,6 +349,8 @@ CARB RULE (CRITICAL — calculate before finalizing):
 STRICTLY FORBIDDEN (toxic — NEVER use under any circumstances):
 grapes, raisins, onions, garlic, chives, leeks, chocolate, cocoa, xylitol, macadamia nuts, avocado,
 alcohol, caffeine, raw yeast dough, green tomatoes, raw potatoes, fruit seeds/pits
+
+OILY FISH RULE: Use at most ONE oily fish per recipe. Sardines, mackerel, salmon, herring are mutually exclusive — pick only ONE. Combining them causes extreme phosphorus overload.
 ${isCat ? '\nCAT RULES: Obligate carnivore — protein >65% of calories, no grains/rice as main ingredient. Do NOT use spinach (high oxalates → urinary stones). Taurine MUST be present.' : ''}
 ${!isCat && ageMonths >= 96 ? '\nSENIOR DOG (>8 years): Avoid spinach (high oxalates). Use broccoli or carrot instead.' : ''}
 ${isPuppy && !isCat ? `\nPUPPY RULES (growth stage — energy density is critical):
@@ -709,7 +711,7 @@ Output JSON only (no markdown):
       steps:       aiResult.steps   || [],
       warnings:    aiResult.warnings || [],
       nutrition: {
-        calories: `~${validation.actualCalories}`,
+        calories: `${Math.round(validation.actualCalories)} kcal`,
         protein:  `${validation.nutrients.protein}g`,
         fat:      `${validation.nutrients.fat}g`,
         carbs:    `${validation.nutrients.carbs}g`,

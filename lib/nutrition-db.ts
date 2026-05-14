@@ -118,6 +118,7 @@ export const NUTRITION_DB: FoodItem[] = [
     category: 'protein',
     nutrients: { calories: 208, protein: 25, fat: 11, carbs: 0, calcium: 382, phosphorus: 490, omega3: 1480, taurine: 100, vitaminA: 30, vitaminD: 193, zinc: 1.3, iodine: 40 },
     dogSafe: true, catSafe: true, forbiddenFor: ['kidney'], cautionFor: ['pancreatitis'],
+    maxAmountPerKgG: 4,
     notes: '钙磷极高，肾病禁用；选无盐款'
   },
   {
@@ -125,7 +126,8 @@ export const NUTRITION_DB: FoodItem[] = [
     names: ['鲭鱼', '青花鱼', 'mackerel'],
     category: 'protein',
     nutrients: { calories: 205, protein: 19, fat: 14, carbs: 0, calcium: 12, phosphorus: 217, omega3: 2670, taurine: 80, vitaminA: 50, vitaminD: 360, zinc: 0.8, iodine: 45 },
-    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['pancreatitis']
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['pancreatitis'],
+    maxAmountPerKgG: 5,
   },
   {
     id: 'venison', dbName: 'venison',
