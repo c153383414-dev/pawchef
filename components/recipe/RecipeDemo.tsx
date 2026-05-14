@@ -219,8 +219,14 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
       if (guestUsed)     return t('signupPrompt.ctaSignup')
       return t('recipe.generateFree')
     }
-    // Pro users always show Pro quota first, regardless of remaining free quota
-    if (isPro) return t('recipe.generatePro', { n: 30 - ((user.monthly_ai_count ?? 0) + proMonthlyDelta) })
+    // Pro users: show Pro quota, or fallback credit source if monthly exhausted
+    if (isPro) {
+      const proLeft = 30 - ((user.monthly_ai_count ?? 0) + proMonthlyDelta)
+      if (proLeft > 0) return t('recipe.generatePro', { n: proLeft })
+      if ((user.gift_ai_points ?? 0) > 0) return t('recipe.generateGift', { n: user.gift_ai_points })
+      if ((user.paid_points    ?? 0) > 0) return t('recipe.generatePaid', { n: user.paid_points })
+      return t('recipe.noCreditsBtn')
+    }
     const freeLeft = freeRemaining ?? Math.max(0, (user.free_ai_limit ?? 2) - (user.free_ai_used ?? 0))
     if (hasFreeAI) return t('recipe.generateStandard', { n: freeLeft })
     if ((user.gift_ai_points ?? 0) > 0) return t('recipe.generateGift', { n: user.gift_ai_points })

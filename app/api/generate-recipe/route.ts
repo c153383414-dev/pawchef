@@ -636,8 +636,8 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
       }
     }
 
-    // 合规性重试：Pro 在 partial/non-compliant 时都重试，free 仅在 non-compliant 时重试
-    const maxRetries = 1
+    // 合规性重试：Pro 最多 2 次（partial/non-compliant），free 最多 1 次（仅 non-compliant）
+    const maxRetries = isPro ? 2 : 1
     let retryCount = 0
     while (
       retryCount < maxRetries &&
