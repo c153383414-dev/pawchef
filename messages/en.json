@@ -106,7 +106,9 @@
     "disclaimer_full": "All recipes are AI-generated based on the AAFCO nutritional framework, for home-cooked food reference only. They do not constitute a complete balanced diet plan and do not replace professional veterinary advice. Consult a veterinary nutritionist before using as a sole long-term diet.",
     "calories_warning": "⚠️ Current calories ({actual} kcal) are outside the target range {min}–{max} kcal. Please adjust ingredient amounts.",
     "generateError": "Generation failed. Please try again later.",
-    "autoLogged": "Auto-logged to feeding diary",
+    "recipeSaved": "📋 Recipe saved to your history",
+    "viewHistory": "View History",
+    "autoLogged": "✅ Auto-logged to feeding diary",
     "viewLog": "View / Edit",
     "shoppingList": "Shopping List",
     "shopProtein": "Proteins",
@@ -381,10 +383,10 @@
   },
   "supplement": {
     "reason": {
-      "calcium_deficiency": "Natural calcium falls below AAFCO standard — calcium carbonate is the purest source with no side effects",
-      "omega3_deficiency": "Omega-3 from food sources insufficient — fish oil provides EPA+DHA for coat health and joint support",
-      "fat_and_omega3_deficiency": "Both fat and Omega-3 below standard — fish oil addresses both to prevent dry skin",
-      "taurine_deficiency": "Cats cannot synthesize taurine — deficiency causes heart disease and blindness, must be supplemented externally"
+      "calcium_deficiency": "Auto-added by AI · Purest calcium source with no side effects",
+      "omega3_deficiency": "Auto-added by AI · EPA+DHA supports coat health and joint mobility",
+      "fat_and_omega3_deficiency": "Auto-added by AI · Supports healthy skin and coat in one step",
+      "taurine_deficiency": "Auto-added by AI · Essential nutrient for cats, supports heart and vision"
     }
   },
   "suitable": {

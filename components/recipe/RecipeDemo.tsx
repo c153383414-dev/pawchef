@@ -904,11 +904,19 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   )
                 })()}
 
-                {/* Pro 自动记录 badge */}
-                {autoLogged && (
-                  <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#3B6D11' }}>
-                    <span>✅ {t('recipe.autoLogged')}</span>
-                    <a href="/dashboard/nutrition-log" style={{ color: '#7A9E7E', textDecoration: 'underline' }}>{t('recipe.viewLog')}</a>
+                {/* 数据留存提示 */}
+                {user && (
+                  <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'rgba(28,26,22,0.5)' }}>
+                      <span>{t('recipe.recipeSaved')}</span>
+                      <a href="/dashboard" style={{ color: '#7A9E7E', textDecoration: 'underline' }}>{t('recipe.viewHistory')}</a>
+                    </div>
+                    {autoLogged && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#3B6D11' }}>
+                        <span>{t('recipe.autoLogged')}</span>
+                        <a href="/dashboard/nutrition-log" style={{ color: '#7A9E7E', textDecoration: 'underline' }}>{t('recipe.viewLog')}</a>
+                      </div>
+                    )}
                   </div>
                 )}
 

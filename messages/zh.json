@@ -106,7 +106,9 @@
     "disclaimer_full": "本平台所有食谱均由 AI 生成，基于 AAFCO 营养框架设计，仅供家庭鲜食参考，不构成完整均衡主食方案，不替代专业兽医建议。长期作为唯一主食前请咨询兽医营养师。",
     "calories_warning": "⚠️ 当前热量（{actual} kcal）不在目标范围 {min}–{max} kcal 内，请适量调整食材用量。",
     "generateError": "生成失败，请稍后重试。",
-    "autoLogged": "已自动记录至喂食日志",
+    "recipeSaved": "📋 食谱已保存至历史记录",
+    "viewHistory": "查看历史",
+    "autoLogged": "✅ 已自动记录至喂食日志",
     "viewLog": "查看 / 修改",
     "shoppingList": "购物清单",
     "shopProtein": "蛋白质",
@@ -421,10 +423,10 @@
   },
   "supplement": {
     "reason": {
-      "calcium_deficiency": "食谱天然钙含量低于 AAFCO 标准，碳酸钙是最纯净的补钙来源，无副作用",
-      "omega3_deficiency": "鱼类食材 Omega-3 不足，鱼油补充 EPA+DHA，支持皮毛光泽与关节健康",
-      "fat_and_omega3_deficiency": "脂肪与 Omega-3 均低于标准，鱼油同时补足两项，避免皮肤干燥",
-      "taurine_deficiency": "猫咪无法自行合成牛磺酸，缺乏会导致心脏病与失明，必须外源补充"
+      "calcium_deficiency": "AI 自动补钙 · 最纯净的补钙来源，无副作用",
+      "omega3_deficiency": "AI 自动补充 Omega-3 · EPA+DHA 支持皮毛光泽与关节健康",
+      "fat_and_omega3_deficiency": "AI 自动补充脂肪与 Omega-3 · 同时改善皮肤与毛发",
+      "taurine_deficiency": "AI 自动补充牛磺酸 · 猫咪必需营养素，支持心脏与视力健康"
     }
   },
   "suitable": {
