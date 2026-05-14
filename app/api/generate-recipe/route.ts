@@ -672,7 +672,8 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
           cIngredients  = scaledIngredients
           cValidation   = revalidation
         }
-        if (order[cValidation.complianceLabel] <= order[validation.complianceLabel]) {
+        const labelOrder = { compliant: 0, partial: 1, 'non-compliant': 2 }
+        if (labelOrder[cValidation.complianceLabel] <= labelOrder[validation.complianceLabel]) {
           ingredientsForValidation = cIngredients
           validation               = cValidation
           aiResult                 = cResult
