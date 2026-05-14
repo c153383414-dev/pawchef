@@ -13,7 +13,7 @@ const openai = new OpenAI({
 })
 
 const MODEL_FREE    = 'anthropic/claude-3-5-haiku'
-const MODEL_PREMIUM = 'google/gemini-3.1-pro-preview'
+const MODEL_PREMIUM = 'google/gemini-2.5-flash-preview'
 
 const LANGUAGE_MAP: Record<string, string> = {
   en: 'English', zh: 'Chinese (Simplified)', es: 'Spanish',
@@ -781,7 +781,7 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
         autoAddedSupplements: validation.supplements,
       },
       unknownIngredients: validation.unknownIngredients,
-      generatedBy:        isPro ? 'gemini-3.1-pro' : 'claude-haiku',
+      generatedBy:        isPro ? 'gemini-2.5-flash' : 'claude-haiku',
       freeRemaining,
       proMonthlyUsed:     deductSource === 'pro_monthly',
     })

@@ -300,7 +300,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
         },
         nutrition:  data.nutrition,
         compliance: data.compliance,
-        tier:       ['claude-sonnet', 'gemini-3.1-pro'].includes(data.generatedBy) ? 'premium' : 'standard',
+        tier:       ['claude-sonnet', 'gemini-3.1-pro', 'gemini-2.5-flash'].includes(data.generatedBy) ? 'premium' : 'standard',
       })
       setSubstitutes({})
       setExpandedSub(null)
