@@ -789,20 +789,42 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
   }
 }
 
-// ── AI 响应 JSON 解析（兼容 Gemini markdown 代码块包裹）────────────────────────
+// ── AI 响应 JSON 解析（兼容 Gemini reasoning model 输出）────────────────────────
 function parseAIJson(text: string): any {
   // 策略1：提取 ```json ... ``` 或 ``` ... ``` 代码块内容（Gemini 常见格式）
   const codeBlock = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
   if (codeBlock) {
-    try { return JSON.parse(codeBlock[1]) } catch {}
-    // 代码块内容解析失败，继续尝试其他策略
+    try {
+      const p = JSON.parse(codeBlock[1])
+      if (p.title && p.ingredients) return p
+    } catch {}
   }
 
-  // 策略2：从文本中提取第一个 { 到最后一个 } 之间的内容
-  const first = text.indexOf('{')
-  const last  = text.lastIndexOf('}')
-  if (first !== -1 && last > first) {
-    try { return JSON.parse(text.slice(first, last + 1)) } catch {}
+  // 策略2：括号深度扫描 — 遍历所有完整 {...} 块，返回第一个含 title+ingredients 的合法 JSON
+  // 用于处理 Gemini reasoning model 在 JSON 前输出含 {} 的思考文本的情况
+  {
+    let depth = 0, start = -1
+    let inString = false, escape = false
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i]
+      if (escape) { escape = false; continue }
+      if (c === '\\' && inString) { escape = true; continue }
+      if (c === '"') { inString = !inString; continue }
+      if (inString) continue
+      if (c === '{') {
+        if (depth === 0) start = i
+        depth++
+      } else if (c === '}') {
+        depth--
+        if (depth === 0 && start !== -1) {
+          try {
+            const p = JSON.parse(text.slice(start, i + 1))
+            if (p.title && p.ingredients) return p
+          } catch {}
+          start = -1
+        }
+      }
+    }
   }
 
   // 策略3：整体直接解析
