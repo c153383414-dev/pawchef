@@ -182,11 +182,18 @@ export async function POST(req: NextRequest) {
     const FREE_CAT_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey breast', 'duck breast', 'egg']
     const freeProteinPool = isCat ? FREE_CAT_PROTEINS : FREE_DOG_PROTEINS
 
+    // 月度主推蛋白（4 季 × 3 个月，促进长期多样性）
+    const SEASONAL_PROTEINS_ZH = ['羊肉','羊肉','羊肉','沙丁鱼','沙丁鱼','沙丁鱼','鸭肉','鸭肉','鸭肉','三文鱼','三文鱼','三文鱼']
+    const SEASONAL_PROTEINS_EN = ['lamb','lamb','lamb','sardines','sardines','sardines','duck','duck','duck','salmon','salmon','salmon']
+    const monthIdx = new Date().getMonth()
+    const seasonalProtein = locale_ === 'zh' ? SEASONAL_PROTEINS_ZH[monthIdx] : SEASONAL_PROTEINS_EN[monthIdx]
+
     // 查询最近用过的食材，生成多样性提示（蛋白质/蔬菜/碳水/内脏全追踪）
     let recentVeggieNote   = ''
     let recentProteinNote  = ''
     let recentCarbNote     = ''
     let recentOrganNote    = ''
+    let seasonalNote       = ''
     let freeFeatureProtein = freeProteinPool[Math.floor(Math.random() * freeProteinPool.length)]
 
     if (user) {
@@ -217,6 +224,16 @@ export async function POST(req: NextRequest) {
         const recentProteinNames = pickRecent('protein', 4)
         if (isPro && recentProteinNames.length > 0)
           recentProteinNote = `Recently used proteins: ${recentProteinNames.join(', ')}. You MUST choose a DIFFERENT protein — be creative.`
+
+        // 月度主推蛋白：若最近未使用则注入，引导季节性多样化
+        if (isPro) {
+          const seasonalUsedRecently = recentProteinNames.some(r =>
+            r.toLowerCase().includes(seasonalProtein.toLowerCase()) ||
+            seasonalProtein.toLowerCase().includes(r.toLowerCase())
+          )
+          if (!seasonalUsedRecently)
+            seasonalNote = `TODAY's featured protein: ${seasonalProtein} — strongly prefer this protein unless forbidden by the pet's health condition.`
+        }
 
         if (!isPro && recentProteinNames.length > 0) {
           const freshFreePool = freeProteinPool.filter(
@@ -303,15 +320,16 @@ Pet: ${isCat ? 'Cat' : 'Dog'}${petName ? ` (${petName})` : ''}, ${weightKg}kg, $
 ${portionText}
 ${proHealthNote}
 
-${recentProteinNote ? recentProteinNote + '\n' : 'Choose a creative, varied protein source for today.\n'}${recentVeggieNote ? recentVeggieNote + '\n' : ''}${recentCarbNote ? recentCarbNote + '\n' : ''}${recentOrganNote ? recentOrganNote + '\n' : ''}
+${recentProteinNote ? recentProteinNote + '\n' : 'Choose a creative, varied protein source for today.\n'}${seasonalNote ? seasonalNote + '\n' : ''}${recentVeggieNote ? recentVeggieNote + '\n' : ''}${recentCarbNote ? recentCarbNote + '\n' : ''}${recentOrganNote ? recentOrganNote + '\n' : ''}
 INGREDIENT FREEDOM — Be creative. You may use ANY safe, nutritious pet food ingredients. Consider:
 - Proteins: ${
   locale_ === 'zh'
-    ? 'duck, pork shoulder, chicken thigh, salmon, mackerel, sardines, quail egg, lamb, tuna, trout'
+    ? 'duck, pork shoulder, chicken thigh, salmon, mackerel, sardines, quail egg, lamb, tuna, trout, pork heart, duck heart, rabbit, beef, chicken heart, sea bream, goat, venison, tilapia, carp'
     : locale_ === 'ja' || locale_ === 'ko'
-    ? 'salmon, mackerel, tuna, duck, chicken thigh, pork, egg, sardines, lamb, trout'
-    : 'turkey, lamb, salmon, duck, mackerel, sardines, chicken thigh, pork shoulder, egg, rabbit'
+    ? 'salmon, mackerel, tuna, duck, chicken thigh, pork, egg, sardines, lamb, trout, yellowtail, horse mackerel, chicken heart, duck gizzard, beef, rabbit, goat, venison, sea bass, quail egg'
+    : 'turkey, lamb, salmon, duck, mackerel, sardines, chicken thigh, pork shoulder, egg, rabbit, bison, venison, beef, cod, tilapia, catfish, pheasant, goat, quail, whitefish'
 }
+- Organs (rotate for variety): chicken liver, duck gizzard, beef heart, chicken heart, lamb kidney, pork liver, duck heart, beef liver
 - Vegetables: zucchini, asparagus, blueberries, butternut squash, celery, green beans, beet
 - Vary ingredients every time — do not repeat the same combination.
 
