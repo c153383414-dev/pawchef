@@ -492,6 +492,7 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
         max_tokens: maxTokens, temperature,
       })
       const text = completion.choices[0]?.message?.content || ''
+      console.error('[parseAIJson DEBUG] raw response (first 500 chars):', JSON.stringify(text.slice(0, 500)))
       aiResult   = parseAIJson(text)
       syncStepsIngredients(aiResult)
     } catch (aiError: any) {
