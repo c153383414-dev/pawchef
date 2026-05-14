@@ -807,7 +807,7 @@ function parseAIJson(text: string): any {
   // 策略3：整体直接解析
   try { return JSON.parse(text.trim()) } catch {}
 
-  throw new Error('AI response format error')
+  throw new Error(`AI response format error: ${text.slice(0, 300)}`)
 }
 
 // ── 退还积分辅助函数 ─────────────────────────────────────────────────────────
