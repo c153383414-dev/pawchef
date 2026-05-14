@@ -1,4 +1,4 @@
-import { findFood, NutrientPer100g } from './nutrition-db'
+import { findFood, FoodItem, NutrientPer100g } from './nutrition-db'
 
 // ── AAFCO 四套标准（per 1000 kcal）──
 const AAFCO_DOG_ADULT = {
@@ -45,6 +45,14 @@ export interface RecipeIngredientInput {
   dbName?:            string
   amountG:            number
   nutrientsOverride?: NutrientPer100g
+}
+
+export interface IngredientAdjustment {
+  dbName:          string
+  name:            string
+  originalAmountG: number
+  adjustedAmountG: number
+  ruleDetail:      string
 }
 
 export interface PetParams {
@@ -132,6 +140,59 @@ function selectStandard(species: 'dog' | 'cat', ageMonths: number) {
 function getStandardKey(species: 'dog' | 'cat', ageMonths: number): AafcoStandard {
   if (species === 'cat') return ageMonths < 12 ? 'cat_kitten' : 'cat_adult'
   return ageMonths < 12 ? 'dog_puppy' : 'dog_adult'
+}
+
+// ── 食材用量上限校验 ──
+
+export function validateIngredients(
+  ingredients: RecipeIngredientInput[],
+  pet: PetParams
+): { ingredients: RecipeIngredientInput[]; adjustments: IngredientAdjustment[] } {
+  const isPuppy   = pet.ageMonths < 12
+  const weightKg  = pet.weightKg
+  const adjustments: IngredientAdjustment[] = []
+
+  const capped = ingredients.map(ing => {
+    if (!ing.dbName) return ing
+    const food: FoodItem | undefined = findFood(ing.dbName, true)
+    if (!food) return ing
+
+    // Collect applicable caps
+    const caps: number[] = []
+    const rules: string[] = []
+
+    if (isPuppy && food.puppyMaxAmountG !== undefined) {
+      caps.push(food.puppyMaxAmountG)
+      rules.push(`puppy cap ${food.puppyMaxAmountG}g`)
+    }
+    if (food.maxAmountAbsoluteG !== undefined) {
+      caps.push(food.maxAmountAbsoluteG)
+      rules.push(`absolute cap ${food.maxAmountAbsoluteG}g`)
+    }
+    if (food.maxAmountPerKgG !== undefined) {
+      const perKgCap = food.maxAmountPerKgG * weightKg
+      caps.push(perKgCap)
+      rules.push(`per-kg cap ${food.maxAmountPerKgG}g/kg × ${weightKg}kg = ${perKgCap.toFixed(1)}g`)
+    }
+
+    if (caps.length === 0) return ing
+
+    const effectiveCap = Math.min(...caps)
+    if (ing.amountG > effectiveCap) {
+      const adjustedAmountG = Math.max(1, Math.round(effectiveCap))
+      adjustments.push({
+        dbName:          ing.dbName,
+        name:            ing.name,
+        originalAmountG: ing.amountG,
+        adjustedAmountG,
+        ruleDetail:      rules.join('; '),
+      })
+      return { ...ing, amountG: adjustedAmountG }
+    }
+    return ing
+  })
+
+  return { ingredients: capped, adjustments }
 }
 
 // ── 主校验函数 ──

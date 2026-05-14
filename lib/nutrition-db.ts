@@ -23,7 +23,10 @@ export interface FoodItem {
   catSafe:      boolean
   forbiddenFor: Array<'kidney' | 'pancreatitis' | 'diabetes' | 'obesity' | 'allergy'>
   cautionFor:   Array<'kidney' | 'pancreatitis' | 'diabetes' | 'obesity'>
-  notes?:       string
+  notes?:             string
+  maxAmountAbsoluteG?: number   // hard cap per meal regardless of pet size
+  maxAmountPerKgG?:   number    // cap scales with body weight (g per kg)
+  puppyMaxAmountG?:   number    // tighter cap for puppies <12 months
 }
 
 export const NUTRITION_DB: FoodItem[] = [
@@ -114,8 +117,8 @@ export const NUTRITION_DB: FoodItem[] = [
     names: ['沙丁鱼', '罐头沙丁鱼', 'sardines', 'sardine', 'sardines canned'],
     category: 'protein',
     nutrients: { calories: 208, protein: 25, fat: 11, carbs: 0, calcium: 382, phosphorus: 490, omega3: 1480, taurine: 100, vitaminA: 30, vitaminD: 193, zinc: 1.3, iodine: 40 },
-    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['pancreatitis', 'kidney'],
-    notes: '钙磷极高，肾病慎用；选无盐款'
+    dogSafe: true, catSafe: true, forbiddenFor: ['kidney'], cautionFor: ['pancreatitis'],
+    notes: '钙磷极高，肾病禁用；选无盐款'
   },
   {
     id: 'mackerel', dbName: 'mackerel',
@@ -152,14 +155,16 @@ export const NUTRITION_DB: FoodItem[] = [
     names: ['芦笋', 'asparagus'],
     category: 'veggie',
     nutrients: { calories: 20, protein: 2.2, fat: 0.1, carbs: 3.9, calcium: 24, phosphorus: 52, omega3: 0, taurine: 0, vitaminA: 38, vitaminD: 0, zinc: 0.5, iodine: 2 },
-    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: []
+    dogSafe: true, catSafe: true, forbiddenFor: ['kidney'], cautionFor: [],
+    maxAmountAbsoluteG: 20,
   },
   {
     id: 'blueberry', dbName: 'blueberry',
     names: ['蓝莓', 'blueberry', 'blueberries'],
     category: 'veggie',
     nutrients: { calories: 57, protein: 0.7, fat: 0.3, carbs: 14.5, calcium: 6, phosphorus: 12, omega3: 0, taurine: 0, vitaminA: 3, vitaminD: 0, zinc: 0.2, iodine: 1 },
-    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['diabetes']
+    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['diabetes'],
+    maxAmountAbsoluteG: 20, puppyMaxAmountG: 10,
   },
   {
     id: 'celery', dbName: 'celery',
@@ -175,6 +180,15 @@ export const NUTRITION_DB: FoodItem[] = [
     nutrients: { calories: 31, protein: 1.8, fat: 0.2, carbs: 7.0, calcium: 37, phosphorus: 38, omega3: 0, taurine: 0, vitaminA: 35, vitaminD: 0, zinc: 0.2, iodine: 3 },
     dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: []
   },
+  {
+    id: 'beet', dbName: 'beet',
+    names: ['甜菜根', '红菜头', 'beet', 'beetroot', 'red beet'],
+    category: 'veggie',
+    nutrients: { calories: 43, protein: 1.6, fat: 0.2, carbs: 9.6, calcium: 16, phosphorus: 40, omega3: 0, taurine: 0, vitaminA: 2, vitaminD: 0, zinc: 0.4, iodine: 3 },
+    dogSafe: true, catSafe: true,
+    forbiddenFor: ['diabetes'], cautionFor: ['obesity'],
+    maxAmountAbsoluteG: 15,
+  },
   // ── 内脏类 ──
   {
     id: 'chicken_liver', dbName: 'chicken_liver',
@@ -182,7 +196,8 @@ export const NUTRITION_DB: FoodItem[] = [
     category: 'organ',
     nutrients: { calories: 119, protein: 17, fat: 4.5, carbs: 0.9, calcium: 8, phosphorus: 297, omega3: 50, taurine: 110, vitaminA: 11000, vitaminD: 50, zinc: 2.7, iodine: 12 },
     dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['kidney'],
-    notes: '维生素A含量极高，每日用量不超过总食材10%'
+    notes: '维生素A含量极高，每日用量不超过总食材10%',
+    maxAmountPerKgG: 3,
   },
   {
     id: 'chicken_gizzard', dbName: 'chicken_gizzard',
@@ -228,7 +243,8 @@ export const NUTRITION_DB: FoodItem[] = [
     nutrients: { calories: 23, protein: 2.9, fat: 0.4, carbs: 3.6, calcium: 99, phosphorus: 49, omega3: 0, taurine: 0, vitaminA: 469, vitaminD: 0, zinc: 0.5, iodine: 8 },
     dogSafe: true, catSafe: false,
     forbiddenFor: ['kidney'], cautionFor: ['kidney', 'obesity'],
-    notes: '草酸含量高，肾病禁用；老年犬（>8岁）建议避免；catSafe=false（高草酸对猫有泌尿结石风险）'
+    notes: '草酸含量高，肾病禁用；老年犬（>8岁）建议避免；catSafe=false（高草酸对猫有泌尿结石风险）',
+    maxAmountAbsoluteG: 15, puppyMaxAmountG: 10,
   },
   {
     id: 'green_peas', dbName: 'green_peas',

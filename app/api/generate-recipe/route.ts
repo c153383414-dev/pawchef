@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { validateRecipe, calculateDER, calculatePortionGuidance, formatPortionGuidanceForPrompt, scaleToTargetCalories, PetParams } from '@/lib/nutrition-validator'
+import { validateRecipe, validateIngredients, calculateDER, calculatePortionGuidance, formatPortionGuidanceForPrompt, scaleToTargetCalories, PetParams } from '@/lib/nutrition-validator'
 import { findFood, getForbiddenFoods, getAllowedFoodsByCategory } from '@/lib/nutrition-db'
 import { resolveUnknownIngredients } from '@/lib/usda-api'
 import { DeductSource } from '@/types'
@@ -480,7 +480,9 @@ Output JSON only (no markdown):
       ingredientsForValidation = await resolveUnknownIngredients(ingredientsForValidation)
     }
 
-    // 第一次校验
+    // 第一次校验（先执行食材用量上限校验）
+    const { ingredients: cappedIngredients } = validateIngredients(ingredientsForValidation, petParams)
+    ingredientsForValidation = cappedIngredients
     let validation = validateRecipe(ingredientsForValidation, petParams)
 
     // 热量偏差处理
@@ -584,6 +586,8 @@ Output JSON only (no markdown):
             name: ing.name, dbName: ing.dbName, amountG: ing.amountG || 0,
           }))
           if (isPro) cIngredients = await resolveUnknownIngredients(cIngredients)
+          const { ingredients: cCappedIngredients } = validateIngredients(cIngredients, petParams)
+          cIngredients = cCappedIngredients
           let cValidation = validateRecipe(cIngredients, petParams)
           if (!cValidation.caloriesOk) {
             const { scaledIngredients, revalidation } = scaleToTargetCalories(
