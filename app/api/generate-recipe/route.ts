@@ -252,8 +252,8 @@ export async function POST(req: NextRequest) {
     const portionText     = formatPortionGuidanceForPrompt(portionGuidance, isCat)
 
     // 免费用户蛋白池（固定白名单，安全可控）
-    const FREE_DOG_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey breast', 'duck breast', 'pork', 'egg']
-    const FREE_CAT_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey breast', 'duck breast', 'egg']
+    const FREE_DOG_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey breast', 'duck breast', 'pork']
+    const FREE_CAT_PROTEINS = ['chicken breast', 'beef', 'salmon', 'turkey breast', 'duck breast']
     const freeProteinPool = isCat ? FREE_CAT_PROTEINS : FREE_DOG_PROTEINS
 
     // Pro季节性主推蛋白（按季度轮换：Q1=lamb Q2=sardines Q3=duck Q4=salmon）
@@ -363,7 +363,14 @@ ${isCat ? `3. Taurine: taurine_supplement ~${Math.max(0.05, weightKg * 0.025).to
    seasoning, or any unlisted item in the steps.
 6. ONLY use approved ingredients (exact dbName keys):
 ${isCat ? freeCatIngredients : freeDogIngredients}
-${isPuppy && !isCat ? `7. PUPPY energy density: protein must be ≥65% of food weight. Grains/carbs (rice, millet, oats) MAX 15g TOTAL. Total veggies combined MAX ${Math.round(Math.max(weightKg * 8, 10))}g. Spinach MAX 10g (oxalates block calcium absorption).` : !isCat && ageMonths >= 96 ? '7. Avoid spinach for this senior dog (age > 8 years). Use broccoli or carrot instead.' : ''}
+${isPuppy && !isCat
+  ? `7. PUPPY energy density: protein must be ≥65% of food weight. Grains/carbs (rice, millet, oats) MAX 15g TOTAL. Total veggies combined MAX ${Math.round(Math.max(weightKg * 8, 10))}g. Spinach MAX 10g (oxalates block calcium absorption).`
+  : isCat
+  ? `7. CAT portions: total veggies MAX 20g. No grains/rice unless explicitly needed.${ageMonths >= 96 ? ' Senior cat (>8yr): avoid spinach.' : ''}`
+  : ageMonths >= 96
+  ? `7. Senior dog (>8yr): avoid spinach. Total veggies combined MAX ${Math.round(weightKg * 4)}g.`
+  : `7. Adult dog portions: total veggies combined MAX ${Math.round(weightKg * 4)}g. Do NOT use vegetables to bulk up calories — adjust protein and carb amounts instead.`
+}
 
 CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text before or after. Start your response with { and end with }.
 {
