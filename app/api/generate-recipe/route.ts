@@ -12,7 +12,7 @@ const openai = new OpenAI({
   defaultHeaders: { 'X-Title': 'PawChef' }
 })
 
-const MODEL_FREE    = 'anthropic/claude-3-5-haiku'
+const MODEL_FREE    = 'google/gemini-2.5-flash-lite'
 const MODEL_PREMIUM = 'google/gemini-3.1-flash-lite'
 
 const LANGUAGE_MAP: Record<string, string> = {
@@ -494,7 +494,10 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
     }
 
     // Gemini reasoning 模型需要关闭思维链输出并强制 JSON，避免返回纯推理文字
-    const geminiExtras = isPro ? { thinking_config: { include_thoughts: false }, response_format: { type: 'json_object' } } : {}
+    const geminiExtras = {
+      response_format: { type: 'json_object' },
+      ...(isPro ? { thinking_config: { include_thoughts: false } } : {}),
+    }
 
     let aiResult: any
     try {

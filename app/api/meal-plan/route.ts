@@ -115,11 +115,13 @@ ${isDiabetes ? '- 糖尿病：低碳水高蛋白，避免淀粉' : ''}
     let plan: any
     try {
       const completion = await openai.chat.completions.create({
-        model: 'anthropic/claude-sonnet-4-5',
+        model: 'google/gemini-3.1-flash-lite',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 4000,
         temperature: 0.7,
-      })
+        thinking_config: { include_thoughts: false },
+        response_format: { type: 'json_object' },
+      } as any)
 
       const text = completion.choices[0]?.message?.content || ''
       const jsonMatch = text.match(/\{[\s\S]*\}/)
