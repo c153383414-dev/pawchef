@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { validateRecipe, validateIngredients, calculateDER, calculatePortionGuidance, formatPortionGuidanceForPrompt, scaleToTargetCalories, PetParams } from '@/lib/nutrition-validator'
-import { findFood, getForbiddenFoods, getAllowedFoodsByCategory } from '@/lib/nutrition-db'
+import { findFood, getForbiddenFoods, getAllowedFoodsByCategory, OILY_FISH_DBNAMES } from '@/lib/nutrition-db'
 import { resolveUnknownIngredients } from '@/lib/usda-api'
 import { DeductSource } from '@/types'
 import OpenAI from 'openai'
@@ -25,6 +25,86 @@ const SUPPLEMENT_NAMES: Record<string, Record<string, string>> = {
   calcium_carbonate:  { zh: '碳酸钙', en: 'Calcium Carbonate', es: 'Carbonato de Calcio', fr: 'Carbonate de Calcium', ja: '炭酸カルシウム', ko: '탄산칼슘' },
   fish_oil:           { zh: '鱼油',   en: 'Fish Oil',          es: 'Aceite de Pescado',   fr: "Huile de Poisson",    ja: '魚油',           ko: '어유' },
   taurine_supplement: { zh: '牛磺酸', en: 'Taurine',           es: 'Taurina',             fr: 'Taurine',             ja: 'タウリン',         ko: '타우린' },
+}
+
+// 清理 AI 返回的食材：移除禁用/不安全食材，去重油性鱼类，保证胰腺炎有足够脂肪蛋白
+function sanitizeIngredients(
+  ingredients: any[],
+  forbiddenDbNames: string[],
+  conditions: string[],
+  isCat: boolean,
+  portionGuidance: { protein: { max: number } },
+  locale_: string
+): { sanitized: any[]; removed: any[] } {
+  const hasPancreatitis = conditions.includes('pancreatitis')
+
+  // 1. 移除条件禁用 + 物种不安全食材
+  const removed: any[] = []
+  let result = ingredients.filter((ing: any) => {
+    const isForbidden = forbiddenDbNames.includes(ing.dbName)
+    const food = ing.dbName ? findFood(ing.dbName, true) : null
+    const isSpeciesUnsafe = food && (
+      (isCat && food.catSafe === false) ||
+      (!isCat && food.dogSafe === false)
+    )
+    if (isForbidden || isSpeciesUnsafe) { removed.push(ing); return false }
+    return true
+  })
+
+  // 2. 去重油性鱼类：每份食谱只保留一种
+  let oilyFishKept = false
+  result = result.filter((ing: any) => {
+    if ((OILY_FISH_DBNAMES as readonly string[]).includes(ing.dbName)) {
+      if (oilyFishKept) { removed.push(ing); return false }
+      oilyFishKept = true
+    }
+    return true
+  })
+
+  // 3. 胰腺炎：确保至少一种蛋白质脂肪含量 ≥ 4g/100g（兔肉5.5%、鹿肉5.0%、鸡胸3.6%均可）
+  //    若只剩火鸡/鳕鱼等极瘦蛋白，AAFCO脂肪指标会失败
+  if (hasPancreatitis) {
+    const proteins = result.filter((i: any) => ['protein', 'organ'].includes(i.category))
+    const hasAdequateFat = proteins.some((i: any) => {
+      const food = findFood(i.dbName, true)
+      return food && food.nutrients.fat >= 4
+    })
+    if (proteins.length > 0 && !hasAdequateFat) {
+      // 找出脂肪最低的蛋白质，替换为兔肉
+      let lowestFatIdx = -1
+      let lowestFat = Infinity
+      result.forEach((i: any, idx: number) => {
+        if (['protein', 'organ'].includes(i.category)) {
+          const food = findFood(i.dbName, true)
+          const fat = food?.nutrients.fat ?? Infinity
+          if (fat < lowestFat) { lowestFat = fat; lowestFatIdx = idx }
+        }
+      })
+      if (lowestFatIdx >= 0) {
+        result[lowestFatIdx] = {
+          ...result[lowestFatIdx],
+          name:   locale_ === 'zh' ? '兔肉' : locale_ === 'ja' ? 'ウサギ肉' : locale_ === 'ko' ? '토끼고기' : 'Rabbit',
+          dbName: 'rabbit_meat',
+        }
+      }
+    }
+  }
+
+  // 4. 兜底：若完全没有蛋白质，自动注入一种安全蛋白
+  const hasAnyProtein = result.some((i: any) => ['protein', 'organ'].includes(i.category))
+  if (!hasAnyProtein) {
+    const fallbackDbName = hasPancreatitis ? 'rabbit_meat' : isCat ? 'chicken_breast' : 'duck_breast'
+    const fallbackFood = findFood(fallbackDbName, true)!
+    result.push({
+      name:     locale_ === 'zh' ? fallbackFood.names[0] : fallbackDbName.replace(/_/g, ' '),
+      dbName:   fallbackDbName,
+      amountG:  portionGuidance.protein.max,
+      category: 'protein',
+      emoji:    '🍗',
+    })
+  }
+
+  return { sanitized: result, removed }
 }
 
 function getClientIp(req: NextRequest): string {
@@ -441,34 +521,16 @@ Output JSON only (no markdown):
       )
     }
 
-    // ── Pro 专属：禁用食材硬校验 ──────────────────────────────────────────────
+    // ── Pro 专属：食材安全净化（静默处理，不退款不报错）────────────────────────
     if (isPro) {
-      const removedItems: any[] = []
-      aiResult.ingredients = aiResult.ingredients.filter((ing: any) => {
-        const isForbidden = forbiddenDbNames.includes(ing.dbName)
-        const food = ing.dbName ? findFood(ing.dbName, true) : null
-        const isSpeciesUnsafe = food && (
-          (isCat && food.catSafe === false) ||
-          (!isCat && food.dogSafe === false)
-        )
-        if (isForbidden || isSpeciesUnsafe) removedItems.push(ing)
-        return !isForbidden && !isSpeciesUnsafe
-      })
-      if (removedItems.length > 0) {
-        const removedCritical = removedItems.filter((i: any) =>
-          ['protein', 'organ', 'carb'].includes(i.category)
-        )
-        if (removedCritical.length > 0) {
-          await refundCredits(supabase, user!.id, deductSource, creditSource)
-          return NextResponse.json({
-            error:        'FORBIDDEN_INGREDIENT_REMOVED',
-            messageKey:   'recipe.error.forbidden_ingredient',
-            removedItems: removedCritical.map((i: any) => i.name),
-          }, { status: 422 })
-        }
+      const { sanitized, removed } = sanitizeIngredients(
+        aiResult.ingredients, forbiddenDbNames, safeConditions, isCat, portionGuidance, locale_
+      )
+      aiResult.ingredients = sanitized
+      if (removed.length > 0) {
         aiResult.warnings = [
           ...(aiResult.warnings || []),
-          ...removedItems.map((i: any) => `ingredient_removed:${i.dbName}`),
+          ...removed.map((i: any) => `ingredient_removed:${i.dbName}`),
         ]
       }
     }
@@ -555,7 +617,7 @@ Output JSON only (no markdown):
       }
     }
 
-    // 合规性不足时重试：Pro 最多 2 次，免费最多 1 次（只在 non-compliant 时触发）
+    // 合规性不足时重试：Pro 最多 2 次，免费最多 1 次
     const maxRetries = isPro ? 2 : 1
     const order = { compliant: 0, partial: 1, 'non-compliant': 2 }
     let retryCount = 0
@@ -569,30 +631,33 @@ Output JSON only (no markdown):
         const failedItems: string[] = []
         const av = validation.aafco
         if (!av.protein.ok)    failedItems.push(`protein (${Math.round(av.protein.value)}g/1000kcal, need ≥${av.protein.min}g — use more meat)`)
-        if (!av.fat.ok)        failedItems.push(`fat (${Math.round(av.fat.value)}g/1000kcal, need ≥${av.fat.min}g — add fish oil or fattier cuts)`)
+        if (!av.fat.ok)        failedItems.push(`fat (${Math.round(av.fat.value)}g/1000kcal, need ≥${av.fat.min}g — use fattier protein like rabbit, venison, or duck)`)
         if (!av.phosphorus.ok) failedItems.push(`phosphorus (${Math.round(av.phosphorus.value)}mg/1000kcal, need ≥${av.phosphorus.min}mg — increase total meat/fish amount)`)
-        if (!av.caPRatio.ok)   failedItems.push(`Ca:P ratio (${av.caPRatio.value.toFixed(2)}, need 1.0–2.5 — increase phosphorus-rich ingredients, do NOT add extra calcium)`)
+        if (!av.caPRatio.ok)   failedItems.push(`Ca:P ratio (${av.caPRatio.value.toFixed(2)}, need 1.0–2.5 — do NOT add extra calcium, increase phosphorus-rich meat)`)
         if (!av.omega3.ok)     failedItems.push(`omega-3 (${Math.round(av.omega3.value)}mg/1000kcal, need ≥${av.omega3.min}mg — add fatty fish or fish oil)`)
         if (!av.calcium.ok)    failedItems.push(`calcium (${Math.round(av.calcium.value)}mg/1000kcal, need ${av.calcium.min}–${av.calcium.max}mg)`)
+        if (!av.taurine.ok)    failedItems.push(`taurine (${Math.round(av.taurine.value)}mg/1000kcal, need ≥${av.taurine.min}mg — add taurine supplement)`)
         const complianceHint = failedItems.length > 0
           ? `\n\nCRITICAL CORRECTION NEEDED (attempt ${retryCount}): The previous attempt failed AAFCO compliance. Fix ONLY these issues:\n${failedItems.map(f => `- ${f}`).join('\n')}\nDo not change ingredients that are already correct.`
           : ''
-        const retryPrompt = prompt + complianceHint
         const cRetry = await openai.chat.completions.create({
-          model, messages: [{ role: 'user', content: retryPrompt }],
+          model, messages: [{ role: 'user', content: prompt + complianceHint }],
           max_tokens: maxTokens, temperature,
         })
         const cText  = cRetry.choices[0]?.message?.content || ''
         const cMatch = cText.match(/\{[\s\S]*\}/)
         if (!cMatch) break
         const cResult = JSON.parse(cMatch[0])
-        cResult.ingredients = (cResult.ingredients || []).filter((ing: any) => {
-          if (isPro && forbiddenDbNames.includes(ing.dbName)) return false
-          const food = ing.dbName ? findFood(ing.dbName, true) : null
-          return !(food && ((isCat && food.catSafe === false) || (!isCat && food.dogSafe === false)))
-        })
+        if (isPro) {
+          const { sanitized, removed } = sanitizeIngredients(
+            cResult.ingredients || [], forbiddenDbNames, safeConditions, isCat, portionGuidance, locale_
+          )
+          cResult.ingredients = sanitized
+          if (removed.length > 0)
+            cResult.warnings = [...(cResult.warnings || []), ...removed.map((i: any) => `ingredient_removed:${i.dbName}`)]
+        }
         syncStepsIngredients(cResult)
-        let cIngredients = cResult.ingredients.map((ing: any) => ({
+        let cIngredients = (cResult.ingredients || []).map((ing: any) => ({
           name: ing.name, dbName: ing.dbName, amountG: ing.amountG || 0,
         }))
         if (isPro) cIngredients = await resolveUnknownIngredients(cIngredients)
@@ -608,8 +673,8 @@ Output JSON only (no markdown):
         }
         if (order[cValidation.complianceLabel] <= order[validation.complianceLabel]) {
           ingredientsForValidation = cIngredients
-          validation  = cValidation
-          aiResult    = cResult
+          validation               = cValidation
+          aiResult                 = cResult
         }
         if (validation.complianceLabel === 'compliant') break
       } catch { break }
@@ -698,7 +763,7 @@ Output JSON only (no markdown):
         title:     aiResult.title,
         content:   { ingredients: finalIngredients, steps: aiResult.steps, warnings: aiResult.warnings },
         nutrition: {
-          calories: `~${validation.actualCalories}`,
+          calories: `${Math.round(validation.actualCalories)} kcal`,
           protein:  `${validation.nutrients.protein}g`,
           fat:      `${validation.nutrients.fat}g`,
           carbs:    `${validation.nutrients.carbs}g`,

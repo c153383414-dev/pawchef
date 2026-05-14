@@ -14,20 +14,23 @@ export interface NutrientPer100g {
 }
 
 export interface FoodItem {
-  id:           string
-  dbName:       string    // 固定英文 snake_case，AI 输出 JSON 中的查表 key
-  names:        string[]  // 多语言别名（中英文为主），仅作模糊匹配兜底
-  category:     'protein' | 'organ' | 'veggie' | 'carb' | 'supplement' | 'oil'
-  nutrients:    NutrientPer100g
-  dogSafe:      boolean
-  catSafe:      boolean
-  forbiddenFor: Array<'kidney' | 'pancreatitis' | 'diabetes' | 'obesity' | 'allergy'>
-  cautionFor:   Array<'kidney' | 'pancreatitis' | 'diabetes' | 'obesity'>
-  notes?:             string
+  id:               string
+  dbName:           string    // 固定英文 snake_case，AI 输出 JSON 中的查表 key
+  names:            string[]  // 多语言别名（中英文为主），仅作模糊匹配兜底
+  category:         'protein' | 'organ' | 'veggie' | 'carb' | 'supplement' | 'oil'
+  nutrients:        NutrientPer100g
+  dogSafe:          boolean
+  catSafe:          boolean
+  forbiddenFor:     Array<'kidney' | 'pancreatitis' | 'diabetes' | 'obesity' | 'allergy'>
+  cautionFor:       Array<'kidney' | 'pancreatitis' | 'diabetes' | 'obesity'>
+  notes?:           string
   maxAmountAbsoluteG?: number   // hard cap per meal regardless of pet size
-  maxAmountPerKgG?:   number    // cap scales with body weight (g per kg)
-  puppyMaxAmountG?:   number    // tighter cap for puppies <12 months
+  maxAmountPerKgG?:    number   // cap scales with body weight (g per kg)
+  puppyMaxAmountG?:    number   // tighter cap for puppies <12 months
 }
+
+// 含油量高的鱼类，每份食谱只能使用其中一种
+export const OILY_FISH_DBNAMES = ['sardines_canned', 'mackerel', 'salmon'] as const
 
 export const NUTRITION_DB: FoodItem[] = [
   // ── 蛋白质类 ──
@@ -50,7 +53,7 @@ export const NUTRITION_DB: FoodItem[] = [
     names: ['三文鱼', '鲑鱼', 'salmon'],
     category: 'protein',
     nutrients: { calories: 208, protein: 20, fat: 13, carbs: 0, calcium: 12, phosphorus: 260, omega3: 2260, taurine: 94, vitaminA: 50, vitaminD: 526, zinc: 0.8, iodine: 35 },
-    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['pancreatitis'],
+    dogSafe: true, catSafe: true, forbiddenFor: ['pancreatitis'], cautionFor: [],
     notes: '必须彻底煮熟，生三文鱼含寄生虫风险'
   },
   {
@@ -65,7 +68,7 @@ export const NUTRITION_DB: FoodItem[] = [
     names: ['鸭胸肉', '鸭肉', 'duck breast', 'duck'],
     category: 'protein',
     nutrients: { calories: 201, protein: 19, fat: 13, carbs: 0, calcium: 11, phosphorus: 203, omega3: 100, taurine: 150, vitaminA: 0, vitaminD: 0, zinc: 1.9, iodine: 6 },
-    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['pancreatitis']
+    dogSafe: true, catSafe: true, forbiddenFor: ['pancreatitis'], cautionFor: []
   },
   {
     id: 'cod', dbName: 'cod',
@@ -79,7 +82,7 @@ export const NUTRITION_DB: FoodItem[] = [
     names: ['瘦猪肉', '猪肉', 'lean pork', 'pork'],
     category: 'protein',
     nutrients: { calories: 143, protein: 26, fat: 3.5, carbs: 0, calcium: 19, phosphorus: 246, omega3: 30, taurine: 50, vitaminA: 0, vitaminD: 0, zinc: 2.4, iodine: 7 },
-    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['pancreatitis']
+    dogSafe: true, catSafe: true, forbiddenFor: ['pancreatitis'], cautionFor: []
   },
   {
     id: 'egg_cooked', dbName: 'egg_cooked',
@@ -110,23 +113,23 @@ export const NUTRITION_DB: FoodItem[] = [
     names: ['羊肉', '羊腿肉', 'lamb', 'lamb leg', 'lamb meat'],
     category: 'protein',
     nutrients: { calories: 195, protein: 21, fat: 12, carbs: 0, calcium: 18, phosphorus: 175, omega3: 100, taurine: 40, vitaminA: 0, vitaminD: 0, zinc: 3.4, iodine: 5 },
-    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['pancreatitis']
+    dogSafe: true, catSafe: true, forbiddenFor: ['pancreatitis'], cautionFor: []
   },
   {
     id: 'sardines_canned', dbName: 'sardines_canned',
     names: ['沙丁鱼', '罐头沙丁鱼', 'sardines', 'sardine', 'sardines canned'],
     category: 'protein',
     nutrients: { calories: 208, protein: 25, fat: 11, carbs: 0, calcium: 382, phosphorus: 490, omega3: 1480, taurine: 100, vitaminA: 30, vitaminD: 193, zinc: 1.3, iodine: 40 },
-    dogSafe: true, catSafe: true, forbiddenFor: ['kidney'], cautionFor: ['pancreatitis'],
+    dogSafe: true, catSafe: true, forbiddenFor: ['pancreatitis', 'kidney'], cautionFor: [],
     maxAmountPerKgG: 4,
-    notes: '钙磷极高，肾病禁用；选无盐款'
+    notes: '钙磷极高，肾病禁用；胰腺炎禁用；选无盐款'
   },
   {
     id: 'mackerel', dbName: 'mackerel',
     names: ['鲭鱼', '青花鱼', 'mackerel'],
     category: 'protein',
     nutrients: { calories: 205, protein: 19, fat: 14, carbs: 0, calcium: 12, phosphorus: 217, omega3: 2670, taurine: 80, vitaminA: 50, vitaminD: 360, zinc: 0.8, iodine: 45 },
-    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['pancreatitis'],
+    dogSafe: true, catSafe: true, forbiddenFor: ['pancreatitis'], cautionFor: [],
     maxAmountPerKgG: 5,
   },
   {
@@ -141,7 +144,7 @@ export const NUTRITION_DB: FoodItem[] = [
     names: ['鹌鹑蛋', 'quail egg', 'quail eggs'],
     category: 'protein',
     nutrients: { calories: 158, protein: 13, fat: 11, carbs: 0.4, calcium: 64, phosphorus: 226, omega3: 80, taurine: 0, vitaminA: 156, vitaminD: 80, zinc: 1.5, iodine: 22 },
-    dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: ['pancreatitis'],
+    dogSafe: true, catSafe: true, forbiddenFor: ['pancreatitis'], cautionFor: [],
     notes: '必须全熟'
   },
   // ── Pro 扩展蔬菜类 ──
@@ -277,6 +280,7 @@ export const NUTRITION_DB: FoodItem[] = [
     nutrients: { calories: 68, protein: 2.4, fat: 1.4, carbs: 12, calcium: 9, phosphorus: 77, omega3: 0, taurine: 0, vitaminA: 0, vitaminD: 0, zinc: 0.6, iodine: 1 },
     dogSafe: true, catSafe: false, forbiddenFor: [], cautionFor: ['diabetes'],
     puppyMaxAmountG: 15,
+    notes: '幼崽每餐不超过 15g，蛋白质/脂肪为主'
   },
   {
     id: 'millet_cooked', dbName: 'millet_cooked',
@@ -285,7 +289,7 @@ export const NUTRITION_DB: FoodItem[] = [
     nutrients: { calories: 119, protein: 3.5, fat: 1.0, carbs: 23.7, calcium: 3, phosphorus: 100, omega3: 0, taurine: 0, vitaminA: 0, vitaminD: 0, zinc: 0.9, iodine: 1 },
     dogSafe: true, catSafe: false, forbiddenFor: [], cautionFor: ['diabetes', 'obesity'],
     puppyMaxAmountG: 15,
-    notes: '碳水偏高，幼崽每餐不超过 15g',
+    notes: '碳水偏高，幼崽每餐不超过 15g'
   },
   // ── 补充剂/油脂类 ──
   {
