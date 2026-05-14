@@ -613,14 +613,12 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
       }
     }
 
-    // 合规性重试：仅在 non-compliant（≥2项失败）时重试，partial（1项轻微不达标）直接返回
-    // partial 触发重试会导致 89% 的食谱额外调用一次 AI，费用翻倍但改善有限
+    // 合规性重试：Pro 在 partial/non-compliant 时都重试，free 仅在 non-compliant 时重试
     const maxRetries = 1
-    const order = { compliant: 0, partial: 1, 'non-compliant': 2 }
     let retryCount = 0
     while (
       retryCount < maxRetries &&
-      validation.complianceLabel === 'non-compliant'
+      (isPro ? validation.complianceLabel !== 'compliant' : validation.complianceLabel === 'non-compliant')
     ) {
       retryCount++
       try {
@@ -634,6 +632,8 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
         if (!av.omega3.ok)     failedItems.push(`omega-3 (${Math.round(av.omega3.value)}mg/1000kcal, need ≥${av.omega3.min}mg — add fatty fish or fish oil)`)
         if (!av.calcium.ok)    failedItems.push(`calcium (${Math.round(av.calcium.value)}mg/1000kcal, need ${av.calcium.min}–${av.calcium.max}mg)`)
         if (!av.taurine.ok)    failedItems.push(`taurine (${Math.round(av.taurine.value)}mg/1000kcal, need ≥${av.taurine.min}mg — add taurine supplement)`)
+        if (!validation.caloriesOk && failedItems.length === 0)
+          failedItems.push(`total calories (actual: ${validation.actualCalories}kcal, target: ${validation.targetCalories.min}–${validation.targetCalories.max}kcal — adjust all ingredient amounts proportionally)`)
         const complianceHint = failedItems.length > 0
           ? `\n\nCRITICAL CORRECTION NEEDED (attempt ${retryCount}): The previous attempt failed AAFCO compliance. Fix ONLY these issues:\n${failedItems.map(f => `- ${f}`).join('\n')}\nDo not change ingredients that are already correct.`
           : ''
