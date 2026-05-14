@@ -543,8 +543,21 @@ Output JSON only (no markdown):
     // 合规性不足时重试：Pro 用户 partial/non-compliant 均重试；免费用户只在 non-compliant 时重试
     if (validation.complianceLabel === 'non-compliant' || (isPro && validation.complianceLabel === 'partial')) {
       try {
+        // 把具体失败项注入重试 prompt，让 AI 知道该修什么
+        const failedItems: string[] = []
+        const av = validation.aafco
+        if (!av.protein.ok)    failedItems.push(`protein (${Math.round(av.protein.value)}g/1000kcal, need ≥${av.protein.min}g — use more meat)`)
+        if (!av.fat.ok)        failedItems.push(`fat (${Math.round(av.fat.value)}g/1000kcal, need ≥${av.fat.min}g — add fish oil or fattier cuts)`)
+        if (!av.phosphorus.ok) failedItems.push(`phosphorus (${Math.round(av.phosphorus.value)}mg/1000kcal, need ≥${av.phosphorus.min}mg — increase total meat/fish amount)`)
+        if (!av.caPRatio.ok)   failedItems.push(`Ca:P ratio (${av.caPRatio.value.toFixed(2)}, need 1.0–2.5 — increase phosphorus-rich ingredients, do NOT add extra calcium)`)
+        if (!av.omega3.ok)     failedItems.push(`omega-3 (${Math.round(av.omega3.value)}mg/1000kcal, need ≥${av.omega3.min}mg — add fatty fish or fish oil)`)
+        if (!av.calcium.ok)    failedItems.push(`calcium (${Math.round(av.calcium.value)}mg/1000kcal, need ${av.calcium.min}–${av.calcium.max}mg)`)
+        const complianceHint = failedItems.length > 0
+          ? `\n\nCRITICAL CORRECTION NEEDED: The previous attempt failed AAFCO compliance. Fix ONLY these issues:\n${failedItems.map(f => `- ${f}`).join('\n')}\nDo not change ingredients that are already correct.`
+          : ''
+        const retryPrompt = prompt + complianceHint
         const cRetry = await openai.chat.completions.create({
-          model, messages: [{ role: 'user', content: prompt }],
+          model, messages: [{ role: 'user', content: retryPrompt }],
           max_tokens: maxTokens, temperature,
         })
         const cText  = cRetry.choices[0]?.message?.content || ''

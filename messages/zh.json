@@ -418,7 +418,8 @@
       "non-compliant_dog_adult": "⚠ 未达 AAFCO 成犬营养框架参考",
       "non-compliant_dog_puppy": "⚠ 未达 AAFCO 幼犬营养框架参考",
       "non-compliant_cat_adult": "⚠ 未达 AAFCO 成猫营养框架参考",
-      "non-compliant_cat_kitten": "⚠ 未达 AAFCO 幼猫营养框架参考"
+      "non-compliant_cat_kitten": "⚠ 未达 AAFCO 幼猫营养框架参考",
+      "non-compliant_pro": "⚠ 营养参考值未完全达标 · 建议重新生成"
     }
   },
   "supplement": {

@@ -209,11 +209,14 @@ export function validateRecipe(
   // ── 自动补全缺口 ──
   const supplements: SupplementRecommendation[] = []
 
-  // 补钙
+  // 补钙：目标钙量不超过磷 × 2.4（留 0.1 安全余量，避免 Ca:P 超过 2.5 上限）
   if (!aafco.calcium.ok || !aafco.caPRatio.ok) {
-    const targetCalcium = Math.max(
-      nutrients.phosphorus * 1.2,
-      (standards.calcium.min / 1000) * cal
+    const safeCalciumMax = nutrients.phosphorus > 0
+      ? nutrients.phosphorus * (standards.caPRatio.max - 0.1)
+      : Infinity
+    const targetCalcium = Math.min(
+      Math.max(nutrients.phosphorus * 1.2, (standards.calcium.min / 1000) * cal),
+      safeCalciumMax
     )
     const deficit = Math.max(0, targetCalcium - nutrients.calcium)
     if (deficit > 0) {

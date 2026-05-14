@@ -620,7 +620,9 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   fontSize: 11, fontWeight: 500, padding: '3px 8px', borderRadius: 5,
                   background: complianceStyle.bg, color: complianceStyle.color,
                 }}>
-                  {complianceStyle.prefix} {t(compliance.labelKey)}
+                  {isPro && compliance.label === 'non-compliant'
+                    ? t('compliance.label.non-compliant_pro')
+                    : `${complianceStyle.prefix} ${t(compliance.labelKey)}`}
                 </div>
               )}
             </div>

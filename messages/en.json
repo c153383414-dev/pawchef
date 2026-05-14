@@ -378,7 +378,8 @@
       "non-compliant_dog_adult": "⚠ Below AAFCO nutritional framework reference (Adult Dog)",
       "non-compliant_dog_puppy": "⚠ Below AAFCO nutritional framework reference (Puppy)",
       "non-compliant_cat_adult": "⚠ Below AAFCO nutritional framework reference (Adult Cat)",
-      "non-compliant_cat_kitten": "⚠ Below AAFCO nutritional framework reference (Kitten)"
+      "non-compliant_cat_kitten": "⚠ Below AAFCO nutritional framework reference (Kitten)",
+      "non-compliant_pro": "⚠ Nutritional targets not fully met · Try regenerating"
     }
   },
   "supplement": {
