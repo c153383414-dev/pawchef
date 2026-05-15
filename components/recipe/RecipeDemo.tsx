@@ -362,10 +362,14 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
         // 病症宠物：显示病症专属合规结果，不显示 AAFCO 结论（与病症指导相冲突）
         const cc = data.conditionCompliance
         showToast(t(cc.labelKey), cc.label === 'within_range' ? 'success' : 'warn')
-      } else {
-        const toastType = data.compliance?.label === 'compliant' ? 'success' : 'warn'
-        showToast(t(data.compliance?.labelKey || ('compliance.label.compliant_' + (data.compliance?.standard || 'dog_adult'))), toastType)
+      } else if (data.compliance?.label === 'compliant') {
+        // 完全合规：绿色成功提示
+        showToast(t(data.compliance.labelKey || ('compliance.label.compliant_' + (data.compliance?.standard || 'dog_adult'))), 'success')
+      } else if (data.compliance?.label === 'non-compliant') {
+        // 严重不合规：红色警告提示
+        showToast(t(data.compliance.labelKey), 'warn')
       }
+      // partial（仅1个指标轻微偏差）：不弹 toast，卡片头部的 △ 角标静默提示即可
     } catch {
       showToast('Network error, please retry', 'error')
     } finally {

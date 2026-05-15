@@ -470,6 +470,8 @@ VEGETABLE LIMITS (apply always — DO NOT exceed):
 - Asparagus: HARD MAX 20g — do NOT exceed (high purines stress kidneys; FORBIDDEN for kidney disease)
 - Spinach: MAX 15g adults / MAX 10g puppies (high oxalates block calcium absorption)
 - Green beans / zucchini / celery for CATS: MAX 30g per ingredient (cats need protein-dominant meals)
+- DOGS (adult): total vegetables combined HARD MAX ${Math.round(weightKg * 4)}g — do NOT bulk up meals with excessive vegetables; protein and fat must dominate
+- DOGS (puppy): total vegetables combined MAX ${Math.round(Math.max(weightKg * 8, 10))}g
 
 CARB RULE (CRITICAL — calculate before finalizing):
 - Total carbohydrates from ALL sources combined must contribute LESS than 20% of total recipe calories.
