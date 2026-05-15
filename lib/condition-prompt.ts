@@ -13,8 +13,8 @@ export function buildConditionGuidance(
 - Use low-phosphorus ingredients. Target: phosphorus <1350 mg/1000kcal.
 - Avoid high-phosphorus foods: dairy, fish bones, legumes, organ meats in large amounts.
 - Sardines/anchovies: use sparingly (≤20g) due to high phosphorus from bones.
-- CRITICAL — protein selection for cats: Cats need >65% of calories from protein, so lean proteins (rabbit, chicken breast, turkey, white fish) paradoxically deliver VERY HIGH phosphorus per 1000kcal despite low phosphorus per gram. Choose proteins with moderate fat content to lower phosphorus density: salmon (~1250 mg/1000kcal), egg (~1280 mg/1000kcal), chicken thigh. Avoid rabbit, chicken breast, turkey breast, white fish as primary protein.
-- Do NOT restrict protein excessively — risk of muscle wasting. Vary protein sources across recipes.
+- CRITICAL — protein selection: Cats require >65% of calories from protein. Very lean proteins are paradoxically HIGH in phosphorus per 1000kcal because their low fat means more protein-per-calorie, which brings more phosphorus. AVOID as primary protein: rabbit, venison, cod, white fish, chicken breast, turkey breast — these all exceed 1350 mg phosphorus/1000kcal at cat protein ratios. USE instead (all stay under the limit): duck, lamb, beef, salmon, chicken thigh, pork loin, mackerel (boneless) — rotate widely for variety.
+- Do NOT restrict protein excessively — risk of muscle wasting.
 - Reference: Cline 2016 (ACVN); IRIS CKD Treatment Recommendations 2023`
       }
       return `KIDNEY DISEASE DIETARY REQUIREMENTS (DOG):
@@ -22,7 +22,7 @@ export function buildConditionGuidance(
 - Avoid high-phosphorus foods: dairy, fish bones, legumes, organ meats in large amounts.
 - Sardines/anchovies: use sparingly (≤20g) due to high phosphorus from bones.
 - Omega-3 (EPA+DHA) is beneficial for kidney health — a small amount of fatty fish or fish oil is a useful option but not required every recipe.
-- Vary protein sources across recipes. Include vegetables and moderate carbs to dilute per-1000kcal phosphorus.
+- Include vegetables and moderate carbs — they add calories with minimal phosphorus, lowering the per-1000kcal phosphorus. Vary protein sources across recipes.
 - Reference: Cline 2016 (ACVN); IRIS CKD Treatment Recommendations 2023`
 
     case 'pancreatitis':
@@ -46,7 +46,7 @@ export function buildConditionGuidance(
 - MINIMIZE carbohydrates. Target: <12% of metabolizable energy = <30g carbs/1000kcal.
 - HIGH PROTEIN diet. Target: ≥40% of ME from protein = ≥100g protein/1000kcal.
 - Avoid grains, starchy vegetables, legumes entirely.
-- Protein selection: prefer lean to moderate-fat proteins (rabbit, chicken thigh, venison, quail, turkey thigh). Avoid very high-fat proteins like duck or pork belly — their fat calories dilute protein density per 1000kcal, making it harder to reach ≥100g protein/1000kcal.
+- Protein selection: AVOID only the fattiest proteins — duck and pork belly provide only ~56g protein/1000kcal, far below the ≥100g target. All other proteins work well: rabbit, chicken (breast or thigh), turkey, venison, quail, beef, cod, white fish — rotate widely for variety.
 - Rotate protein sources across recipes for variety. No plant protein sources.
 - Reference: AAHA Diabetes Management Guidelines 2018/2022`
       }

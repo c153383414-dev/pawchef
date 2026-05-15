@@ -134,28 +134,46 @@ const CATEGORY_FALLBACKS = {
   oil:     [0.0, 100.0, 0.0,  0, 902],
 }
 
-/** per 100g → 计算整份食谱 per 1000 kcal 的营养数值 */
+/**
+ * per 100g → 计算整份食谱 per 1000 kcal 的营养数值
+ *
+ * 关键设计决策：
+ * - 补充剂/油脂中的 calcium_carbonate 不计入宏量（它是矿物质补充，无热量/蛋白质）
+ * - 鱼油等油脂计入脂肪热量，影响 per-1000kcal 分母
+ * - 遇到 INLINE_DB 中不存在的食材：记录为 unknown，不做数值估算
+ *   → 含 unknown 食材的食谱数值校验结果标为 inconclusive（不可信），不计入通过/失败统计
+ *   → 这避免了用类别平均值掩盖真实问题
+ */
 function estimateNutrients(ingredients) {
   let totalKcal = 0, totalProtein = 0, totalFat = 0, totalCarbs = 0, totalPhos = 0
-  const unknowns = []
+  const unknowns    = []  // 完全未知（无法查到）
+  const partialHits = []  // 部分匹配（可能不准确）
 
   for (const ing of ingredients) {
     const amtG     = ing.amountG ?? 0
     const dbName   = (ing.dbName ?? '').toLowerCase().replace(/-/g, '_')
     const category = (ing.category ?? '').toLowerCase()
 
-    // 补充剂不计入宏量（只计热量用于校准）
     if (['supplement', 'oil'].includes(category) && dbName.includes('calcium')) continue
 
     let row = INLINE_DB[dbName]
+    let matchType = 'exact'
+
     if (!row) {
-      // 尝试部分匹配
-      const key = Object.keys(INLINE_DB).find(k => dbName.includes(k) || k.includes(dbName.split('_')[0]))
-      if (key) row = INLINE_DB[key]
+      // 尝试部分匹配（宽松）
+      const key = Object.keys(INLINE_DB).find(
+        k => dbName.includes(k) || k.includes(dbName.split('_')[0])
+      )
+      if (key) { row = INLINE_DB[key]; matchType = 'partial'; partialHits.push(`${dbName}→${key}`) }
     }
+
     if (!row) {
-      row = CATEGORY_FALLBACKS[category] || CATEGORY_FALLBACKS['protein']
+      // 完全未知：记录但不估算，保持计数为 0（影响分母但不累加错误营养值）
       unknowns.push(dbName)
+      // 仍然加入热量占位（用类别平均热量），避免分母为0，但不加营养素
+      const fallbackKcal = (CATEGORY_FALLBACKS[category] || CATEGORY_FALLBACKS['protein'])[4]
+      totalKcal += fallbackKcal * (amtG / 100)
+      continue
     }
 
     const [protG, fatG, carbG, phosM, kcal] = row
@@ -167,18 +185,25 @@ function estimateNutrients(ingredients) {
     totalPhos    += phosM * factor
   }
 
-  if (totalKcal < 1) return { ok: false, msg: '热量为0，无法计算', unknowns }
+  if (totalKcal < 1) return { ok: false, reliable: false, msg: '热量为0，无法计算', unknowns, partialHits }
 
   const per1000 = v => (v / totalKcal) * 1000
 
+  // reliable = true 仅当所有主食材均在 INLINE_DB 中精确匹配
+  // 部分匹配（partialHits）可接受但会在报告中标注
+  // 完全未知（unknowns）→ reliable = false → 数值校验结果 = inconclusive
+  const reliable = unknowns.length === 0
+
   return {
     ok: true,
-    totalKcal: Math.round(totalKcal),
+    reliable,
+    totalKcal:  Math.round(totalKcal),
     protein:    Math.round(per1000(totalProtein)),
     fat:        Math.round(per1000(totalFat) * 10) / 10,
     carbs:      Math.round(per1000(totalCarbs)),
     phosphorus: Math.round(per1000(totalPhos)),
     unknowns,
+    partialHits,
   }
 }
 
@@ -226,7 +251,11 @@ function validateCondition(nutrients, species, condition) {
   if (targets.protein?.min !== undefined && nutrients.protein < targets.protein.min)
     failures.push(`蛋白 ${nutrients.protein} g < 下限 ${targets.protein.min} g`)
 
-  return { pass: failures.length === 0, failures }
+  return {
+    pass:          failures.length === 0,
+    inconclusive:  false,   // 由调用方根据 nutrients.reliable 覆盖
+    failures,
+  }
 }
 
 // ── 定性检查（ingredient-level red flag）────────────────────────────────────
@@ -433,8 +462,8 @@ function buildConditionGuidance(condition, species) {
 - Use low-phosphorus ingredients. Target: phosphorus <1350 mg/1000kcal.
 - Avoid high-phosphorus foods: dairy, fish bones, legumes, organ meats in large amounts.
 - Sardines/anchovies: use sparingly (≤20g) due to high phosphorus from bones.
-- CRITICAL — protein selection for cats: Cats need >65% of calories from protein, so lean proteins (rabbit, chicken breast, turkey, white fish) paradoxically deliver VERY HIGH phosphorus per 1000kcal despite low phosphorus per gram. Choose proteins with moderate fat content to lower phosphorus density: salmon (~1250 mg/1000kcal), egg (~1280 mg/1000kcal), chicken thigh. Avoid rabbit, chicken breast, turkey breast, white fish as primary protein.
-- Do NOT restrict protein excessively — risk of muscle wasting. Vary protein sources across recipes.
+- CRITICAL — protein selection: Cats require >65% of calories from protein. Very lean proteins are paradoxically HIGH in phosphorus per 1000kcal because their low fat means more protein-per-calorie, which brings more phosphorus. AVOID as primary protein: rabbit, venison, cod, white fish, chicken breast, turkey breast — these all exceed 1350 mg phosphorus/1000kcal at cat protein ratios. USE instead (all stay under the limit): duck, lamb, beef, salmon, chicken thigh, pork loin, mackerel (boneless) — rotate widely for variety.
+- Do NOT restrict protein excessively — risk of muscle wasting.
 - Reference: Cline 2016 (ACVN); IRIS CKD Treatment Recommendations 2023`
       }
       return `KIDNEY DISEASE DIETARY REQUIREMENTS (DOG):
@@ -442,7 +471,7 @@ function buildConditionGuidance(condition, species) {
 - Avoid high-phosphorus foods: dairy, fish bones, legumes, organ meats in large amounts.
 - Sardines/anchovies: use sparingly (≤20g) due to high phosphorus from bones.
 - Omega-3 (EPA+DHA) is beneficial for kidney health — a small amount of fatty fish or fish oil is a useful option but not required every recipe.
-- Vary protein sources across recipes. Include vegetables and moderate carbs to dilute per-1000kcal phosphorus.
+- Include vegetables and moderate carbs — they add calories with minimal phosphorus, lowering the per-1000kcal phosphorus. Vary protein sources across recipes.
 - Reference: Cline 2016 (ACVN); IRIS CKD Treatment Recommendations 2023`
 
     case 'pancreatitis':
@@ -466,7 +495,7 @@ function buildConditionGuidance(condition, species) {
 - MINIMIZE carbohydrates. Target: <12% of metabolizable energy = <30g carbs/1000kcal.
 - HIGH PROTEIN diet. Target: ≥40% of ME from protein = ≥100g protein/1000kcal.
 - Avoid grains, starchy vegetables, legumes entirely.
-- Protein selection: prefer lean to moderate-fat proteins (rabbit, chicken thigh, venison, quail, turkey thigh). Avoid very high-fat proteins like duck or pork belly — their fat calories dilute protein density per 1000kcal, making it harder to reach ≥100g protein/1000kcal.
+- Protein selection: AVOID only the fattiest proteins — duck and pork belly provide only ~56g protein/1000kcal, far below the ≥100g target. All other proteins work well: rabbit, chicken (breast or thigh), turkey, venison, quail, beef, cod, white fish — rotate widely for variety.
 - Rotate protein sources across recipes for variety. No plant protein sources.
 - Reference: AAHA Diabetes Management Guidelines 2018/2022`
       }
@@ -669,11 +698,16 @@ async function main() {
     }
   }
 
-  // 汇总统计（新增 reasonable 列）
+  // 汇总统计
   const comboStats = {}
   for (const c of COMBOS) {
     comboStats[`${c.condition}-${c.species}`] = {
-      label: c.label, pass: 0, fail: 0, redFlags: 0, reasonable: 0, total: 0
+      label: c.label,
+      pass: 0, fail: 0,        // 数值可信，结果明确
+      inconclusive: 0,          // 含未知食材，数值不可信，不计入通过率
+      redFlags: 0,              // 定性红旗（不受 inconclusive 影响）
+      unreasonable: 0,          // 合理性 criticals
+      total: 0,
     }
   }
 
@@ -689,18 +723,26 @@ async function main() {
     let result, nutrients, condResult, redFlagHits, reasonCheck, err = null
 
     try {
-      result        = await callAI(prompt)
-      nutrients     = estimateNutrients(result.ingredients ?? [])
-      condResult    = nutrients.ok
-        ? validateCondition(nutrients, species, condition)
-        : { pass: null, failures: ['营养估算失败'] }
-      redFlagHits   = qualityCheck(result.ingredients ?? [], species, condition)
-      reasonCheck   = reasonablenessCheck(result, nutrients, species, weightKg, ageMonths, condition)
+      result      = await callAI(prompt)
+      nutrients   = estimateNutrients(result.ingredients ?? [])
+
+      // 数值校验：仅当 nutrients.reliable === true 时结果可信
+      // reliable = false（含未知食材）→ inconclusive，不做通过/失败判断
+      if (nutrients.ok && nutrients.reliable) {
+        condResult = validateCondition(nutrients, species, condition)
+      } else if (nutrients.ok && !nutrients.reliable) {
+        condResult = { pass: null, inconclusive: true, failures: [], reason: '含未知食材，数值不可信' }
+      } else {
+        condResult = { pass: null, inconclusive: true, failures: [], reason: '营养估算失败' }
+      }
+
+      redFlagHits = qualityCheck(result.ingredients ?? [], species, condition)
+      reasonCheck = reasonablenessCheck(result, nutrients, species, weightKg, ageMonths, condition)
     } catch (e) {
       err = e.message
-      result = {}
-      nutrients = { ok: false, msg: e.message, unknowns: [] }
-      condResult = { pass: null, failures: [] }
+      result      = {}
+      nutrients   = { ok: false, reliable: false, unknowns: [], partialHits: [] }
+      condResult  = { pass: null, inconclusive: true, failures: [], reason: e.message }
       redFlagHits = []
       reasonCheck = { criticals: [], warnings: [] }
     }
@@ -708,25 +750,33 @@ async function main() {
     done++
     const elapsed = ((Date.now() - t0) / 1000).toFixed(0)
 
-    // 判断整体通过（合理性 criticals 也纳入）
     const hasNumericTarget = Object.keys(CONDITION_STANDARDS[condition][species]).length > 0
-    const numericPass  = !hasNumericTarget || condResult.pass === true
-    const qualityPass  = redFlagHits.length === 0
-    const isReasonable = (reasonCheck?.criticals ?? []).length === 0
-    const overallPass  = !err && numericPass && qualityPass && isReasonable
+    const isInconclusive   = hasNumericTarget && (condResult.inconclusive === true)
+    const numericPass      = !hasNumericTarget || condResult.pass === true
+    const qualityPass      = redFlagHits.length === 0
+    const isReasonable     = (reasonCheck?.criticals ?? []).length === 0
+
+    // overallPass：仅数值可信 + 通过 + 无红旗 + 合理
+    // inconclusive：数值不可信 → 不计入 pass/fail
+    const overallPass = !err && !isInconclusive && numericPass && qualityPass && isReasonable
 
     // 更新统计
     comboStats[key].total++
-    if (!isReasonable) comboStats[key].reasonable++
-    if (!err) {
+    if (!qualityPass)    comboStats[key].redFlags++
+    if (!isReasonable)   comboStats[key].unreasonable++
+    if (err || isInconclusive) {
+      comboStats[key].inconclusive++
+    } else {
       overallPass ? comboStats[key].pass++ : comboStats[key].fail++
-      if (!qualityPass) comboStats[key].redFlags++
     }
 
     // 控制台输出
-    const statusIcon = err ? '💥' : overallPass ? '✅' : '⚠️'
+    const statusIcon = err          ? '💥'
+                     : isInconclusive ? '❓'
+                     : overallPass  ? '✅' : '⚠️'
     const numLabel = nutrients.ok
       ? `磷${nutrients.phosphorus}mg 脂${nutrients.fat}g 碳水${nutrients.carbs}g 蛋白${nutrients.protein}g`
+        + (!nutrients.reliable ? ' [?]' : '')
       : '—估算失败—'
     const petInfo = `${weightKg}kg/${Math.round(ageMonths/12)}y`
     console.log(
@@ -736,67 +786,98 @@ async function main() {
       `  ${numLabel}` +
       (redFlagHits.length              ? `  ← 红旗:${redFlagHits.length}` : '') +
       (condResult.failures?.length     ? `  ← 条件:${condResult.failures.join('; ')}` : '') +
+      (isInconclusive && !err          ? `  ← ❓未知食材` : '') +
       (reasonCheck?.criticals?.length  ? `  ← 合理性:${reasonCheck.criticals.length}项` : '')
     )
     if (nutrients.unknowns?.length) {
-      console.log(`       ↳ 未知食材(类别估算): ${nutrients.unknowns.join(', ')}`)
+      console.log(`       ↳ 未知食材(数值校验跳过): ${nutrients.unknowns.join(', ')}`)
+    }
+    if (nutrients.partialHits?.length) {
+      console.log(`       ↳ 部分匹配(可接受): ${nutrients.partialHits.join(', ')}`)
     }
     if (reasonCheck?.warnings?.length) {
       console.log(`       ↳ 合理性警告: ${reasonCheck.warnings.join(' | ')}`)
     }
 
-    return { task, result, nutrients, condResult, redFlagHits, reasonCheck, err, overallPass }
+    return { task, result, nutrients, condResult, redFlagHits, reasonCheck, err, overallPass, isInconclusive }
   })
 
   const allResults = await runPool(taskFns, CONCURRENCY)
 
   // ── 汇总报告 ──────────────────────────────────────────────────────────────
   console.log()
-  console.log('═'.repeat(72))
+  console.log('═'.repeat(78))
   console.log(' 汇总报告')
-  console.log('═'.repeat(72))
-  console.log(`  健康状况          通过  失败  红旗  合理性↓  通过率  （N=${RECIPES_PER_COMBO}）`)
-  console.log('  ' + '─'.repeat(66))
+  console.log('═'.repeat(78))
+  console.log(`  说明: 通过率 = 通过/(通过+失败)，❓不可信条目不计入分母`)
+  console.log(`  ❓ = 食谱含未知食材，数值校验跳过（生产环境由 USDA API 补全）`)
+  console.log()
+  console.log(`  健康状况        通过  失败   ❓不可信  红旗  合理性↓  通过率  （N=${RECIPES_PER_COMBO}）`)
+  console.log('  ' + '─'.repeat(72))
 
-  let totalPass = 0, totalFail = 0, totalRedFlag = 0, totalUnreasonable = 0
+  let totalPass = 0, totalFail = 0, totalInconclusive = 0, totalRedFlag = 0, totalUnreasonable = 0
 
   for (const combo of COMBOS) {
-    const key   = `${combo.condition}-${combo.species}`
-    const s     = comboStats[key]
-    const rate  = s.total ? `${Math.round(s.pass / s.total * 100)}%` : '—'
-    const icon  = s.fail === 0 && s.redFlags === 0 && s.reasonable === 0 ? '✅'
-                : s.pass > 0 ? '⚠️' : '❌'
+    const key = `${combo.condition}-${combo.species}`
+    const s   = comboStats[key]
+    const denominator = s.pass + s.fail
+    const rate = denominator > 0 ? `${Math.round(s.pass / denominator * 100)}%` : '—'
+    const icon = s.fail === 0 && s.redFlags === 0 && s.unreasonable === 0 ? '✅'
+               : s.pass > 0 || s.inconclusive > 0 ? '⚠️' : '❌'
     console.log(
-      `  ${icon} ${s.label.padEnd(12)}  ${String(s.pass).padStart(3)}   ${String(s.fail).padStart(3)}   ` +
-      `${String(s.redFlags).padStart(3)}     ${String(s.reasonable).padStart(3)}    ${rate.padStart(4)}`
+      `  ${icon} ${s.label.padEnd(10)}  ` +
+      `${String(s.pass).padStart(3)}   ${String(s.fail).padStart(3)}   ` +
+      `${String(s.inconclusive).padStart(6)}    ` +
+      `${String(s.redFlags).padStart(3)}     ${String(s.unreasonable).padStart(3)}    ${rate.padStart(4)}`
     )
     totalPass          += s.pass
     totalFail          += s.fail
+    totalInconclusive  += s.inconclusive
     totalRedFlag       += s.redFlags
-    totalUnreasonable  += s.reasonable
+    totalUnreasonable  += s.unreasonable
   }
 
-  console.log('  ' + '─'.repeat(66))
+  console.log('  ' + '─'.repeat(72))
   const totalN = totalPass + totalFail
   console.log(
-    `  合计              ${String(totalPass).padStart(3)}   ${String(totalFail).padStart(3)}   ` +
+    `  合计            ` +
+    `${String(totalPass).padStart(3)}   ${String(totalFail).padStart(3)}   ` +
+    `${String(totalInconclusive).padStart(6)}    ` +
     `${String(totalRedFlag).padStart(3)}     ${String(totalUnreasonable).padStart(3)}    ` +
     `${totalN ? Math.round(totalPass / totalN * 100) + '%' : '—'}`
   )
   console.log()
 
-  // 失败详情
-  const failures = allResults.filter(r => r && !r.overallPass && !r.err)
+  // 失败详情（仅明确失败，不含 inconclusive）
+  const failures = allResults.filter(r => r && !r.overallPass && !r.isInconclusive && !r.err)
   if (failures.length > 0) {
-    console.log(' 失败详情:')
+    console.log(` 失败详情（${failures.length} 条）:`)
     for (const r of failures) {
       const { task, result, condResult, redFlagHits, reasonCheck } = r
       const petInfo = `${task.params.weightKg}kg/${Math.round(task.params.ageMonths/12)}y`
       console.log(`   ${task.label} #${task.recipeIdx} [${petInfo}]: ${result.title ?? '—'}`)
-      for (const f of condResult.failures ?? [])           console.log(`     • 病症数值: ${f}`)
-      for (const f of redFlagHits)                         console.log(`     • ${f}`)
-      for (const f of reasonCheck?.criticals ?? [])        console.log(`     • ${f}`)
+      for (const f of condResult.failures ?? [])    console.log(`     • 病症数值: ${f}`)
+      for (const f of redFlagHits)                  console.log(`     • ${f}`)
+      for (const f of reasonCheck?.criticals ?? []) console.log(`     • ${f}`)
     }
+    console.log()
+  }
+
+  // 不可信详情摘要（统计出现频次最高的未知食材）
+  const inconclusiveResults = allResults.filter(r => r?.isInconclusive && !r.err)
+  if (inconclusiveResults.length > 0) {
+    console.log(` ❓ 不可信条目（${inconclusiveResults.length} 条）— 未知食材频次:`)
+    const unknownCounts = {}
+    for (const r of inconclusiveResults) {
+      for (const u of r.nutrients?.unknowns ?? []) {
+        unknownCounts[u] = (unknownCounts[u] ?? 0) + 1
+      }
+    }
+    const sorted = Object.entries(unknownCounts).sort((a, b) => b[1] - a[1]).slice(0, 15)
+    for (const [name, count] of sorted) {
+      console.log(`   ${String(count).padStart(3)}× ${name}`)
+    }
+    console.log(`  → 建议将高频食材补入 INLINE_DB 后重测`)
     console.log()
   }
 
@@ -833,14 +914,15 @@ async function main() {
       redFlags: r.redFlagHits,
       reasonableness: r.reasonCheck,
       pass: r.overallPass,
+      isInconclusive: r.isInconclusive,
       error: r.err,
     })
   )
   fs.writeFileSync(outF, lines.join('\n') + '\n')
   console.log(`  📄 详细结果已保存: ${outF}`)
   console.log()
-  console.log('  注：营养值为内联简化数据库估算，未知食材用类别平均值代替。')
-  console.log('      真实路由会通过 USDA API 查询精确数值并进行 AAFCO 全量校验。')
+  console.log('  注：营养值为内联简化数据库估算。含未知食材的配方标记为 ❓ 不可信，')
+  console.log('      不计入通过率分母。真实路由会通过 USDA API 查询精确数值并进行 AAFCO 全量校验。')
 }
 
 main().catch(e => { console.error('Fatal:', e); process.exit(1) })
