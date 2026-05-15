@@ -4,6 +4,8 @@ import { validateRecipe, validateIngredients, calculateDER, calculatePortionGuid
 import { validateConditionRecipe, CONDITION_KEYS, ConditionKey } from '@/lib/condition-standards'
 import { findFood, getForbiddenFoods, getAllowedFoodsByCategory, OILY_FISH_DBNAMES } from '@/lib/nutrition-db'
 import { resolveUnknownIngredients } from '@/lib/usda-api'
+import { fixPartialCompliance } from '@/lib/compliance-fixer'
+import { buildConditionGuidance } from '@/lib/condition-prompt'
 import { DeductSource } from '@/types'
 import OpenAI from 'openai'
 
@@ -405,12 +407,17 @@ ${safeConditions.map((c: string) => ({
 } as Record<string, string>)[c] || '').filter(Boolean).join('\n')}`
       : 'No restrictions — healthy pet, all safe ingredients allowed.'
 
+    const conditionGuidance = safeConditions.length > 0
+      ? buildConditionGuidance(safeConditions[0], isCat ? 'cat' : 'dog')
+      : ''
+
     const proPrompt = `You are an expert pet nutritionist creating a personalized home-cooked meal recipe.
 Respond in ${language}.
 
 Pet: ${isCat ? 'Cat' : 'Dog'}${petName ? ` (${petName})` : ''}, ${weightKg}kg, ${ageMonths} months ${isPuppy ? `(${isCat ? 'KITTEN' : 'PUPPY'})` : '(adult)'}
 ${portionText}
 ${proHealthNote}
+${conditionGuidance ? conditionGuidance + '\n' : ''}
 
 ${recentProteinNote ? recentProteinNote + '\n' : ''}${proFeaturedNote ? proFeaturedNote + '\n' : !recentProteinNote ? 'Choose a creative, varied protein source for today.\n' : ''}${recentVeggieNote ? recentVeggieNote + '\n' : ''}${recentCarbNote ? recentCarbNote + '\n' : ''}${recentOrganNote ? recentOrganNote + '\n' : ''}
 INGREDIENT FREEDOM — Be creative. You may use ANY safe, nutritious pet food ingredients. Consider:
@@ -710,6 +717,15 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
         }
         if (validation.complianceLabel === 'compliant') break
       } catch { break }
+    }
+
+    // 健康宠物数学补全：对 partial 结果做最小化指标修正
+    if (!activeCondition && validation.complianceLabel === 'partial') {
+      const fixed = fixPartialCompliance(ingredientsForValidation, validation, petParams)
+      if (fixed) {
+        ingredientsForValidation = fixed.ingredients
+        validation               = fixed.validation
+      }
     }
 
     // 免费用户：未知食材超30% → 退还
