@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import { Profile, Ingredient, RecipeContent, NutritionInfo, RecipeCompliance, SubstituteItem } from '@/types'
 import { useGuestToken } from '@/hooks/useGuestToken'
 import SignupPrompt from '@/components/ui/SignupPrompt'
@@ -65,7 +64,6 @@ const INGREDIENT_NOTES: Record<string, string> = {
 const PREFS_KEY = 'pawchef_form_prefs'
 
 export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
-  const router = useRouter()
   const [species,  setSpecies]  = useState<'dog' | 'cat'>('dog')
   const [petName,  setPetName]  = useState('')
   const [weight,   setWeight]   = useState('8')
@@ -327,8 +325,8 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
 
       if (data.freeRemaining !== undefined) setFreeRemaining(data.freeRemaining)
       if (data.proMonthlyUsed) {
+        // router.refresh() 会导致组件 remount，使 proMonthlyDelta 归零，故移除
         setProMonthlyDelta(d => d + 1)
-        router.refresh()
       }
       if (!user) setGuestUsed(true)
 
@@ -360,6 +358,10 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
       if (removed.length > 0) {
         const names = removed.map((w: string) => w.replace('ingredient_removed:', '')).join(', ')
         showToast(t('recipe.warning.ingredient_removed', { name: names }), 'warn')
+      } else if (data.conditionCompliance) {
+        // 病症宠物：显示病症专属合规结果，不显示 AAFCO 结论（与病症指导相冲突）
+        const cc = data.conditionCompliance
+        showToast(t(cc.labelKey), cc.label === 'within_range' ? 'success' : 'warn')
       } else {
         const toastType = data.compliance?.label === 'compliant' ? 'success' : 'warn'
         showToast(t(data.compliance?.labelKey || ('compliance.label.compliant_' + (data.compliance?.standard || 'dog_adult'))), toastType)

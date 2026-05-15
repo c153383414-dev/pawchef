@@ -27,6 +27,7 @@ export function fixPartialCompliance(
     !aafco.fat.ok        ? 'fat'        :
     !aafco.omega3.ok     ? 'omega3'     :
     !aafco.phosphorus.ok ? 'phosphorus' :
+    !aafco.taurine.ok    ? 'taurine'    :
     null  // calcium / caPRatio handled by auto-supplement; skip
 
   if (!failing) return null
@@ -91,6 +92,22 @@ export function fixPartialCompliance(
         const newAmount   = Math.min(i.amountG * scaleFactor, fishOilCap)
         return capToMaxPerKg({ ...i, amountG: newAmount }, petParams.weightKg)
       })
+      break
+    }
+
+    case 'taurine': {
+      // Scale up existing taurine supplement if present; otherwise do nothing
+      const taurineCap = Math.min(petParams.weightKg * 0.05, 0.5)
+      const hasTaurine = adjusted.some(i => i.dbName?.includes('taurine'))
+      if (hasTaurine) {
+        adjusted = adjusted.map(i => {
+          if (!i.dbName?.includes('taurine')) return i
+          const needed      = aafco.taurine.min
+          const current     = aafco.taurine.value || 1
+          const scaleFactor = Math.min(needed / current, 2.0)
+          return { ...i, amountG: Math.min(i.amountG * scaleFactor, taurineCap) }
+        })
+      }
       break
     }
   }

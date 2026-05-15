@@ -229,6 +229,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // 购买积分用户享受 Pro 级模型 + proPrompt（不开放健康条件等其他 Pro 功能）
+    const usesPaidCredits = deductSource === 'paid_points'
+    const usePremium      = isPro || usesPaidCredits
+
     // ── 宠物参数 ──────────────────────────────────────────────────────────────
     const ageMonths   = parseAgeToMonths(age || '3yr')
     const weightKg    = parseFloat(weight) || 5
@@ -516,10 +520,10 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
   "warnings": ["health-specific warnings if any"]
 }`
 
-    const model       = isPro ? MODEL_PREMIUM : MODEL_FREE
-    const prompt      = isPro ? proPrompt     : freePrompt
-    const maxTokens   = isPro ? 3500          : 1200
-    const temperature = isPro ? 0.9           : 0.7   // Pro: higher temp for more diversity
+    const model       = usePremium ? MODEL_PREMIUM : MODEL_FREE
+    const prompt      = usePremium ? proPrompt     : freePrompt
+    const maxTokens   = usePremium ? 3500          : 1200
+    const temperature = usePremium ? 0.9           : 0.7   // Pro/paid-credits: higher temp for more diversity
 
     // ── AI 调用 ──────────────────────────────────────────────────────────────
     const FISH_OIL_KEYWORDS = ['fish oil', '鱼油', '魚油', '어유', 'huile de poisson', 'aceite de pescado']
@@ -538,7 +542,7 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
           category: 'oil', emoji: '💧',
         })
       }
-      if (!result.ingredients.some((i: any) => i.dbName === 'taurine_supplement') &&
+      if (!result.ingredients.some((i: any) => i.dbName && i.dbName.includes('taurine')) &&
           isCat_ && TAURINE_KEYWORDS.some(kw => stepsText.includes(kw))) {
         result.ingredients.push({
           name: SUPPLEMENT_NAMES['taurine_supplement']?.[locale_] || 'Taurine',
@@ -574,8 +578,8 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
       )
     }
 
-    // ── Pro 专属：食材安全净化（静默处理，不退款不报错）────────────────────────
-    if (isPro) {
+    // ── Pro / 付费积分：食材安全净化（静默处理，不退款不报错）──────────────────
+    if (usePremium) {
       const { sanitized, removed } = sanitizeIngredients(
         aiResult.ingredients, forbiddenDbNames, safeConditions, isCat, portionGuidance, locale_
       )
@@ -593,8 +597,8 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
       name: ing.name, dbName: ing.dbName, amountG: ing.amountG || 0,
     }))
 
-    // Pro 用户对未知食材查 USDA
-    if (isPro) {
+    // Pro / 付费积分用户对未知食材查 USDA（proPrompt 使用开放食材，需要解析营养数据）
+    if (usePremium) {
       ingredientsForValidation = await resolveUnknownIngredients(ingredientsForValidation)
     }
 
@@ -616,8 +620,8 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
         ingredientsForValidation = scaledIngredients
         validation = revalidation
 
-      } else if (isPro) {
-        // 偏差 > 50%，Pro 用户：重新生成一次（最多1次）
+      } else if (usePremium) {
+        // 偏差 > 50%，Pro / 付费积分：重新生成一次（最多1次）
         console.error('[AI-CALL#2-calorie-retry] calorieDiff:', calorieDiff.toFixed(2), 'actual:', validation.actualCalories, 'target:', targetMid)
         try {
           const retryCompletion = await openai.chat.completions.create({
@@ -677,12 +681,12 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
       CONDITION_KEYS.includes(c as ConditionKey)
     ) as ConditionKey | undefined
 
-    // 合规性重试：健康 Pro 最多 2 次，健康 free 最多 1 次，病症宠物不重试
-    const maxRetries = activeCondition ? 0 : (isPro ? 2 : 1)
+    // 合规性重试：健康 Pro/付费积分 最多 2 次，健康 free 最多 1 次，病症宠物不重试
+    const maxRetries = activeCondition ? 0 : (usePremium ? 2 : 1)
     let retryCount = 0
     while (
       retryCount < maxRetries &&
-      (isPro ? validation.complianceLabel !== 'compliant' : validation.complianceLabel === 'non-compliant')
+      (usePremium ? validation.complianceLabel !== 'compliant' : validation.complianceLabel === 'non-compliant')
     ) {
       retryCount++
       try {
@@ -714,7 +718,7 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
         const cText  = cRetry.choices[0]?.message?.content || ''
         let cResult: any
         try { cResult = parseAIJson(cText) } catch { break }
-        if (isPro) {
+        if (usePremium) {
           const { sanitized, removed } = sanitizeIngredients(
             cResult.ingredients || [], forbiddenDbNames, safeConditions, isCat, portionGuidance, locale_
           )
@@ -726,7 +730,7 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
         let cIngredients = (cResult.ingredients || []).map((ing: any) => ({
           name: ing.name, dbName: ing.dbName, amountG: ing.amountG || 0,
         }))
-        if (isPro) cIngredients = await resolveUnknownIngredients(cIngredients)
+        if (usePremium) cIngredients = await resolveUnknownIngredients(cIngredients)
         const { ingredients: cCappedIngredients } = validateIngredients(cIngredients, petParams)
         cIngredients = cCappedIngredients
         let cValidation = validateRecipe(cIngredients, petParams)
@@ -756,8 +760,8 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
       }
     }
 
-    // 免费用户：未知食材超30% → 退还
-    if (!isPro && validation.unknownIngredients.length > 0 &&
+    // 免费用户（非 Pro 且非购买积分）：未知食材超30% → 退还
+    if (!usePremium && validation.unknownIngredients.length > 0 &&
         validation.unknownIngredients.length / (aiResult.ingredients?.length || 1) > 0.3) {
       await refundCredits(supabase, user?.id, deductSource, creditSource)
       return NextResponse.json({ error: 'INGREDIENT_MISMATCH' }, { status: 500 })
@@ -809,14 +813,27 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
         (vn.includes('calcium')   && aiDbName.includes('calcium')) ||
         (vn.includes('fish_oil')  && (aiDbName.includes('fish_oil') || aiDbName.includes('omega')))
       )
+    // 补充剂类型分组，防止 AI 重复输出同类型补充剂（如两个牛磺酸）
+    const getSupplementType = (dbName: string): string => {
+      if (dbName.includes('taurine'))  return 'taurine'
+      if (dbName.includes('calcium'))  return 'calcium'
+      if (dbName.includes('fish_oil') || dbName.includes('omega')) return 'fish_oil'
+      return dbName
+    }
+    const seenSupplementTypes = new Set<string>()
     const aiRetainedSupplements = (aiResult.ingredients || [])
-      .filter((ing: any) =>
-        ['supplement', 'oil'].includes(ing.category) &&
-        ing.dbName &&
-        !validationSupplementDbNames.has(ing.dbName) &&
-        !scaledMainDbNames.has(ing.dbName) &&
-        !supplementCoversNutrient(ing.dbName)
-      )
+      .filter((ing: any) => {
+        if (!['supplement', 'oil'].includes(ing.category)) return false
+        if (!ing.dbName) return false
+        if (validationSupplementDbNames.has(ing.dbName)) return false
+        if (scaledMainDbNames.has(ing.dbName)) return false
+        if (supplementCoversNutrient(ing.dbName)) return false
+        // 同类型补充剂只保留第一个
+        const sType = getSupplementType(ing.dbName)
+        if (seenSupplementTypes.has(sType)) return false
+        seenSupplementTypes.add(sType)
+        return true
+      })
       .map((ing: any) => ({
         ...ing,
         amount: `${ing.amountG}g`,
@@ -901,7 +918,7 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
       },
       conditionCompliance,
       unknownIngredients: validation.unknownIngredients,
-      generatedBy:        isPro ? 'gemini-3.1-pro' : 'claude-haiku',
+      generatedBy:        usePremium ? 'gemini-3.1-pro' : 'claude-haiku',
       freeRemaining,
       proMonthlyUsed:     deductSource === 'pro_monthly',
     })
