@@ -84,11 +84,9 @@ const INLINE_DB = {
   lamb:             [25.0, 21.0, 0.0, 188, 294],
   pork_belly:       [14.0, 35.0, 0.0, 146, 518],
   mackerel:         [18.6, 13.9, 0.0, 217, 205],
-  sole_fish:        [17.8,  1.2, 0.0, 230,  82],  // 龙利鱼，极瘦白肉鱼，高磷/1000kcal
-  sole_fish_fillet: [17.8,  1.2, 0.0, 230,  82],  // 同上
-  shrimp:           [24.0,  0.9, 0.9, 220, 105],  // 虾
-  shrimp_meat:      [24.0,  0.9, 0.9, 220, 105],
-  peeled_shrimp:    [24.0,  0.9, 0.9, 220, 105],
+  sole:             [17.8,  1.2, 0.0, 230,  82],  // 龙利鱼（归一化后 sole_fish_fillet→sole）
+  shrimp:           [24.0,  0.9, 0.9, 220, 105],  // 虾（归一化后 shrimp_meat/peeled_shrimp→shrimp）
+  tuna:             [29.9,  2.1, 0.0, 304, 144],  // 金枪鱼（bluefin_tuna→tuna）
   sardines:         [24.6, 11.5, 0.0, 490, 208],  // 骨头带来高磷
   sardines_canned:  [24.6, 11.5, 0.0, 490, 208],
   anchovies:        [29.0, 10.0, 0.0, 420, 210],
@@ -156,20 +154,27 @@ function estimateNutrients(ingredients) {
 
   for (const ing of ingredients) {
     const amtG     = ing.amountG ?? 0
-    const dbName   = (ing.dbName ?? '').toLowerCase().replace(/-/g, '_')
     const category = (ing.category ?? '').toLowerCase()
+    // 归一化：剥离 AI 常加的修饰词前缀/后缀，还原核心食材名
+    const rawName  = (ing.dbName ?? '').toLowerCase().replace(/-/g, '_')
+    const dbName   = rawName
+      .replace(/^(fresh|raw|cooked|steamed|boiled|boneless|skinless|peeled|atlantic|pacific|arctic|frozen|lean|ground|minced|whole)_/g, '')
+      .replace(/_(fillet|filet|meat|breast|thigh|loin|leg|wing|chunk|slice|pieces|fish|flesh|skinless|boneless|peeled|cooked|steamed|raw)$/g, '')
+      .replace(/_(fillet|filet)$/g, '')  // 二次剥离（如 sole_fish_fillet → sole_fish → sole）
+      .replace(/_fish$/g, '')
+      .replace(/^_+|_+$/g, '')           // 去掉首尾下划线
 
-    if (['supplement', 'oil'].includes(category) && dbName.includes('calcium')) continue
+    if (['supplement', 'oil'].includes(category) && (dbName.includes('calcium') || rawName.includes('calcium'))) continue
 
-    let row = INLINE_DB[dbName]
-    let matchType = 'exact'
+    let row = INLINE_DB[dbName] || INLINE_DB[rawName]
+    let matchType = row ? 'exact' : null
 
     if (!row) {
-      // 尝试部分匹配（宽松）
+      // 尝试部分匹配（宽松）：归一化名 or 原始名 包含 DB key
       const key = Object.keys(INLINE_DB).find(
-        k => dbName.includes(k) || k.includes(dbName.split('_')[0])
+        k => dbName.includes(k) || rawName.includes(k) || k.includes(dbName.split('_')[0])
       )
-      if (key) { row = INLINE_DB[key]; matchType = 'partial'; partialHits.push(`${dbName}→${key}`) }
+      if (key) { row = INLINE_DB[key]; matchType = 'partial'; partialHits.push(`${rawName}→${key}`) }
     }
 
     if (!row) {
