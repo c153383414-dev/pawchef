@@ -274,7 +274,7 @@ const ALLERGY_FLAGS = [
   { pattern: /\bchicken\b|鸡肉|鸡胸|鸡腿|鸡心/i,         label: '鸡肉（常见过敏源）' },
   { pattern: /\bbeef\b|牛肉|牛心|牛肝|beef_heart|beef_liver/i, label: '牛肉（常见过敏源）' },
   { pattern: /dairy|milk|cheese|乳制品|牛奶|奶酪/i,        label: '乳制品（常见过敏源）' },
-  { pattern: /wheat|小麦|面粉/i,                            label: '小麦（常见过敏源）' },
+  { pattern: /(?<!buck)wheat|小麦|面粉/i,                   label: '小麦（常见过敏源）' },
   { pattern: /\begg\b|鸡蛋/i,                               label: '鸡蛋（常见过敏源）' },
   { pattern: /\bsoy\b|soybean|豆腐|大豆/i,                  label: '大豆（常见过敏源）' },
 ]
