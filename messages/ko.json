@@ -47,7 +47,7 @@
     "selectCat": "🐈 고양이",
     "petName": "반려동물 이름",
     "weight": "체중 (kg)",
-    "healthLabel": "건강 상태 (여러 개 선택 가능)",
+    "healthLabel": "건강 상태",
     "healthy": "건강",
     "kidney": "신장 질환",
     "pancreatitis": "췌장염",
@@ -131,9 +131,16 @@
     "kidneyWarning": "🫘 신장 질환 주의 사항:",
     "pancreatitisWarning": "🔥 췌장염 주의 사항:",
     "qi": {
-      "chicken": "닭고기", "salmon": "연어", "broccoli": "브로콜리",
-      "onion": "양파", "grapes": "포도", "blueberry": "블루베리",
-      "xylitol": "자일리톨", "pumpkin": "호박", "egg": "달걀", "chocolate": "초콜릿"
+      "chicken": "닭고기",
+      "salmon": "연어",
+      "broccoli": "브로콜리",
+      "onion": "양파",
+      "grapes": "포도",
+      "blueberry": "블루베리",
+      "xylitol": "자일리톨",
+      "pumpkin": "호박",
+      "egg": "달걀",
+      "chocolate": "초콜릿"
     }
   },
   "pricing": {
@@ -205,20 +212,60 @@
     "autoRefund": "실패 시 자동 환불",
     "noRefund": "환불 불가, 양도 불가",
     "earn": {
-      "register": { "title": "가입 보너스", "desc": "가입 시 1회 제공", "val": "+20" },
-      "checkin": { "title": "매일 체크인", "desc": "매일 로그인하여 적립", "val": "+5" },
-      "share": { "title": "레시피 공유", "desc": "레시피당 1회, 하루 최대 2회", "val": "+10" },
-      "invite": { "title": "친구 초대", "desc": "이메일 인증 후, 평생 최대 5회", "val": "+30" }
+      "register": {
+        "title": "가입 보너스",
+        "desc": "가입 시 1회 제공",
+        "val": "+20"
+      },
+      "checkin": {
+        "title": "매일 체크인",
+        "desc": "매일 로그인하여 적립",
+        "val": "+5"
+      },
+      "share": {
+        "title": "레시피 공유",
+        "desc": "레시피당 1회, 하루 최대 2회",
+        "val": "+10"
+      },
+      "invite": {
+        "title": "친구 초대",
+        "desc": "이메일 인증 후, 평생 최대 5회",
+        "val": "+30"
+      }
     },
     "freeSpend": {
-      "collection": { "title": "레시피 슬롯 추가 잠금 해제", "desc": "+10 슬롯", "val": "50💙" },
-      "export": { "title": "식사 일지 PDF 내보내기", "desc": "내보내기 1회당", "val": "30💙" },
-      "pet2": { "title": "2번째 반려동물 프로필 잠금 해제", "desc": "1회 잠금 해제", "val": "100💙" }
+      "collection": {
+        "title": "레시피 슬롯 추가 잠금 해제",
+        "desc": "+10 슬롯",
+        "val": "50💙"
+      },
+      "export": {
+        "title": "식사 일지 PDF 내보내기",
+        "desc": "내보내기 1회당",
+        "val": "30💙"
+      },
+      "pet2": {
+        "title": "2번째 반려동물 프로필 잠금 해제",
+        "desc": "1회 잠금 해제",
+        "val": "100💙"
+      }
     },
     "aiSpend": {
-      "generate": { "title": "AI 레시피 생성", "desc": "쿼터 초과 또는 비회원", "val": "1🟠" },
-      "substitute": { "title": "식재료 대체 제안", "desc": "AI 스마트 교체", "val": "1🟠" },
-      "weekly": { "title": "7일 식단 플랜", "desc": "전체 식단 플랜 + 장보기 목록", "val": "3🟠" }
+      "generate": {
+        "title": "AI 레시피 생성",
+        "desc": "쿼터 초과 또는 비회원",
+        "val": "1🟠"
+      },
+      "substitute": {
+        "title": "식재료 대체 제안",
+        "desc": "AI 스마트 교체",
+        "val": "1🟠"
+      },
+      "weekly": {
+        "title": "7일 식단 플랜",
+        "desc": "전체 식단 플랜 + 장보기 목록",
+        "val": "3🟠"
+      }
     },
     "packages": {
       "starter": "스타터 팩",
@@ -348,5 +395,26 @@
     "fr": "Français",
     "ja": "日本語",
     "ko": "한국어"
+  },
+  "condition": {
+    "disclaimer": "이 레시피는 건강 문제가 있는 반려동물을 위한 영양 참고 정보이며 의료 치료 계획을 구성하지 않습니다. 식단을 변경하기 전에 수의사와 상담하세요.",
+    "vetRecommend": "수의사와 상담하여 확인하세요",
+    "label": {
+      "kidney_within_range": "저인 권장 범위 내",
+      "kidney_attention_needed": "인이 권장치를 초과합니다 — 검토 필요",
+      "pancreatitis_within_range": "저지방 권장 범위 내",
+      "pancreatitis_attention_needed": "지방이 권장치를 초과합니다 — 검토 필요",
+      "diabetes_within_range": "저탄수화물 권장 범위 내",
+      "diabetes_attention_needed": "탄수화물이 권장치를 초과합니다 — 검토 필요",
+      "obesity_within_range": "칼로리 관리 권장 범위 내",
+      "obesity_attention_needed": "칼로리가 권장치를 초과합니다 — 검토 필요"
+    },
+    "expertOpinion": "전문가 의견; 개체 차이가 있을 수 있습니다",
+    "fail": {
+      "phosphorus_high": "인이 저인 권장 범위를 초과합니다",
+      "fat_high": "지방이 저지방 권장 범위를 초과합니다",
+      "carbs_high": "탄수화물이 저탄수화물 권장 범위를 초과합니다",
+      "protein_low": "단백질이 최소 권장치 미만입니다 — 근육량을 모니터링하세요"
+    }
   }
 }

@@ -47,7 +47,7 @@
     "selectCat": "🐈 猫",
     "petName": "宠物名字",
     "weight": "体重（kg）",
-    "healthLabel": "健康状况（可多选）",
+    "healthLabel": "健康状况",
     "healthy": "健康",
     "kidney": "肾病",
     "pancreatitis": "胰腺炎",
@@ -444,6 +444,27 @@
     "novelProtein": "🔄 新蛋白配方",
     "puppy": "🐶 幼犬专属",
     "kitten": "🐱 幼猫专属"
+  },
+  "condition": {
+    "disclaimer": "本食谱为病症宠物营养参考建议，不构成医疗方案。请在调整饮食前咨询兽医，由专业人员根据宠物个体情况确认方案是否适合。",
+    "vetRecommend": "建议咨询兽医确认",
+    "label": {
+      "kidney_within_range":          "低磷建议范围内",
+      "kidney_attention_needed":       "磷含量偏高，建议关注",
+      "pancreatitis_within_range":     "低脂建议范围内",
+      "pancreatitis_attention_needed": "脂肪含量偏高，建议关注",
+      "diabetes_within_range":         "低碳水建议范围内",
+      "diabetes_attention_needed":     "碳水含量偏高，建议关注",
+      "obesity_within_range":          "热量控制建议范围内",
+      "obesity_attention_needed":      "热量偏高，建议关注"
+    },
+    "expertOpinion": "专家意见，个体差异较大",
+    "fail": {
+      "phosphorus_high": "磷含量超出低磷建议范围",
+      "fat_high":        "脂肪含量超出低脂建议范围",
+      "carbs_high":      "碳水含量超出低碳水建议范围",
+      "protein_low":     "蛋白质低于建议下限，注意防止肌肉流失"
+    }
   },
   "risk": {
     "lowFatNotForPuppies": "本食谱脂肪偏低，不适合幼犬（幼犬需 ≥21g 脂肪/1000kcal）",

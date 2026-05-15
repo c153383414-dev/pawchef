@@ -77,6 +77,14 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
     content: RecipeContent
     nutrition: NutritionInfo
     compliance?: RecipeCompliance
+    conditionCompliance?: {
+      condition: string
+      authorityShort: string
+      expertOpinion: boolean
+      label: 'within_range' | 'attention_needed'
+      labelKey: string
+      failures: { metric: string; actual: number; targetDesc: string }[]
+    } | null
     tier?: string
   } | null>(null)
   const [toast,    setToast]    = useState<{ msg: string; type: 'success' | 'error' | 'warn' } | null>(null)
@@ -249,12 +257,9 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
     setTimeout(() => setToast(null), 4000)
   }
 
+  // 单选：每次只能选一个健康状况
   const toggleHealth = (key: string) => {
-    if (key === 'healthy') { setHealth(['healthy']); return }
-    setHealth(prev => {
-      const next = prev.filter(x => x !== 'healthy')
-      return next.includes(key) ? next.filter(x => x !== key) : [...next, key]
-    })
+    setHealth([key])
   }
 
   // ── Generate ─────────────────────────────────────────────────────────────
@@ -306,9 +311,10 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
           steps:       data.steps       || [],
           warnings:    (data.warnings || []).filter((w: string) => !w.startsWith('ingredient_removed:')),
         },
-        nutrition:  data.nutrition,
-        compliance: data.compliance,
-        tier:       ['claude-sonnet', 'gemini-3.1-pro', 'gemini-2.5-flash'].includes(data.generatedBy) ? 'premium' : 'standard',
+        nutrition:           data.nutrition,
+        compliance:          data.compliance,
+        conditionCompliance: data.conditionCompliance ?? null,
+        tier:                ['claude-sonnet', 'gemini-3.1-pro', 'gemini-2.5-flash'].includes(data.generatedBy) ? 'premium' : 'standard',
       })
       setSubstitutes({})
       setExpandedSub(null)
@@ -537,6 +543,12 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   )
                 })}
               </div>
+              {/* 病症免责声明 */}
+              {isPro && !health.includes('healthy') && (
+                <div style={{ fontSize: 11, color: '#854F0B', marginTop: 8, lineHeight: 1.6, padding: '6px 10px', background: '#FBF0E4', borderRadius: 6 }}>
+                  ⚕️ {t('condition.disclaimer')}
+                </div>
+              )}
               {!isPro && user && (
                 // 已登录非 Pro：引导订阅，点击滚到定价区
                 <div style={{ fontSize: 11, color: '#C8813A', marginTop: 6 }}>
@@ -626,7 +638,8 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                   {isPremium ? t('recipe.premiumBadge') : t('recipe.standardBadge')}
                 </div>
               )}
-              {compliance && complianceStyle && (
+              {/* 健康宠物：AAFCO 合规标签 */}
+              {compliance && complianceStyle && !recipe?.conditionCompliance && (
                 <div style={{
                   fontSize: 11, fontWeight: 500, padding: '3px 8px', borderRadius: 5,
                   background: complianceStyle.bg, color: complianceStyle.color,
@@ -636,6 +649,21 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                     : `${complianceStyle.prefix} ${t(compliance.labelKey)}`}
                 </div>
               )}
+              {/* 病症宠物：病症专属标签 */}
+              {recipe?.conditionCompliance && (() => {
+                const cc = recipe.conditionCompliance!
+                const isOk = cc.label === 'within_range'
+                return (
+                  <div style={{
+                    fontSize: 11, fontWeight: 500, padding: '3px 8px', borderRadius: 5,
+                    background: isOk ? '#EBF2EC' : '#FBF0E4',
+                    color:      isOk ? '#3B6D11' : '#854F0B',
+                  }}>
+                    {isOk ? '△ ' : '⚠ '}{t(cc.labelKey)}
+                    <span style={{ opacity: 0.7, marginLeft: 4 }}>· {cc.authorityShort}</span>
+                  </div>
+                )
+              })()}
             </div>
           </div>
 

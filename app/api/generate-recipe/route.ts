@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { validateRecipe, validateIngredients, calculateDER, calculatePortionGuidance, formatPortionGuidanceForPrompt, scaleToTargetCalories, PetParams } from '@/lib/nutrition-validator'
+import { validateConditionRecipe, CONDITION_KEYS, ConditionKey } from '@/lib/condition-standards'
 import { findFood, getForbiddenFoods, getAllowedFoodsByCategory, OILY_FISH_DBNAMES } from '@/lib/nutrition-db'
 import { resolveUnknownIngredients } from '@/lib/usda-api'
 import { DeductSource } from '@/types'
@@ -636,8 +637,13 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
       }
     }
 
-    // 合规性重试：Pro 最多 2 次（partial/non-compliant），free 最多 1 次（仅 non-compliant）
-    const maxRetries = isPro ? 2 : 1
+    // 病症宠物不跑 AAFCO 合规重试（AAFCO 为健康动物标准，病症指标与其冲突）
+    const activeCondition = safeConditions.find(c =>
+      CONDITION_KEYS.includes(c as ConditionKey)
+    ) as ConditionKey | undefined
+
+    // 合规性重试：健康 Pro 最多 2 次，健康 free 最多 1 次，病症宠物不重试
+    const maxRetries = activeCondition ? 0 : (isPro ? 2 : 1)
     let retryCount = 0
     while (
       retryCount < maxRetries &&
@@ -816,6 +822,21 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
       })
     }
 
+    // ── 病症专属营养验证 ───────────────────────────────────────────────────────
+    let conditionCompliance = null
+    if (activeCondition) {
+      const cal = validation.actualCalories || 1
+      const nutrientsPer1000 = {
+        protein:    validation.aafco.protein.value,
+        fat:        validation.aafco.fat.value,
+        phosphorus: validation.aafco.phosphorus.value,
+        carbs:      (validation.nutrients.carbs / cal) * 1000,
+      }
+      conditionCompliance = validateConditionRecipe(
+        nutrientsPer1000, isCat ? 'cat' : 'dog', activeCondition
+      )
+    }
+
     return NextResponse.json({
       title:       aiResult.title,
       ingredients: finalIngredients,
@@ -834,6 +855,7 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
         targetCalories:       validation.targetCalories,
         autoAddedSupplements: validation.supplements,
       },
+      conditionCompliance,
       unknownIngredients: validation.unknownIngredients,
       generatedBy:        isPro ? 'gemini-3.1-pro' : 'claude-haiku',
       freeRemaining,

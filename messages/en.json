@@ -47,7 +47,7 @@
     "selectCat": "🐈 Cat",
     "petName": "Pet Name",
     "weight": "Weight (kg)",
-    "healthLabel": "Health Condition (multiple allowed)",
+    "healthLabel": "Health Condition",
     "healthy": "Healthy",
     "kidney": "Kidney Disease",
     "pancreatitis": "Pancreatitis",
@@ -404,6 +404,27 @@
     "novelProtein": "🔄 Novel Protein",
     "puppy": "🐶 Puppy Formula",
     "kitten": "🐱 Kitten Formula"
+  },
+  "condition": {
+    "disclaimer": "This recipe is a nutritional reference for pets with health conditions and does not constitute a medical treatment plan. Please consult your veterinarian before making dietary changes to confirm the plan is appropriate for your pet.",
+    "vetRecommend": "Consult your veterinarian to confirm",
+    "label": {
+      "kidney_within_range":          "Within low-phosphorus guideline range",
+      "kidney_attention_needed":       "Phosphorus above guideline — please review",
+      "pancreatitis_within_range":     "Within low-fat guideline range",
+      "pancreatitis_attention_needed": "Fat above guideline — please review",
+      "diabetes_within_range":         "Within low-carb guideline range",
+      "diabetes_attention_needed":     "Carbs above guideline — please review",
+      "obesity_within_range":          "Within calorie control guideline range",
+      "obesity_attention_needed":      "Calories above guideline — please review"
+    },
+    "expertOpinion": "Expert opinion; individual variation expected",
+    "fail": {
+      "phosphorus_high": "Phosphorus exceeds low-phosphorus guideline range",
+      "fat_high":        "Fat exceeds low-fat guideline range",
+      "carbs_high":      "Carbohydrates exceed low-carb guideline range",
+      "protein_low":     "Protein below minimum guideline — monitor muscle mass"
+    }
   },
   "risk": {
     "lowFatNotForPuppies": "This recipe is low in fat — not suitable for puppies (puppies need ≥21g fat/1000kcal)",

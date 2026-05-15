@@ -47,7 +47,7 @@
     "selectCat": "🐈 猫",
     "petName": "ペットの名前",
     "weight": "体重 (kg)",
-    "healthLabel": "健康状態（複数選択可）",
+    "healthLabel": "健康状態",
     "healthy": "健康",
     "kidney": "腎臓病",
     "pancreatitis": "膵炎",
@@ -131,9 +131,16 @@
     "kidneyWarning": "🫘 腎臓病に関する注意:",
     "pancreatitisWarning": "🔥 膵炎に関する注意:",
     "qi": {
-      "chicken": "鶏肉", "salmon": "サーモン", "broccoli": "ブロッコリー",
-      "onion": "玉ねぎ", "grapes": "ぶどう", "blueberry": "ブルーベリー",
-      "xylitol": "キシリトール", "pumpkin": "かぼちゃ", "egg": "卵", "chocolate": "チョコレート"
+      "chicken": "鶏肉",
+      "salmon": "サーモン",
+      "broccoli": "ブロッコリー",
+      "onion": "玉ねぎ",
+      "grapes": "ぶどう",
+      "blueberry": "ブルーベリー",
+      "xylitol": "キシリトール",
+      "pumpkin": "かぼちゃ",
+      "egg": "卵",
+      "chocolate": "チョコレート"
     }
   },
   "pricing": {
@@ -205,20 +212,60 @@
     "autoRefund": "失敗時に自動返金",
     "noRefund": "返金不可、譲渡不可",
     "earn": {
-      "register": { "title": "登録ボーナス", "desc": "登録時の一回限りのギフト", "val": "+20" },
-      "checkin": { "title": "デイリーチェックイン", "desc": "毎日ログインして獲得", "val": "+5" },
-      "share": { "title": "レシピをシェア", "desc": "1レシピにつき1回、最大2回/日", "val": "+10" },
-      "invite": { "title": "友達を招待", "desc": "メール認証後、最大5回（通算）", "val": "+30" }
+      "register": {
+        "title": "登録ボーナス",
+        "desc": "登録時の一回限りのギフト",
+        "val": "+20"
+      },
+      "checkin": {
+        "title": "デイリーチェックイン",
+        "desc": "毎日ログインして獲得",
+        "val": "+5"
+      },
+      "share": {
+        "title": "レシピをシェア",
+        "desc": "1レシピにつき1回、最大2回/日",
+        "val": "+10"
+      },
+      "invite": {
+        "title": "友達を招待",
+        "desc": "メール認証後、最大5回（通算）",
+        "val": "+30"
+      }
     },
     "freeSpend": {
-      "collection": { "title": "レシピ保存枠の追加アンロック", "desc": "+10枠", "val": "50💙" },
-      "export": { "title": "食事ログPDFエクスポート", "desc": "エクスポート1回につき", "val": "30💙" },
-      "pet2": { "title": "2頭目のペットプロフィールをアンロック", "desc": "一回限りのアンロック", "val": "100💙" }
+      "collection": {
+        "title": "レシピ保存枠の追加アンロック",
+        "desc": "+10枠",
+        "val": "50💙"
+      },
+      "export": {
+        "title": "食事ログPDFエクスポート",
+        "desc": "エクスポート1回につき",
+        "val": "30💙"
+      },
+      "pet2": {
+        "title": "2頭目のペットプロフィールをアンロック",
+        "desc": "一回限りのアンロック",
+        "val": "100💙"
+      }
     },
     "aiSpend": {
-      "generate": { "title": "AIレシピ生成", "desc": "クォータ超過後または非会員", "val": "1🟠" },
-      "substitute": { "title": "食材代替提案", "desc": "AIによるスマート交換", "val": "1🟠" },
-      "weekly": { "title": "7日間ミールプラン", "desc": "完全プラン＋買い物リスト", "val": "3🟠" }
+      "generate": {
+        "title": "AIレシピ生成",
+        "desc": "クォータ超過後または非会員",
+        "val": "1🟠"
+      },
+      "substitute": {
+        "title": "食材代替提案",
+        "desc": "AIによるスマート交換",
+        "val": "1🟠"
+      },
+      "weekly": {
+        "title": "7日間ミールプラン",
+        "desc": "完全プラン＋買い物リスト",
+        "val": "3🟠"
+      }
     },
     "packages": {
       "starter": "スターターパック",
@@ -348,5 +395,26 @@
     "fr": "Français",
     "ja": "日本語",
     "ko": "한국어"
+  },
+  "condition": {
+    "disclaimer": "このレシピは健康上の問題を抱えるペット向けの栄養参考情報であり、医療方針を構成するものではありません。食事を変更する前に獣医師にご相談ください。",
+    "vetRecommend": "獣医師に確認することをお勧めします",
+    "label": {
+      "kidney_within_range": "低リン推奨範囲内",
+      "kidney_attention_needed": "リンが推奨値を超えています — 要確認",
+      "pancreatitis_within_range": "低脂肪推奨範囲内",
+      "pancreatitis_attention_needed": "脂肪が推奨値を超えています — 要確認",
+      "diabetes_within_range": "低炭水化物推奨範囲内",
+      "diabetes_attention_needed": "炭水化物が推奨値を超えています — 要確認",
+      "obesity_within_range": "カロリー管理推奨範囲内",
+      "obesity_attention_needed": "カロリーが推奨値を超えています — 要確認"
+    },
+    "expertOpinion": "専門家の見解；個体差があります",
+    "fail": {
+      "phosphorus_high": "リンが低リン推奨範囲を超えています",
+      "fat_high": "脂肪が低脂肪推奨範囲を超えています",
+      "carbs_high": "炭水化物が低炭水化物推奨範囲を超えています",
+      "protein_low": "タンパク質が推奨最低値を下回っています — 筋肉量を監視してください"
+    }
   }
 }

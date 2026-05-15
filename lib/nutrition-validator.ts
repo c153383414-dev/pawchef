@@ -115,7 +115,8 @@ export function calculateDER(params: PetParams): { min: number; max: number } {
   if (params.ageMonths < 12) {
     factor = isCat ? 2.5 : (params.ageMonths < 4 ? 3.0 : 2.0)
   } else if (params.healthConditions.includes('obesity')) {
-    factor = isCat ? 0.8 : 1.2
+    // AAHA 2021：80% 理想体重 RER；以当前 RER × 0.8 近似
+    factor = 0.8
   } else if (params.neutered) {
     factor = isCat ? 1.0 : 1.4
   } else if (params.activityLevel === 'high') {

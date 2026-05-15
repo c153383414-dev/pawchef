@@ -47,7 +47,7 @@
     "selectCat": "🐈 Gato",
     "petName": "Nombre de la mascota",
     "weight": "Peso (kg)",
-    "healthLabel": "Condición de salud (se permiten varias)",
+    "healthLabel": "Condición de salud",
     "healthy": "Sano",
     "kidney": "Enfermedad renal",
     "pancreatitis": "Pancreatitis",
@@ -131,9 +131,16 @@
     "kidneyWarning": "🫘 Nota sobre Enfermedad Renal:",
     "pancreatitisWarning": "🔥 Nota sobre Pancreatitis:",
     "qi": {
-      "chicken": "Pollo", "salmon": "Salmón", "broccoli": "Brócoli",
-      "onion": "Cebolla", "grapes": "Uvas", "blueberry": "Arándano",
-      "xylitol": "Xilitol", "pumpkin": "Calabaza", "egg": "Huevo", "chocolate": "Chocolate"
+      "chicken": "Pollo",
+      "salmon": "Salmón",
+      "broccoli": "Brócoli",
+      "onion": "Cebolla",
+      "grapes": "Uvas",
+      "blueberry": "Arándano",
+      "xylitol": "Xilitol",
+      "pumpkin": "Calabaza",
+      "egg": "Huevo",
+      "chocolate": "Chocolate"
     }
   },
   "pricing": {
@@ -205,20 +212,60 @@
     "autoRefund": "Reembolso automático en caso de error",
     "noRefund": "No reembolsable, no transferible",
     "earn": {
-      "register": { "title": "Bono de Registro", "desc": "Regalo único al registrarse", "val": "+20" },
-      "checkin": { "title": "Check-in Diario", "desc": "Inicia sesión a diario para ganar", "val": "+5" },
-      "share": { "title": "Compartir Receta", "desc": "Una vez por receta, máx. 2/día", "val": "+10" },
-      "invite": { "title": "Invitar Amigo", "desc": "Tras verificación de correo, máx. 5 en total", "val": "+30" }
+      "register": {
+        "title": "Bono de Registro",
+        "desc": "Regalo único al registrarse",
+        "val": "+20"
+      },
+      "checkin": {
+        "title": "Check-in Diario",
+        "desc": "Inicia sesión a diario para ganar",
+        "val": "+5"
+      },
+      "share": {
+        "title": "Compartir Receta",
+        "desc": "Una vez por receta, máx. 2/día",
+        "val": "+10"
+      },
+      "invite": {
+        "title": "Invitar Amigo",
+        "desc": "Tras verificación de correo, máx. 5 en total",
+        "val": "+30"
+      }
     },
     "freeSpend": {
-      "collection": { "title": "Desbloquear Espacios Adicionales de Recetas", "desc": "+10 espacios", "val": "50💙" },
-      "export": { "title": "Exportar PDF del Registro Dietético", "desc": "Por exportación", "val": "30💙" },
-      "pet2": { "title": "Desbloquear 2.º Perfil de Mascota", "desc": "Desbloqueo único", "val": "100💙" }
+      "collection": {
+        "title": "Desbloquear Espacios Adicionales de Recetas",
+        "desc": "+10 espacios",
+        "val": "50💙"
+      },
+      "export": {
+        "title": "Exportar PDF del Registro Dietético",
+        "desc": "Por exportación",
+        "val": "30💙"
+      },
+      "pet2": {
+        "title": "Desbloquear 2.º Perfil de Mascota",
+        "desc": "Desbloqueo único",
+        "val": "100💙"
+      }
     },
     "aiSpend": {
-      "generate": { "title": "Generación de Recetas con IA", "desc": "Tras agotar cuota o sin membresía", "val": "1🟠" },
-      "substitute": { "title": "Sustitución de Ingredientes", "desc": "Cambio inteligente con IA", "val": "1🟠" },
-      "weekly": { "title": "Plan de Comidas de 7 Días", "desc": "Plan completo + lista de compras", "val": "3🟠" }
+      "generate": {
+        "title": "Generación de Recetas con IA",
+        "desc": "Tras agotar cuota o sin membresía",
+        "val": "1🟠"
+      },
+      "substitute": {
+        "title": "Sustitución de Ingredientes",
+        "desc": "Cambio inteligente con IA",
+        "val": "1🟠"
+      },
+      "weekly": {
+        "title": "Plan de Comidas de 7 Días",
+        "desc": "Plan completo + lista de compras",
+        "val": "3🟠"
+      }
     },
     "packages": {
       "starter": "Paquete Inicial",
@@ -348,5 +395,26 @@
     "fr": "Français",
     "ja": "日本語",
     "ko": "한국어"
+  },
+  "condition": {
+    "disclaimer": "Esta receta es una referencia nutricional para mascotas con condiciones de salud y no constituye un plan de tratamiento médico. Consulte a su veterinario antes de realizar cambios en la dieta.",
+    "vetRecommend": "Consulte a su veterinario para confirmar",
+    "label": {
+      "kidney_within_range": "Dentro del rango recomendado de bajo fósforo",
+      "kidney_attention_needed": "Fósforo por encima de la recomendación — revisar",
+      "pancreatitis_within_range": "Dentro del rango recomendado de bajo en grasa",
+      "pancreatitis_attention_needed": "Grasa por encima de la recomendación — revisar",
+      "diabetes_within_range": "Dentro del rango recomendado bajo en carbohidratos",
+      "diabetes_attention_needed": "Carbohidratos por encima de la recomendación — revisar",
+      "obesity_within_range": "Dentro del rango recomendado de control calórico",
+      "obesity_attention_needed": "Calorías por encima de la recomendación — revisar"
+    },
+    "expertOpinion": "Opinión de expertos; se esperan variaciones individuales",
+    "fail": {
+      "phosphorus_high": "Fósforo supera el rango recomendado bajo en fósforo",
+      "fat_high": "Grasa supera el rango recomendado bajo en grasa",
+      "carbs_high": "Carbohidratos superan el rango recomendado bajo en carbohidratos",
+      "protein_low": "Proteína por debajo del mínimo recomendado — controlar masa muscular"
+    }
   }
 }
