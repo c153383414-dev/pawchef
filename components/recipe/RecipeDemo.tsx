@@ -205,7 +205,13 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
   const showCatOverweight = species === 'cat' && weightValid && weightNum > 10 && !health.includes('obesity')
 
   // 积分状态
-  const hasFreeAI = user ? (user.free_ai_used ?? 0) < (user.free_ai_limit ?? 2) : false
+  // freeRemaining state 比 user.free_ai_used 更实时（API 返回后立即更新）
+  // 优先用 freeRemaining；首次加载未初始化时 fallback 到 profile 字段
+  const hasFreeAI = user
+    ? freeRemaining !== null
+      ? freeRemaining > 0
+      : (user.free_ai_used ?? 0) < (user.free_ai_limit ?? 2)
+    : false
 
   const isPro = user ? (user.is_pro && (user.pro_expires_at ? new Date(user.pro_expires_at) > new Date() : false)) : false
 
@@ -596,7 +602,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
             {/* 生成按钮 */}
             <button
               onClick={generate}
-              disabled={loading || !weightValid || (!guestChecked && !user)}
+              disabled={loading || !weightValid || (!guestChecked && !user) || (!!user && !canGenerate)}
               style={{
                 padding: '12px 24px', borderRadius: 8, fontSize: 15, fontWeight: 500,
                 border: 'none', fontFamily: 'inherit', transition: 'opacity 0.2s',
