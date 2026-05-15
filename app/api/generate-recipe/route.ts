@@ -275,13 +275,30 @@ export async function POST(req: NextRequest) {
       'turkey',   // 12月
     ]
 
+    // Pro季节性主推蔬菜（按月轮换，12种）
+    const PRO_SEASONAL_VEGGIES: Record<number, string> = {
+      0:  'asparagus',        // 1月
+      1:  'broccoli',         // 2月
+      2:  'green_beans',      // 3月
+      3:  'zucchini',         // 4月
+      4:  'cucumber',         // 5月
+      5:  'beet',             // 6月
+      6:  'butternut_squash', // 7月
+      7:  'celery',           // 8月
+      8:  'carrot',           // 9月
+      9:  'pumpkin',          // 10月
+      10: 'sweet_potato',     // 11月
+      11: 'blueberries',      // 12月
+    }
+
     // 查询最近用过的食材，生成多样性提示（蛋白质/蔬菜/碳水/内脏全追踪）
-    let recentVeggieNote   = ''
-    let recentProteinNote  = ''
-    let recentCarbNote     = ''
-    let recentOrganNote    = ''
-    let proFeaturedNote    = ''
-    let freeFeatureProtein = freeProteinPool[Math.floor(Math.random() * freeProteinPool.length)]
+    let recentVeggieNote      = ''
+    let recentProteinNote     = ''
+    let recentCarbNote        = ''
+    let recentOrganNote       = ''
+    let proFeaturedNote       = ''
+    let proSeasonalVeggieNote = ''
+    let freeFeatureProtein    = freeProteinPool[Math.floor(Math.random() * freeProteinPool.length)]
 
     if (user) {
       try {
@@ -290,7 +307,7 @@ export async function POST(req: NextRequest) {
           .select('content')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
-          .limit(5)
+          .limit(10)  // 扩展到10条：季节性蛋白冲突检测需要更长窗口
 
         const recentIngredients = (recentRecipes || []).flatMap((r: any) => r.content?.ingredients || [])
 
@@ -314,12 +331,23 @@ export async function POST(req: NextRequest) {
 
         if (isPro) {
           const month = new Date().getMonth()  // 0-11
+
+          // 季节性蛋白：检查最近10条食谱（非去重后的4个蛋白名），避免月内频繁重复
           const seasonalProtein = PRO_SEASONAL_PROTEINS[month]
-          const seasonalConflict = recentProteinNames.some(r =>
-            r.toLowerCase().includes(seasonalProtein) || seasonalProtein.includes(r.toLowerCase())
+          const seasonalProteinConflict = recentIngredients.some((i: any) => {
+            const name = ((i.dbName || i.name) ?? '').toLowerCase()
+            return name.includes(seasonalProtein) || seasonalProtein.includes(name.split('_')[0])
+          })
+          if (!seasonalProteinConflict)
+            proFeaturedNote = `TODAY's featured protein: ${seasonalProtein} — build the recipe around this protein.`
+
+          // 季节性蔬菜：检查最近5条是否已用过（recentVeggies 已从10条中提取）
+          const seasonalVeggie = PRO_SEASONAL_VEGGIES[month]
+          const seasonalVeggieConflict = recentVeggies.some(v =>
+            v.toLowerCase().includes(seasonalVeggie) || seasonalVeggie.includes(v.toLowerCase())
           )
-          if (!seasonalConflict)
-            proFeaturedNote = `Suggested protein for this month: ${seasonalProtein} — consider featuring it if appropriate.`
+          if (!seasonalVeggieConflict)
+            proSeasonalVeggieNote = `This month's featured vegetable: ${seasonalVeggie} — try to include it if suitable for this pet.`
         }
 
         if (!isPro && recentProteinNames.length > 0) {
@@ -419,7 +447,7 @@ ${portionText}
 ${proHealthNote}
 ${conditionGuidance ? conditionGuidance + '\n' : ''}
 
-${recentProteinNote ? recentProteinNote + '\n' : ''}${proFeaturedNote ? proFeaturedNote + '\n' : !recentProteinNote ? 'Choose a creative, varied protein source for today.\n' : ''}${recentVeggieNote ? recentVeggieNote + '\n' : ''}${recentCarbNote ? recentCarbNote + '\n' : ''}${recentOrganNote ? recentOrganNote + '\n' : ''}
+${recentProteinNote ? recentProteinNote + '\n' : ''}${proFeaturedNote ? proFeaturedNote + '\n' : !recentProteinNote ? 'Choose a creative, varied protein source for today.\n' : ''}${recentVeggieNote ? recentVeggieNote + '\n' : ''}${proSeasonalVeggieNote ? proSeasonalVeggieNote + '\n' : ''}${recentCarbNote ? recentCarbNote + '\n' : ''}${recentOrganNote ? recentOrganNote + '\n' : ''}
 INGREDIENT FREEDOM — Be creative. You may use ANY safe, nutritious pet food ingredients. Consider:
 - Proteins: ${
   locale_ === 'zh'
