@@ -404,20 +404,21 @@ ${isPuppy && !isCat ? 'PUPPY FAT REQUIREMENT: Puppies need ≥21g fat per 1000kc
 MANDATORY:
 1. Calcium source: calcium_carbonate ~${portionGuidance.calciumCarbonate}g
 2. Omega-3: fish_oil ~${Math.max(0.5, weightKg * 0.1).toFixed(1)}ml (mandatory — do NOT replace with cod)
-${isCat ? `3. Taurine: taurine_supplement ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g (cats cannot synthesize taurine)` : isPuppy ? '3. Use salmon, duck_breast, or egg_cooked as main protein to supply sufficient fat for puppy growth' : '3. Balance protein and moderate carbs'}
-4. Steps must NOT contain gram/weight numbers
-5. Steps must ONLY reference ingredients that appear in the ingredient list above.
+3. egg_cooked MUST be fully cooked — never raw (Salmonella risk; raw eggs block biotin absorption)
+${isCat ? `4. Taurine: taurine_supplement ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g (cats cannot synthesize taurine)` : isPuppy ? '4. Use salmon, duck_breast, or egg_cooked as main protein to supply sufficient fat for puppy growth' : '4. Balance protein and moderate carbs'}
+5. Steps must NOT contain gram/weight numbers
+6. Steps must ONLY reference ingredients that appear in the ingredient list above.
    Do NOT mention any ingredient in steps that is not listed. Do NOT add salt, oil,
    seasoning, or any unlisted item in the steps.
-6. ONLY use approved ingredients (exact dbName keys):
+7. ONLY use approved ingredients (exact dbName keys):
 ${isCat ? freeCatIngredients : freeDogIngredients}
 ${isPuppy && !isCat
-  ? `7. PUPPY energy density: protein must be ≥65% of food weight. Grains/carbs (rice, millet, oats) MAX 15g TOTAL. Total veggies combined MAX ${Math.round(Math.max(weightKg * 8, 10))}g. Spinach MAX 10g (oxalates block calcium absorption).`
+  ? `8. PUPPY energy density: protein must be ≥65% of food weight. Grains/carbs (rice, millet, oats) MAX 15g TOTAL. Total veggies combined MAX ${Math.round(Math.max(weightKg * 8, 10))}g. Spinach MAX 10g (oxalates block calcium absorption).`
   : isCat
-  ? `7. CAT portions: total veggies MAX 20g. No grains/rice unless explicitly needed.${ageMonths >= 96 ? ' Senior cat (>8yr): avoid spinach.' : ''}`
+  ? `8. CAT portions: total veggies MAX 20g. No grains/rice unless explicitly needed.${ageMonths >= 96 ? ' Senior cat (>8yr): avoid spinach.' : ''}`
   : ageMonths >= 96
-  ? `7. Senior dog (>8yr): avoid spinach. Total veggies combined MAX ${Math.round(weightKg * 4)}g.`
-  : `7. Adult dog portions: total veggies combined MAX ${Math.round(weightKg * 4)}g. Do NOT use vegetables to bulk up calories — adjust protein and carb amounts instead.`
+  ? `8. Senior dog (>8yr): avoid spinach. Total veggies combined MAX ${Math.round(weightKg * 4)}g.`
+  : `8. Adult dog portions: total veggies combined MAX ${Math.round(weightKg * 4)}g. Do NOT use vegetables to bulk up calories — adjust protein and carb amounts instead.`
 }
 
 CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text before or after. Start your response with { and end with }.
@@ -464,10 +465,11 @@ INGREDIENT FREEDOM — Be creative. You may use ANY safe, nutritious pet food in
 - Vegetables: zucchini, asparagus, blueberries, butternut squash, celery, green beans, beet
 - Vary ingredients every time — do not repeat the same combination.
 
-VEGETABLE LIMITS (apply always):
+VEGETABLE LIMITS (apply always — DO NOT exceed):
 - Beet: MAX 15g (moderate oxalates + high sugar — more causes glycemic spike)
-- Asparagus: MAX 20g (high purines — excess stresses kidneys; FORBIDDEN for kidney disease)
+- Asparagus: HARD MAX 20g — do NOT exceed (high purines stress kidneys; FORBIDDEN for kidney disease)
 - Spinach: MAX 15g adults / MAX 10g puppies (high oxalates block calcium absorption)
+- Green beans / zucchini / celery for CATS: MAX 30g per ingredient (cats need protein-dominant meals)
 
 CARB RULE (CRITICAL — calculate before finalizing):
 - Total carbohydrates from ALL sources combined must contribute LESS than 20% of total recipe calories.
@@ -483,7 +485,12 @@ alcohol, caffeine, raw yeast dough, green tomatoes, raw potatoes, fruit seeds/pi
 
 OILY FISH RULE: Use at most ONE oily fish per recipe. Sardines, mackerel, salmon, herring are mutually exclusive — pick only ONE. Combining them causes extreme phosphorus overload.
 SARDINES/MACKEREL ARE SUPPLEMENTARY ONLY: Due to high phosphorus and per-kg limits, sardines/mackerel MAX ${Math.round(weightKg * 4)}g for this pet. Do NOT use as the primary/only protein. Always pair with a main protein (duck, rabbit, chicken, beef, etc.).
-${isCat ? '\nCAT RULES: Obligate carnivore — protein >65% of calories, no grains/rice as main ingredient. Do NOT use spinach (high oxalates → urinary stones). Taurine MUST be present.' : ''}
+${isCat ? `\nCAT RULES (CRITICAL — apply all of these):
+- Obligate carnivore: protein must be >65% of total calories. No grains or rice as main ingredient.
+- TOTAL VEGETABLES combined MAX ${Math.round(Math.min(weightKg * 5, 40))}g for this cat — vegetables are supplementary garnish, NOT a base. Green beans, asparagus, zucchini, pumpkin, carrot — use only a small amount.
+- Do NOT use spinach (high oxalates → urinary stones).
+- ALL eggs (quail egg, chicken egg) MUST be fully cooked — never raw. Raw eggs contain avidin which blocks biotin absorption and risk Salmonella.
+- Taurine MUST be present (from meat sources or taurine supplement).` : ''}
 ${!isCat && ageMonths >= 96 ? '\nSENIOR DOG (>8 years): Avoid spinach (high oxalates). Use broccoli or carrot instead.' : ''}
 ${isPuppy && !isCat ? `\nPUPPY RULES (growth stage — energy density is critical):
 - Protein + organ sources MUST be ≥65% of total food weight (excluding supplements/oils). Puppies need calorie-dense meals.
@@ -505,12 +512,13 @@ FAT REQUIREMENT (CRITICAL — verify before finalizing):
 MANDATORY:
 1. Calcium: ~${portionGuidance.calciumCarbonate}g calcium carbonate
 2. Omega-3: ~${Math.max(0.5, weightKg * 0.1).toFixed(1)}ml fish oil (mandatory — do NOT replace with cod)
-${isCat ? `3. Taurine: ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g taurine supplement OR taurine-rich meat sources
-4. Steps must NOT contain gram/weight numbers
+3. ALL eggs (quail egg, chicken egg, duck egg) MUST be fully cooked before serving — raw eggs risk Salmonella and block biotin absorption
+${isCat ? `4. Taurine: ~${Math.max(0.05, weightKg * 0.025).toFixed(2)}g taurine supplement OR taurine-rich meat sources
+5. Steps must NOT contain gram/weight numbers
+6. Steps must ONLY reference ingredients included in the ingredient list
+7. For each ingredient provide "dbName" in English snake_case (e.g. rabbit_meat, lamb_leg, sardines_canned, zucchini, beef_heart)` : `4. Steps must NOT contain gram/weight numbers
 5. Steps must ONLY reference ingredients included in the ingredient list
-6. For each ingredient provide "dbName" in English snake_case (e.g. rabbit_meat, lamb_leg, sardines_canned, zucchini, beef_heart)` : `3. Steps must NOT contain gram/weight numbers
-4. Steps must ONLY reference ingredients included in the ingredient list
-5. For each ingredient provide "dbName" in English snake_case (e.g. rabbit_meat, lamb_leg, sardines_canned, zucchini, beef_heart)`}
+6. For each ingredient provide "dbName" in English snake_case (e.g. rabbit_meat, lamb_leg, sardines_canned, zucchini, beef_heart)`}
 
 CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text before or after. Start your response with { and end with }.
 {
