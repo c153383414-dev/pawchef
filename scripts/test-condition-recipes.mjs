@@ -307,6 +307,84 @@ function qualityCheck(ingredients, species, condition) {
   return hits
 }
 
+// ── 食谱整体合理性分析 ────────────────────────────────────────────────────────
+/**
+ * 检查 AI 生成的食谱是否整体合理，独立于病症标准。
+ * 返回 { criticals: string[], warnings: string[] }
+ */
+function reasonablenessCheck(result, nutrients, species, weightKg, ageMonths, condition) {
+  const criticals = []   // ❌ 影响 overallPass
+  const warnings  = []   // ⚠️ 记录但不影响 overallPass
+  const isCat     = species === 'cat'
+  const { ingredients = [], steps = [], title = '' } = result
+
+  // 1. 热量合理性（与 DER 目标比较）
+  if (nutrients.ok) {
+    const der    = calculateDER(weightKg, ageMonths, species, condition)
+    const calMin = der.min * 0.60   // 允许 ±40% 浮动（AI 不精确）
+    const calMax = der.max * 1.40
+    if (nutrients.totalKcal < calMin)
+      warnings.push(`⚠️ 热量偏低: ${nutrients.totalKcal} kcal（目标 ${der.min}–${der.max}）`)
+    else if (nutrients.totalKcal > calMax)
+      warnings.push(`⚠️ 热量偏高: ${nutrients.totalKcal} kcal（目标 ${der.min}–${der.max}）`)
+  }
+
+  // 2. 食材数量
+  const mainIngs = ingredients.filter(i => !['supplement', 'oil'].includes(i.category ?? ''))
+  if (mainIngs.length < 2)
+    criticals.push(`❌ 主食材种类不足: 仅 ${mainIngs.length} 种`)
+  else if (mainIngs.length > 12)
+    warnings.push(`⚠️ 食材种类过多: ${mainIngs.length} 种（可能增加备料负担）`)
+
+  // 3. 必须有蛋白质
+  const hasProtein = ingredients.some(i => ['protein', 'organ'].includes(i.category ?? ''))
+  if (!hasProtein) criticals.push(`❌ 食谱无蛋白质食材`)
+
+  // 4. 必须有蔬菜（猫允许无蔬菜，犬必须有）
+  if (!isCat) {
+    const hasVeggie = ingredients.some(i => i.category === 'veggie')
+    if (!hasVeggie) warnings.push(`⚠️ 犬食谱无蔬菜食材`)
+  }
+
+  // 5. 必备补充剂
+  const hasCalcium = ingredients.some(i => (i.dbName ?? '').includes('calcium'))
+  const hasFishOil = ingredients.some(i =>
+    (i.dbName ?? '').includes('fish_oil') || (i.name ?? '').includes('鱼油'))
+  const hasTaurine = !isCat || ingredients.some(i =>
+    (i.dbName ?? '').includes('taurine') || (i.name ?? '').includes('牛磺酸'))
+  if (!hasCalcium) warnings.push(`⚠️ 缺碳酸钙补充剂`)
+  if (!hasFishOil) warnings.push(`⚠️ 缺鱼油`)
+  if (!hasTaurine) criticals.push(`❌ 猫缺牛磺酸（obligate，不可省略）`)
+
+  // 6. 重复食材（dbName 相同）
+  const dbNames = ingredients.map(i => i.dbName).filter(Boolean)
+  const dupes   = dbNames.filter((n, i) => dbNames.indexOf(n) !== i)
+  if (dupes.length > 0)
+    warnings.push(`⚠️ 重复食材: ${[...new Set(dupes)].join(', ')}`)
+
+  // 7. 步骤数量
+  if (steps.length < 2)
+    warnings.push(`⚠️ 烹饪步骤过少: ${steps.length} 步`)
+  else if (steps.length > 10)
+    warnings.push(`⚠️ 烹饪步骤过多: ${steps.length} 步`)
+
+  // 8. 步骤中不应出现克重数字（Prompt 已要求）
+  const stepsWithGrams = steps.filter(s => /\d+\s*g|\d+\s*克|\d+\s*毫升|\d+\s*ml/i.test(s))
+  if (stepsWithGrams.length > 0)
+    warnings.push(`⚠️ 步骤含克重数字（${stepsWithGrams.length} 处，Prompt 要求禁止）`)
+
+  // 9. 标题不应为空
+  if (!title || title.length < 2)
+    warnings.push(`⚠️ 食谱标题缺失或过短`)
+
+  // 10. amountG 必须为正数
+  const badAmounts = ingredients.filter(i => !(i.amountG > 0))
+  if (badAmounts.length > 0)
+    warnings.push(`⚠️ ${badAmounts.length} 种食材克重为零或缺失`)
+
+  return { criticals, warnings }
+}
+
 // ── 完全复刻 route.ts 中的计算函数 ────────────────────────────────────────────
 function calculateRER(w) { return Math.round(70 * Math.pow(w, 0.75)) }
 function calculateDER(w, ageMonths, species, condition) {
@@ -350,12 +428,21 @@ function calculatePortionGuidance(w, ageMonths, species, condition) {
 function buildConditionGuidance(condition, species) {
   switch (condition) {
     case 'kidney':
-      return `KIDNEY DISEASE DIETARY REQUIREMENTS:
-- Use low-phosphorus ingredients. Target: phosphorus <1200 mg/1000kcal (dogs) / <1350 mg/1000kcal (cats).
+      if (species === 'cat') {
+        return `KIDNEY DISEASE DIETARY REQUIREMENTS (CAT):
+- Use low-phosphorus ingredients. Target: phosphorus <1350 mg/1000kcal.
+- Avoid high-phosphorus foods: dairy, fish bones, legumes, organ meats in large amounts.
+- Sardines/anchovies: use sparingly (≤20g) due to high phosphorus from bones.
+- CRITICAL — protein selection for cats: Cats need >65% of calories from protein, so lean proteins (rabbit, chicken breast, turkey, white fish) paradoxically deliver VERY HIGH phosphorus per 1000kcal despite low phosphorus per gram. Choose proteins with moderate fat content to lower phosphorus density: salmon (~1250 mg/1000kcal), egg (~1280 mg/1000kcal), chicken thigh. Avoid rabbit, chicken breast, turkey breast, white fish as primary protein.
+- Do NOT restrict protein excessively — risk of muscle wasting. Vary protein sources across recipes.
+- Reference: Cline 2016 (ACVN); IRIS CKD Treatment Recommendations 2023`
+      }
+      return `KIDNEY DISEASE DIETARY REQUIREMENTS (DOG):
+- Use low-phosphorus ingredients. Target: phosphorus <1200 mg/1000kcal.
 - Avoid high-phosphorus foods: dairy, fish bones, legumes, organ meats in large amounts.
 - Sardines/anchovies: use sparingly (≤20g) due to high phosphorus from bones.
 - Omega-3 (EPA+DHA) is beneficial for kidney health — a small amount of fatty fish or fish oil is a useful option but not required every recipe.
-- Do NOT restrict protein excessively for cats — risk of muscle wasting. Vary protein sources across recipes.
+- Vary protein sources across recipes. Include vegetables and moderate carbs to dilute per-1000kcal phosphorus.
 - Reference: Cline 2016 (ACVN); IRIS CKD Treatment Recommendations 2023`
 
     case 'pancreatitis':
@@ -379,7 +466,8 @@ function buildConditionGuidance(condition, species) {
 - MINIMIZE carbohydrates. Target: <12% of metabolizable energy = <30g carbs/1000kcal.
 - HIGH PROTEIN diet. Target: ≥40% of ME from protein = ≥100g protein/1000kcal.
 - Avoid grains, starchy vegetables, legumes entirely.
-- Use any high-quality animal protein source — rotate widely across recipes for variety. No plant protein sources.
+- Protein selection: prefer lean to moderate-fat proteins (rabbit, chicken thigh, venison, quail, turkey thigh). Avoid very high-fat proteins like duck or pork belly — their fat calories dilute protein density per 1000kcal, making it harder to reach ≥100g protein/1000kcal.
+- Rotate protein sources across recipes for variety. No plant protein sources.
 - Reference: AAHA Diabetes Management Guidelines 2018/2022`
       }
       return `DIABETES DIETARY REQUIREMENTS (DOG):
@@ -505,8 +593,25 @@ const COMBOS = [
   { condition: 'allergy',      species: 'cat', label: '过敏 🐈' },
 ]
 
-// 固定参数（简化：使用代表性中等体重成年宠物）
-const PARAMS = { dog: { weightKg: 8, ageMonths: 36 }, cat: { weightKg: 4, ageMonths: 36 } }
+// ── 随机宠物参数（成年）────────────────────────────────────────────────────────
+// 不含幼年（ageMonths < 12），因为幼年有不同的 DER 因子和营养需求
+const rndFloat = (min, max, d = 1) =>
+  parseFloat((Math.random() * (max - min) + min).toFixed(d))
+const rndInt   = (min, max) =>
+  Math.floor(Math.random() * (max - min + 1)) + min
+
+function randomParams(species) {
+  if (species === 'cat') {
+    return {
+      weightKg:  rndFloat(2.5, 6.5),   // 猫体重 2.5-6.5 kg
+      ageMonths: rndInt(12, 120),        // 1-10 岁成年猫
+    }
+  }
+  return {
+    weightKg:  rndFloat(3, 35),          // 犬体重 3-35 kg（小中大型犬）
+    ageMonths: rndInt(12, 120),           // 1-10 岁成年犬
+  }
+}
 
 // ── 并发池 ────────────────────────────────────────────────────────────────────
 async function runPool(taskFns, concurrency) {
@@ -556,30 +661,32 @@ async function main() {
   const ans = await confirm('  确认开始？(y/n): ')
   if (ans !== 'y' && ans !== 'yes') { console.log('  已取消。'); return }
 
-  // 展开所有任务
+  // 展开所有任务（每条分配随机宠物参数）
   const tasks = []
   for (const combo of COMBOS) {
     for (let i = 0; i < RECIPES_PER_COMBO; i++) {
-      tasks.push({ ...combo, recipeIdx: i + 1 })
+      tasks.push({ ...combo, recipeIdx: i + 1, params: randomParams(combo.species) })
     }
   }
 
-  // 汇总统计
+  // 汇总统计（新增 reasonable 列）
   const comboStats = {}
   for (const c of COMBOS) {
-    comboStats[`${c.condition}-${c.species}`] = { label: c.label, pass: 0, fail: 0, redFlags: 0, total: 0 }
+    comboStats[`${c.condition}-${c.species}`] = {
+      label: c.label, pass: 0, fail: 0, redFlags: 0, reasonable: 0, total: 0
+    }
   }
 
   const t0 = Date.now()
   let done = 0
 
   const taskFns = tasks.map(task => async () => {
-    const { condition, species, recipeIdx } = task
-    const { weightKg, ageMonths } = PARAMS[species]
+    const { condition, species, recipeIdx, params } = task
+    const { weightKg, ageMonths } = params
     const key = `${condition}-${species}`
     const prompt = buildConditionPrompt(species, weightKg, ageMonths, condition)
 
-    let result, nutrients, condResult, redFlagHits, err = null
+    let result, nutrients, condResult, redFlagHits, reasonCheck, err = null
 
     try {
       result        = await callAI(prompt)
@@ -588,25 +695,29 @@ async function main() {
         ? validateCondition(nutrients, species, condition)
         : { pass: null, failures: ['营养估算失败'] }
       redFlagHits   = qualityCheck(result.ingredients ?? [], species, condition)
+      reasonCheck   = reasonablenessCheck(result, nutrients, species, weightKg, ageMonths, condition)
     } catch (e) {
       err = e.message
       result = {}
       nutrients = { ok: false, msg: e.message, unknowns: [] }
       condResult = { pass: null, failures: [] }
       redFlagHits = []
+      reasonCheck = { criticals: [], warnings: [] }
     }
 
     done++
     const elapsed = ((Date.now() - t0) / 1000).toFixed(0)
 
-    // 判断整体通过
+    // 判断整体通过（合理性 criticals 也纳入）
     const hasNumericTarget = Object.keys(CONDITION_STANDARDS[condition][species]).length > 0
     const numericPass  = !hasNumericTarget || condResult.pass === true
     const qualityPass  = redFlagHits.length === 0
-    const overallPass  = !err && numericPass && qualityPass
+    const isReasonable = (reasonCheck?.criticals ?? []).length === 0
+    const overallPass  = !err && numericPass && qualityPass && isReasonable
 
     // 更新统计
     comboStats[key].total++
+    if (!isReasonable) comboStats[key].reasonable++
     if (!err) {
       overallPass ? comboStats[key].pass++ : comboStats[key].fail++
       if (!qualityPass) comboStats[key].redFlags++
@@ -617,19 +728,24 @@ async function main() {
     const numLabel = nutrients.ok
       ? `磷${nutrients.phosphorus}mg 脂${nutrients.fat}g 碳水${nutrients.carbs}g 蛋白${nutrients.protein}g`
       : '—估算失败—'
+    const petInfo = `${weightKg}kg/${Math.round(ageMonths/12)}y`
     console.log(
-      `[${String(done).padStart(2)}/${tasks.length}] ${statusIcon} ` +
-      `${task.label.padEnd(8)} #${recipeIdx}  ` +
-      `${(result.title ?? 'ERROR').slice(0, 24).padEnd(26)}` +
+      `[${String(done).padStart(3)}/${tasks.length}] ${statusIcon} ` +
+      `${task.label.padEnd(8)} #${String(recipeIdx).padStart(2)} [${petInfo.padEnd(9)}]  ` +
+      `${(result.title ?? 'ERROR').slice(0, 22).padEnd(24)}` +
       `  ${numLabel}` +
-      (redFlagHits.length ? `  ← 红旗:${redFlagHits.length}` : '') +
-      (condResult.failures?.length ? `  ← 失败:${condResult.failures.join('; ')}` : '')
+      (redFlagHits.length              ? `  ← 红旗:${redFlagHits.length}` : '') +
+      (condResult.failures?.length     ? `  ← 条件:${condResult.failures.join('; ')}` : '') +
+      (reasonCheck?.criticals?.length  ? `  ← 合理性:${reasonCheck.criticals.length}项` : '')
     )
     if (nutrients.unknowns?.length) {
-      console.log(`     ↳ 未知食材(用类别平均估算): ${nutrients.unknowns.join(', ')}`)
+      console.log(`       ↳ 未知食材(类别估算): ${nutrients.unknowns.join(', ')}`)
+    }
+    if (reasonCheck?.warnings?.length) {
+      console.log(`       ↳ 合理性警告: ${reasonCheck.warnings.join(' | ')}`)
     }
 
-    return { task, result, nutrients, condResult, redFlagHits, err, overallPass }
+    return { task, result, nutrients, condResult, redFlagHits, reasonCheck, err, overallPass }
   })
 
   const allResults = await runPool(taskFns, CONCURRENCY)
@@ -639,30 +755,33 @@ async function main() {
   console.log('═'.repeat(72))
   console.log(' 汇总报告')
   console.log('═'.repeat(72))
-  console.log(`  健康状况          通过  失败  红旗  通过率  （N=${RECIPES_PER_COMBO}）`)
-  console.log('  ' + '─'.repeat(58))
+  console.log(`  健康状况          通过  失败  红旗  合理性↓  通过率  （N=${RECIPES_PER_COMBO}）`)
+  console.log('  ' + '─'.repeat(66))
 
-  let totalPass = 0, totalFail = 0, totalRedFlag = 0
+  let totalPass = 0, totalFail = 0, totalRedFlag = 0, totalUnreasonable = 0
 
   for (const combo of COMBOS) {
     const key   = `${combo.condition}-${combo.species}`
     const s     = comboStats[key]
     const rate  = s.total ? `${Math.round(s.pass / s.total * 100)}%` : '—'
-    const icon  = s.fail === 0 && s.redFlags === 0 ? '✅' : s.pass > 0 ? '⚠️' : '❌'
+    const icon  = s.fail === 0 && s.redFlags === 0 && s.reasonable === 0 ? '✅'
+                : s.pass > 0 ? '⚠️' : '❌'
     console.log(
       `  ${icon} ${s.label.padEnd(12)}  ${String(s.pass).padStart(3)}   ${String(s.fail).padStart(3)}   ` +
-      `${String(s.redFlags).padStart(3)}   ${rate.padStart(4)}`
+      `${String(s.redFlags).padStart(3)}     ${String(s.reasonable).padStart(3)}    ${rate.padStart(4)}`
     )
-    totalPass    += s.pass
-    totalFail    += s.fail
-    totalRedFlag += s.redFlags
+    totalPass          += s.pass
+    totalFail          += s.fail
+    totalRedFlag       += s.redFlags
+    totalUnreasonable  += s.reasonable
   }
 
-  console.log('  ' + '─'.repeat(58))
+  console.log('  ' + '─'.repeat(66))
   const totalN = totalPass + totalFail
   console.log(
     `  合计              ${String(totalPass).padStart(3)}   ${String(totalFail).padStart(3)}   ` +
-    `${String(totalRedFlag).padStart(3)}   ${totalN ? Math.round(totalPass / totalN * 100) + '%' : '—'}`
+    `${String(totalRedFlag).padStart(3)}     ${String(totalUnreasonable).padStart(3)}    ` +
+    `${totalN ? Math.round(totalPass / totalN * 100) + '%' : '—'}`
   )
   console.log()
 
@@ -671,10 +790,31 @@ async function main() {
   if (failures.length > 0) {
     console.log(' 失败详情:')
     for (const r of failures) {
-      const { task, result, condResult, redFlagHits } = r
-      console.log(`   ${task.label} #${task.recipeIdx}: ${result.title ?? '—'}`)
-      for (const f of condResult.failures ?? []) console.log(`     • 数值: ${f}`)
-      for (const f of redFlagHits) console.log(`     • ${f}`)
+      const { task, result, condResult, redFlagHits, reasonCheck } = r
+      const petInfo = `${task.params.weightKg}kg/${Math.round(task.params.ageMonths/12)}y`
+      console.log(`   ${task.label} #${task.recipeIdx} [${petInfo}]: ${result.title ?? '—'}`)
+      for (const f of condResult.failures ?? [])           console.log(`     • 病症数值: ${f}`)
+      for (const f of redFlagHits)                         console.log(`     • ${f}`)
+      for (const f of reasonCheck?.criticals ?? [])        console.log(`     • ${f}`)
+    }
+    console.log()
+  }
+
+  // 合理性警告汇总（不影响通过但值得关注）
+  const withWarnings = allResults.filter(
+    r => r && r.overallPass && (r.reasonCheck?.warnings?.length ?? 0) > 0
+  )
+  if (withWarnings.length > 0) {
+    console.log(` 合理性警告（通过但有提示，共 ${withWarnings.length} 条）:`)
+    const warnCounts = {}
+    for (const r of withWarnings) {
+      for (const w of r.reasonCheck.warnings) {
+        const key = w.replace(/\d+/g, 'N').slice(0, 30)
+        warnCounts[key] = (warnCounts[key] ?? 0) + 1
+      }
+    }
+    for (const [k, v] of Object.entries(warnCounts).sort((a, b) => b[1] - a[1])) {
+      console.log(`   ${String(v).padStart(3)}× ${k}`)
     }
     console.log()
   }
@@ -685,11 +825,13 @@ async function main() {
   const lines = allResults.filter(Boolean).map(r =>
     JSON.stringify({
       condition: r.task.condition, species: r.task.species, recipeIdx: r.task.recipeIdx,
+      weightKg: r.task.params.weightKg, ageMonths: r.task.params.ageMonths,
       title: r.result?.title,
       ingredients: r.result?.ingredients,
       nutrients: r.nutrients,
       conditionValidation: r.condResult,
       redFlags: r.redFlagHits,
+      reasonableness: r.reasonCheck,
       pass: r.overallPass,
       error: r.err,
     })
