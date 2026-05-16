@@ -481,8 +481,8 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
     const updatedCompliance = sub._updatedCompliance
       ? {
           ...recipe.compliance,
-          ...sub._updatedCompliance,
-          label: sub._updatedCompliance.label as 'compliant' | 'partial' | 'non-compliant',
+          label:    sub._updatedCompliance.label as 'compliant' | 'partial' | 'non-compliant',
+          labelKey: sub._updatedCompliance.labelKey,
         }
       : recipe.compliance
 
