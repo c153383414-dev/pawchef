@@ -8,7 +8,11 @@
     "signup": "Commencer gratuitement",
     "logout": "Déconnexion",
     "freePoints": "Crédits gratuits",
-    "aiPoints": "Crédits IA"
+    "aiPoints": "Crédits IA",
+    "proBadge": "PRO",
+    "daysLeft": "{days}j",
+    "expiresOn": "Expire : {date}",
+    "expiringSoonTip": "⚠️ Expire bientôt"
   },
   "hero": {
     "badge": "En référence aux cadres ASPCA · AAFCO · FEDIAF",

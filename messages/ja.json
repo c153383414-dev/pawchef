@@ -8,7 +8,11 @@
     "signup": "無料で始める",
     "logout": "ログアウト",
     "freePoints": "無料クレジット",
-    "aiPoints": "AIクレジット"
+    "aiPoints": "AIクレジット",
+    "proBadge": "PRO",
+    "daysLeft": "残{days}日",
+    "expiresOn": "期限: {date}",
+    "expiringSoonTip": "⚠️ もうすぐ期限切れ"
   },
   "hero": {
     "badge": "ASPCA · AAFCO · FEDIAF ペット栄養フレームワーク参照",

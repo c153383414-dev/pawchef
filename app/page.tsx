@@ -108,6 +108,7 @@ export default function HomePage() {
 
           {user ? (
             <>
+              {/* Credit pills */}
               <button onClick={() => scrollTo('points')} style={{
                 display: 'flex', alignItems: 'center', gap: 5,
                 padding: '5px 12px', borderRadius: 8,
@@ -117,15 +118,87 @@ export default function HomePage() {
               }}>
                 💙 {user.free_points ?? 0}
               </button>
-              <button onClick={() => scrollTo('points')} style={{
-                display: 'flex', alignItems: 'center', gap: 5,
-                padding: '5px 12px', borderRadius: 8,
-                background: '#FBF0E4', color: '#854F0B',
-                border: 'none', fontSize: 13, fontWeight: 500,
-                cursor: 'pointer', fontFamily: 'inherit'
-              }}>
-                🟠 {user.paid_points ?? 0}
-              </button>
+              {!user.is_pro && (
+                <button onClick={() => scrollTo('points')} style={{
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '5px 12px', borderRadius: 8,
+                  background: '#FBF0E4', color: '#854F0B',
+                  border: 'none', fontSize: 13, fontWeight: 500,
+                  cursor: 'pointer', fontFamily: 'inherit'
+                }}>
+                  🟠 {user.paid_points ?? 0}
+                </button>
+              )}
+
+              {/* Pro membership chip — Western-standard user status indicator */}
+              {user.is_pro && (() => {
+                const expiresAt = user.pro_expires_at ? new Date(user.pro_expires_at) : null
+                const daysLeft = expiresAt
+                  ? Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+                  : null
+                const expiringSoon = daysLeft !== null && daysLeft <= 7
+                const expiryDateStr = expiresAt
+                  ? expiresAt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+                  : null
+                const tooltipText = expiryDateStr
+                  ? (expiringSoon
+                      ? t('nav.expiringSoonTip') + ' · ' + t('nav.expiresOn', { date: expiryDateStr })
+                      : t('nav.expiresOn', { date: expiryDateStr }))
+                  : ''
+                return (
+                  <div
+                    title={tooltipText}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 0,
+                      borderRadius: 20,
+                      border: `1px solid ${expiringSoon ? '#F5A623' : 'rgba(200,129,58,0.25)'}`,
+                      background: expiringSoon ? '#FFF8E8' : '#FFFBF5',
+                      overflow: 'hidden', cursor: 'default',
+                      boxShadow: expiringSoon ? '0 0 0 2px rgba(245,166,35,0.15)' : 'none',
+                    }}
+                  >
+                    {/* Avatar circle */}
+                    <div style={{
+                      width: 30, height: 30, flexShrink: 0,
+                      background: '#1C1A16', color: '#FDFAF5',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 12, fontWeight: 700, userSelect: 'none',
+                    }}>
+                      {(user.display_name || user.email || '?').charAt(0).toUpperCase()}
+                    </div>
+
+                    {/* PRO badge */}
+                    <div style={{
+                      padding: '0 8px', height: 30,
+                      display: 'flex', alignItems: 'center', gap: 5,
+                    }}>
+                      <span style={{
+                        padding: '1px 6px', borderRadius: 8,
+                        background: expiringSoon ? '#F5A623' : '#C8813A',
+                        color: '#fff',
+                        fontSize: 10, fontWeight: 800, letterSpacing: '0.06em',
+                      }}>
+                        {t('nav.proBadge')}
+                      </span>
+
+                      {/* Days remaining */}
+                      {daysLeft !== null && (
+                        <>
+                          <span style={{ width: 1, height: 12, background: 'rgba(28,26,22,0.12)', display: 'inline-block' }} />
+                          <span style={{
+                            fontSize: 11, fontWeight: expiringSoon ? 700 : 400,
+                            color: expiringSoon ? '#C45C5C' : '#A06520',
+                          }}>
+                            {expiringSoon && '⚠️ '}
+                            {t('nav.daysLeft', { days: daysLeft })}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )
+              })()}
+
               <a href="/dashboard" style={{
                 ...btnStyle, background: 'transparent',
                 border: '1px solid rgba(28,26,22,0.12)',

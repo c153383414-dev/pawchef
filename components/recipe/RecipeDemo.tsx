@@ -586,32 +586,11 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                 {t('recipe.guestLimitReached')} · <span style={{ color: '#185FA5', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setShowSignupPrompt(true)}>{t('recipe.signupForMore')}</span>
               </div>
             )}
-            {user && isPro && (() => {
-              const expiresAt = user.pro_expires_at ? new Date(user.pro_expires_at) : null
-              const daysLeft = expiresAt ? Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null
-              const expiringSoon = daysLeft !== null && daysLeft <= 7
-              const expiryDateStr = expiresAt
-                ? expiresAt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
-                : null
-              return (
-                <div style={{ padding: '10px 14px', borderRadius: 10, background: expiringSoon ? '#FFF3CD' : '#FBF0E4', fontSize: 12, color: '#854F0B', lineHeight: 1.8, border: expiringSoon ? '1px solid #FAC775' : 'none' }}>
-                  <div>{t('recipe.proMonthUsage', { used: (user.monthly_ai_count ?? 0) + proMonthlyDelta })}</div>
-                  {daysLeft !== null && (
-                    <div style={{ marginTop: 2, color: expiringSoon ? '#C45C5C' : '#A06520', fontWeight: expiringSoon ? 600 : 400 }}>
-                      {expiringSoon
-                        ? t('recipe.proExpiringSoon', { days: daysLeft })
-                        : `📅 ${t('recipe.proExpiresIn', { days: daysLeft })}`}
-                      {expiryDateStr && !expiringSoon && (
-                        <span style={{ color: '#B87A30', marginLeft: 6 }}>({t('recipe.proExpiresOn', { date: expiryDateStr })})</span>
-                      )}
-                      {expiryDateStr && expiringSoon && (
-                        <span style={{ color: '#C45C5C', marginLeft: 6, fontWeight: 400 }}>({t('recipe.proExpiresOn', { date: expiryDateStr })})</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )
-            })()}
+            {user && isPro && (
+              <div style={{ padding: '10px 14px', borderRadius: 10, background: '#FBF0E4', fontSize: 12, color: '#854F0B', lineHeight: 1.6 }}>
+                {t('recipe.proMonthUsage', { used: (user.monthly_ai_count ?? 0) + proMonthlyDelta })}
+              </div>
+            )}
             {user && !isPro && hasFreeAI && (
               <div style={{ padding: '10px 14px', borderRadius: 10, background: '#EBF2EC', fontSize: 12, color: '#3B6D11', lineHeight: 1.6 }}>
                 ⚡ {t('recipe.freeRemaining', { n: freeLeft })}

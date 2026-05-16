@@ -8,7 +8,11 @@
     "signup": "免费开始",
     "logout": "退出",
     "freePoints": "免费积分",
-    "aiPoints": "AI积分"
+    "aiPoints": "AI积分",
+    "proBadge": "PRO",
+    "daysLeft": "{days}天",
+    "expiresOn": "到期：{date}",
+    "expiringSoonTip": "⚠️ 即将到期"
   },
   "hero": {
     "badge": "参照 ASPCA · AAFCO · FEDIAF 宠物营养框架",

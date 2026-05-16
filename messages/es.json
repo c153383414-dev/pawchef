@@ -8,7 +8,11 @@
     "signup": "Comenzar gratis",
     "logout": "Cerrar sesión",
     "freePoints": "Créditos gratis",
-    "aiPoints": "Créditos IA"
+    "aiPoints": "Créditos IA",
+    "proBadge": "PRO",
+    "daysLeft": "{days}d",
+    "expiresOn": "Vence: {date}",
+    "expiringSoonTip": "⚠️ Vence pronto"
   },
   "hero": {
     "badge": "Con referencia a marcos nutricionales ASPCA · AAFCO · FEDIAF",

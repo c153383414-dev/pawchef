@@ -8,7 +8,11 @@
     "signup": "무료 시작",
     "logout": "로그아웃",
     "freePoints": "무료 크레딧",
-    "aiPoints": "AI 크레딧"
+    "aiPoints": "AI 크레딧",
+    "proBadge": "PRO",
+    "daysLeft": "{days}일",
+    "expiresOn": "만료: {date}",
+    "expiringSoonTip": "⚠️ 곧 만료됩니다"
   },
   "hero": {
     "badge": "ASPCA · AAFCO · FEDIAF 반려동물 영양 프레임워크 참조",

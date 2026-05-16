@@ -8,7 +8,11 @@
     "signup": "Get Started",
     "logout": "Logout",
     "freePoints": "Free Credits",
-    "aiPoints": "AI Credits"
+    "aiPoints": "AI Credits",
+    "proBadge": "PRO",
+    "daysLeft": "{days}d",
+    "expiresOn": "Expires: {date}",
+    "expiringSoonTip": "⚠️ Expiring soon"
   },
   "hero": {
     "badge": "Referenced from ASPCA · AAFCO · FEDIAF Pet Nutrition Frameworks",
