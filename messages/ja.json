@@ -117,6 +117,34 @@
     },
     "warning": {
       "ingredient_removed": "⚠️ {name} は健康上の制限により食材から除外されました"
+    },
+    "healthLockedNoLogin": "👑 疾患栄養調節機能はProサブスクリプションが必要です ·",
+    "healthLockedLoginAction": "ログイン後に登録",
+    "recipeSaved": "📋 レシピが履歴に保存されました",
+    "viewHistory": "履歴を見る",
+    "autoLogged": "✅ 給食日誌に自動記録されました",
+    "viewLog": "見る / 編集",
+    "shoppingList": "買い物リスト",
+    "shopProtein": "タンパク質",
+    "shopVeggie": "野菜",
+    "shopCarb": "主食",
+    "shopSupplement": "サプリメント",
+    "shopCopy": "リストをコピー",
+    "shopCopied": "コピーしました",
+    "nutritionLogic": "栄養ロジック説明",
+    "aafcoDetailsTitle": "▸ AAFCO 主要栄養素比較（g/1000kcal 基準）",
+    "aafcoDetailsHint": "注: すべての数値はg（またはmg）/1000kcal基準のAAFCO比較値です。この比較は主要栄養素のみを対象としており、完全なAAFCO認証にはビタミン（A/D/E/K/Bグループ）および微量元素（鉄、亜鉛、銅、ヨウ素、セレンなど）の追加検査が必要です。長期的に唯一の主食として使用する場合は、総合ビタミン・ミネラルサプリメントを併用してください。",
+    "organNote": "内臓肉（肝臓/心臓など）はビタミンA・B12・鉄分が豊富です。総食事量の5–10%を目安とし、過剰摂取は避けてください",
+    "pancreatitisNote": "低脂肪モード有効：脂肪はAAFCO安全上限内に厳格に制限し、膵炎の再発を防ぎます",
+    "riskTitle": "注意事項",
+    "aafco": {
+      "protein": "タンパク質",
+      "fat": "脂質",
+      "calcium": "カルシウム",
+      "phosphorus": "リン",
+      "caPRatio": "カルシウム:リン比 (Ca:P)",
+      "omega3": "オメガ-3 (EPA+DHA)",
+      "taurine": "タウリン"
     }
   },
   "safety": {
@@ -197,7 +225,8 @@
       "unlimitedExports": "無制限食事日記エクスポート",
       "aiCreditsGift": "毎月 {n} 🟠 AIクレジット贈呈（月末リセット）",
       "freeNoAi": "💙 無料クレジットはAI機能に使用できません",
-      "aiNeverExpire": "🟠 AIクレジットは無期限 · 失敗時は自動返還"
+      "aiNeverExpire": "🟠 AIクレジットは無期限 · 失敗時は自動返還",
+      "aiQuotaTotal": "AI操作 {n}回/月（レシピ生成+食材交換含む）"
     }
   },
   "points": {
@@ -360,7 +389,8 @@
       "non-compliant_dog_adult": "⚠ AAFCO栄養フレームワーク参照未達（成犬）",
       "non-compliant_dog_puppy": "⚠ AAFCO栄養フレームワーク参照未達（子犬）",
       "non-compliant_cat_adult": "⚠ AAFCO栄養フレームワーク参照未達（成猫）",
-      "non-compliant_cat_kitten": "⚠ AAFCO栄養フレームワーク参照未達（子猫）"
+      "non-compliant_cat_kitten": "⚠ AAFCO栄養フレームワーク参照未達（子猫）",
+      "non-compliant_pro": "⚠ 栄養基準値未達 · 再生成をお勧めします"
     }
   },
   "supplement": {
@@ -368,16 +398,30 @@
       "calcium_deficiency": "カルシウム不足のため自動補充",
       "omega3_deficiency": "オメガ3不足のため自動補充",
       "taurine_deficiency": "タウリン不足（猫に必須）のため自動補充",
-      "phosphorus_deficiency": "リン酸水素カルシウム（DCP）で自動補充・Ca:P ≈ 1.2、AAFCO 認可のリン源"
+      "phosphorus_deficiency": "リン酸水素カルシウム（DCP）で自動補充・Ca:P ≈ 1.2、AAFCO 認可のリン源",
+      "fat_and_omega3_deficiency": "脂質とオメガ-3を同時に自動補充 · 皮膚と被毛の健康改善"
     }
   },
   "substitute": {
     "no_options": "この食材の適切な代替品が見つかりませんでした",
     "creditUsed": "🟠 AIクレジット1つ使用",
     "creditUsedPro": "✓ Pro代替食材1回使用",
+    "btn": "🔄",
+    "apply": "適用",
+    "collapse": "閉じる",
+    "tryAnother": "別のを試す",
+    "suggestions": "{name}を交換",
+    "loading": "検索中...",
+    "needCredits": "🟠 AIクレジット1個またはProが必要",
+    "applied": "✓ 食材が交換されました",
     "error": {
       "safety_violation": "代替食材がペットの健康要件を満たしていないためキャンセルしました",
       "nutrition_failure": "代替後の栄養チェックに失敗したためキャンセルしました"
+    },
+    "warn": {
+      "proteinLow": "交換後タンパク質が低くなります",
+      "fatLow": "交換後脂質が低くなります。魚油の追加をお勧めします",
+      "nonCompliant": "交換後栄養基準に達しません。再生成をお勧めします"
     }
   },
   "suitable": {
@@ -403,6 +447,89 @@
     "fr": "Français",
     "ja": "日本語",
     "ko": "한국어"
+  },
+  "mealPlan": {
+    "sectionTitle": "7日間ミールウィークプラン",
+    "sectionSubtitle": "AIが完全な7日間の食事計画、毎日のメニューと買い物リストを生成します",
+    "generate": "✦ 7日間プランを生成",
+    "generating": "⏳ 生成中...",
+    "cost": "3 🟠 AIクレジット",
+    "needCredits": "3 🟠 AIクレジットまたはProが必要",
+    "days": ["月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日", "日曜日"],
+    "day": "第{n}日",
+    "breakfast": "🌅 朝食",
+    "dinner": "🌆 夕食",
+    "calories": "約{n}",
+    "shoppingList": "📋 買い物リスト",
+    "proteins": "タンパク質",
+    "vegetables": "野菜",
+    "grains": "穀物",
+    "supplements": "サプリメント",
+    "weeklyNutrition": "週間栄養まとめ",
+    "avgCalories": "1日平均カロリー",
+    "proteinSources": "タンパク質源",
+    "standard": "栄養基準",
+    "disclaimer": "⚠️ AI生成情報で栄養参考用です。専門獣医師のアドバイスを代替しません。"
+  },
+  "risk": {
+    "lowFatNotForPuppies": "このレシピは脂質が低く子犬には適していません（子犬は脂質≥21g/1000kcalが必要）",
+    "highFatForSedentaryDog": "このレシピの脂質エネルギー比が40%を超えます。活動的な犬に適しています。室内犬は一部の食材を鶏胸肉や七面鳥の胸肉に置き換えることをお勧めします",
+    "consultVet": "慢性疾患の既往歴がある場合は、定期的に獣医師を受診して栄養指標を監視することをお勧めします",
+    "organModeration": "内臓肉は週2回を超えないようにしてください。過剰なビタミンAは毒性レベルまで蓄積される可能性があります",
+    "longTermPremix": "長期的に唯一の主食として使用する場合は、ペット用総合ビタミン・ミネラルサプリメント（亜鉛、銅、ヨウ素などの微量元素）を追加することをお勧めします"
+  },
+  "ingredient": {
+    "note": {
+      "liver": "ビタミンA・B12・鉄分が豊富 · 毎週制限、総食事量の10%以内",
+      "gizzard": "低脂肪高タンパク · 亜鉛・セレン豊富、消化補助",
+      "heart": "天然タウリン供給源 · CoQ10含有、心臓健康をサポート",
+      "salmon": "高オメガ-3（EPA+DHA）· 抗炎症、被毛の光沢改善",
+      "mackerel": "最もオメガ-3が豊富な魚類の一つ · ビタミンD豊富",
+      "sardines": "天然カルシウム・リン供給源 · 無塩製品を選ぶ、腎臓病には注意",
+      "beef": "高亜鉛・高鉄分 · タウリン豊富、筋肉維持",
+      "lamb": "低アレルゲンタンパク · 食物アレルギーのペットに適切",
+      "rabbit": "極低脂肪 · 優れた赤身タンパク質、体重管理に適切",
+      "egg": "完全なアミノ酸スペクトル · 高生物利用率、完全加熱が必要",
+      "pumpkin": "水溶性食物繊維 · 消化改善、便秘や下痢の緩和",
+      "broccoli": "ビタミンC・K豊富 · 抗酸化、免疫サポート",
+      "carrot": "β-カロテン供給源 · 視力と皮膚の健康をサポート",
+      "blueberry": "アントシアニン抗酸化 · 低カロリー、適量使用",
+      "sweet_potato": "食物繊維とビタミンA · 糖尿病ペットは制限",
+      "spinach": "シュウ酸含量が高い · 腎臓病、泌尿器問題は禁止",
+      "green_peas": "植物性タンパク補充 · 腎臓病ペットは制限"
+    }
+  },
+  "feedingLog": {
+    "title": "栄養食事日誌",
+    "addLog": "+ 給食記録",
+    "breakfast": "朝食",
+    "lunch": "昼食",
+    "dinner": "夕食",
+    "snack": "おやつ",
+    "totalFeedings": "給食回数",
+    "avgCalories": "1日平均カロリー",
+    "aafcoRate": "AAFCO準拠率",
+    "recentFeedings": "最近の給食記録",
+    "noLogs": "給食記録がありません。ペットの食事追跡を始めましょう！",
+    "export": "PDFレポートをエクスポート",
+    "exportCost": "30 💙",
+    "proOnly": "🔒 Pro限定: 栄養トレンドチャート",
+    "exportSuccess": "✓ レポートをダウンロードしました",
+    "exportError": "無料クレジット不足（30 💙 必要）",
+    "thisMonth": "今月",
+    "delete": "削除",
+    "logModal": {
+      "title": "給食記録",
+      "petName": "ペット名",
+      "mealType": "食事タイプ",
+      "mealTitle": "食事名",
+      "calories": "カロリー（任意）",
+      "fed_at": "給食時間",
+      "notes": "メモ（任意）",
+      "save": "保存",
+      "saving": "保存中...",
+      "cancel": "キャンセル"
+    }
   },
   "condition": {
     "disclaimer": "このレシピは健康上の問題を抱えるペット向けの栄養参考情報であり、医療方針を構成するものではありません。食事を変更する前に獣医師にご相談ください。",

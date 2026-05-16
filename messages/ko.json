@@ -117,6 +117,34 @@
     },
     "warning": {
       "ingredient_removed": "⚠️ {name}이(가) 건강 제한으로 레시피에서 제거되었습니다"
+    },
+    "healthLockedNoLogin": "👑 질환 영양 조절 기능은 Pro 구독이 필요합니다 ·",
+    "healthLockedLoginAction": "로그인 후 구독",
+    "recipeSaved": "📋 레시피가 기록에 저장되었습니다",
+    "viewHistory": "기록 보기",
+    "autoLogged": "✅ 급식 일지에 자동 기록되었습니다",
+    "viewLog": "보기 / 수정",
+    "shoppingList": "장보기 목록",
+    "shopProtein": "단백질",
+    "shopVeggie": "채소",
+    "shopCarb": "주식",
+    "shopSupplement": "보충제",
+    "shopCopy": "목록 복사",
+    "shopCopied": "복사됨",
+    "nutritionLogic": "영양 논리 설명",
+    "aafcoDetailsTitle": "▸ AAFCO 핵심 영양소 비교 (g/1000kcal 기준)",
+    "aafcoDetailsHint": "참고: 모든 수치는 g(또는 mg)/1000kcal 기준 AAFCO 비교값입니다. 이 비교는 핵심 다량 영양소만 다루며, 완전한 AAFCO 인증에는 비타민(A/D/E/K/B군) 및 미량 원소(철, 아연, 구리, 요오드, 셀레늄 등) 검사가 추가로 필요합니다. 장기간 유일한 주식으로 사용할 경우 종합 비타민·미네랄 보충제를 함께 사용하세요.",
+    "organNote": "내장육(간/심장 등)은 비타민 A, B12, 철분이 풍부합니다. 총 식사량의 5–10%를 권장하며 과다 섭취는 피하세요",
+    "pancreatitisNote": "저지방 모드 활성화: 지방은 AAFCO 안전 한도 내에서 엄격히 제한되어 췌장염 재발을 방지합니다",
+    "riskTitle": "주의 사항",
+    "aafco": {
+      "protein": "단백질",
+      "fat": "지방",
+      "calcium": "칼슘",
+      "phosphorus": "인",
+      "caPRatio": "칼슘:인 비율 (Ca:P)",
+      "omega3": "오메가-3 (EPA+DHA)",
+      "taurine": "타우린"
     }
   },
   "safety": {
@@ -197,7 +225,8 @@
       "unlimitedExports": "무제한 식이 일지 내보내기",
       "aiCreditsGift": "매월 {n} 🟠 AI 크레딧 제공 (매월 초기화)",
       "freeNoAi": "💙 무료 크레딧은 AI 기능에 사용할 수 없습니다",
-      "aiNeverExpire": "🟠 AI 크레딧은 만료되지 않음 · 실패 시 자동 환불"
+      "aiNeverExpire": "🟠 AI 크레딧은 만료되지 않음 · 실패 시 자동 환불",
+      "aiQuotaTotal": "AI 작업 {n}회/월 (레시피 생성+식재료 교체 포함)"
     }
   },
   "points": {
@@ -360,7 +389,8 @@
       "non-compliant_dog_adult": "⚠ AAFCO 영양 프레임워크 참조 미달（성견）",
       "non-compliant_dog_puppy": "⚠ AAFCO 영양 프레임워크 참조 미달（강아지）",
       "non-compliant_cat_adult": "⚠ AAFCO 영양 프레임워크 참조 미달（성묘）",
-      "non-compliant_cat_kitten": "⚠ AAFCO 영양 프레임워크 참조 미달（새끼고양이）"
+      "non-compliant_cat_kitten": "⚠ AAFCO 영양 프레임워크 참조 미달（새끼고양이）",
+      "non-compliant_pro": "⚠ 영양 참조값 미달 · 다시 생성하는 것을 권장합니다"
     }
   },
   "supplement": {
@@ -368,16 +398,30 @@
       "calcium_deficiency": "칼슘 부족으로 자동 보충",
       "omega3_deficiency": "오메가3 부족으로 자동 보충",
       "taurine_deficiency": "타우린 부족(고양이 필수 영양소)으로 자동 보충",
-      "phosphorus_deficiency": "인산수소칼슘(DCP)으로 자동 보충 · Ca:P ≈ 1.2, AAFCO 승인 인 공급원"
+      "phosphorus_deficiency": "인산수소칼슘(DCP)으로 자동 보충 · Ca:P ≈ 1.2, AAFCO 승인 인 공급원",
+      "fat_and_omega3_deficiency": "지방과 오메가-3 동시 자동 보충 · 피부 및 모발 건강 개선"
     }
   },
   "substitute": {
     "no_options": "이 식재료에 적합한 대체 재료를 찾을 수 없습니다",
     "creditUsed": "🟠 AI 크레딧 1개 사용",
     "creditUsedPro": "✓ Pro 재료 대체 1회 사용",
+    "btn": "🔄",
+    "apply": "적용",
+    "collapse": "접기",
+    "tryAnother": "다시 추천",
+    "suggestions": "{name} 교체",
+    "loading": "조회 중...",
+    "needCredits": "🟠 AI 크레딧 1개 또는 Pro 필요",
+    "applied": "✓ 재료가 교체되었습니다",
     "error": {
       "safety_violation": "대체 재료가 반려동물 건강 요구 사항을 충족하지 않아 취소되었습니다",
       "nutrition_failure": "대체 후 영양 검증에 실패하여 취소되었습니다"
+    },
+    "warn": {
+      "proteinLow": "교체 후 단백질이 낮아집니다",
+      "fatLow": "교체 후 지방이 낮아집니다. 어유 추가를 권장합니다",
+      "nonCompliant": "교체 후 영양이 기준에 미달됩니다. 다시 생성하는 것을 권장합니다"
     }
   },
   "suitable": {
@@ -403,6 +447,89 @@
     "fr": "Français",
     "ja": "日本語",
     "ko": "한국어"
+  },
+  "mealPlan": {
+    "sectionTitle": "7일 식단 주간 계획",
+    "sectionSubtitle": "AI가 완전한 7일 식단 계획과 매일 메뉴 및 장보기 목록을 생성합니다",
+    "generate": "✦ 7일 계획 생성",
+    "generating": "⏳ 생성 중...",
+    "cost": "3 🟠 AI 크레딧",
+    "needCredits": "3 🟠 AI 크레딧 또는 Pro 필요",
+    "days": ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"],
+    "day": "{n}일차",
+    "breakfast": "🌅 아침",
+    "dinner": "🌆 저녁",
+    "calories": "약{n}",
+    "shoppingList": "📋 장보기 목록",
+    "proteins": "단백질",
+    "vegetables": "채소",
+    "grains": "곡물",
+    "supplements": "보충제",
+    "weeklyNutrition": "주간 영양 요약",
+    "avgCalories": "일평균 칼로리",
+    "proteinSources": "단백질 출처",
+    "standard": "영양 기준",
+    "disclaimer": "⚠️ AI 생성 정보로 영양 참고용입니다. 전문 수의사 조언을 대체하지 않습니다."
+  },
+  "risk": {
+    "lowFatNotForPuppies": "이 레시피는 지방이 낮아 강아지에게 적합하지 않습니다 (강아지는 지방 ≥21g/1000kcal 필요)",
+    "highFatForSedentaryDog": "이 레시피의 지방 에너지 비율이 40%를 초과합니다. 활동적인 반려견에게 적합합니다. 실내 생활 견은 일부 식재료를 닭가슴살이나 칠면조 가슴살로 교체하는 것을 권장합니다",
+    "consultVet": "만성 질환 이력이 있는 반려동물은 정기적으로 수의사 방문을 통해 영양 지표를 모니터링하는 것을 권장합니다",
+    "organModeration": "내장육은 주 2회를 초과하지 않도록 하세요. 과량의 비타민 A는 독성 수준까지 축적될 수 있습니다",
+    "longTermPremix": "장기간 유일한 주식으로 사용할 경우 반려동물용 종합 비타민·미네랄 보충제(아연, 구리, 요오드 등 미량 원소)를 추가하는 것을 권장합니다"
+  },
+  "ingredient": {
+    "note": {
+      "liver": "비타민 A, B12, 철분이 풍부합니다 · 매주 제한, 총 식사량의 10% 초과 금지",
+      "gizzard": "저지방 고단백 · 아연, 셀레늄이 풍부하여 소화 보조",
+      "heart": "천연 타우린 공급원 · CoQ10 함유, 심장 건강 지원",
+      "salmon": "고 오메가-3(EPA+DHA) · 항염, 모발 광택 개선",
+      "mackerel": "오메가-3가 가장 풍부한 어류 중 하나 · 비타민 D 풍부",
+      "sardines": "천연 칼슘·인 공급원 · 무염 제품 선택, 신장 질환 주의",
+      "beef": "고아연·고철분 · 타우린이 풍부하여 근육 유지",
+      "lamb": "저자극성 단백질 · 식품 알레르기 반려동물에 적합",
+      "rabbit": "극저지방 · 우수한 린 단백질, 체중 관리에 적합",
+      "egg": "완전한 아미노산 스펙트럼 · 높은 생체 이용률, 완전히 익혀야 함",
+      "pumpkin": "수용성 식이섬유 · 소화 개선, 변비 또는 설사 완화",
+      "broccoli": "비타민 C, K 풍부 · 항산화, 면역 지원",
+      "carrot": "β-카로틴 공급원 · 시력 및 피부 건강 지원",
+      "blueberry": "안토시아닌 항산화 · 저칼로리, 적당량 사용",
+      "sweet_potato": "식이섬유와 비타민 A · 당뇨 반려동물은 제한",
+      "spinach": "수산 함량이 높음 · 신장 질환, 비뇨기 문제 금지",
+      "green_peas": "식물성 단백질 보충 · 신장 질환 반려동물은 제한"
+    }
+  },
+  "feedingLog": {
+    "title": "영양 식사 일지",
+    "addLog": "+ 급식 기록",
+    "breakfast": "아침",
+    "lunch": "점심",
+    "dinner": "저녁",
+    "snack": "간식",
+    "totalFeedings": "급식 횟수",
+    "avgCalories": "일평균 칼로리",
+    "aafcoRate": "AAFCO 준수율",
+    "recentFeedings": "최근 급식 기록",
+    "noLogs": "급식 기록이 없습니다. 반려동물 식사 추적을 시작하세요!",
+    "export": "PDF 보고서 내보내기",
+    "exportCost": "30 💙",
+    "proOnly": "🔒 Pro 전용: 영양 추세 차트",
+    "exportSuccess": "✓ 보고서 다운로드됨",
+    "exportError": "무료 크레딧 부족 (30 💙 필요)",
+    "thisMonth": "이번 달",
+    "delete": "삭제",
+    "logModal": {
+      "title": "급식 기록",
+      "petName": "반려동물 이름",
+      "mealType": "식사 유형",
+      "mealTitle": "식사 이름",
+      "calories": "칼로리 (선택사항)",
+      "fed_at": "급식 시간",
+      "notes": "메모 (선택사항)",
+      "save": "저장",
+      "saving": "저장 중...",
+      "cancel": "취소"
+    }
   },
   "condition": {
     "disclaimer": "이 레시피는 건강 문제가 있는 반려동물을 위한 영양 참고 정보이며 의료 치료 계획을 구성하지 않습니다. 식단을 변경하기 전에 수의사와 상담하세요.",

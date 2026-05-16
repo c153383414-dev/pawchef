@@ -117,6 +117,34 @@
     },
     "warning": {
       "ingredient_removed": "⚠️ {name} a été retiré de la recette pour des raisons de santé"
+    },
+    "healthLockedNoLogin": "👑 Le mode nutritionnel pour maladies nécessite Pro ·",
+    "healthLockedLoginAction": "S'abonner après connexion",
+    "recipeSaved": "📋 Recette enregistrée dans l'historique",
+    "viewHistory": "Voir l'historique",
+    "autoLogged": "✅ Enregistré automatiquement dans le journal",
+    "viewLog": "Voir / Modifier",
+    "shoppingList": "Liste de courses",
+    "shopProtein": "Protéines",
+    "shopVeggie": "Légumes",
+    "shopCarb": "Glucides",
+    "shopSupplement": "Suppléments",
+    "shopCopy": "Copier la liste",
+    "shopCopied": "Copié",
+    "nutritionLogic": "Explication nutritionnelle",
+    "aafcoDetailsTitle": "▸ Comparaison AAFCO des macronutriments clés (g/1000kcal)",
+    "aafcoDetailsHint": "Remarque : toutes les valeurs sont en g (ou mg)/1000kcal, référence AAFCO. Cette comparaison couvre uniquement les macronutriments clés. La certification AAFCO complète nécessite des vitamines (A/D/E/K/B) et des oligo-éléments (fer, zinc, cuivre, iode, sélénium). Utilisez un supplément multivitaminé si c'est l'alimentation principale à long terme.",
+    "organNote": "Les abats (foie/cœur) sont riches en vitamine A, B12 et fer. 5–10% du total recommandé, ne pas dépasser",
+    "pancreatitisNote": "Mode faible en gras activé : les graisses sont strictement limitées dans la limite AAFCO pour prévenir les rechutes de pancréatite",
+    "riskTitle": "Avertissements",
+    "aafco": {
+      "protein": "Protéine",
+      "fat": "Graisses",
+      "calcium": "Calcium",
+      "phosphorus": "Phosphore",
+      "caPRatio": "Ratio Ca:P",
+      "omega3": "Oméga-3 (EPA+DHA)",
+      "taurine": "Taurine"
     }
   },
   "safety": {
@@ -197,7 +225,8 @@
       "unlimitedExports": "Exportations illimitées du journal",
       "aiCreditsGift": "{n} 🟠 crédits IA/mois (remis à zéro mensuellement)",
       "freeNoAi": "💙 Les crédits gratuits ne peuvent pas être utilisés pour les fonctions IA",
-      "aiNeverExpire": "🟠 Les crédits IA n'expirent jamais · Remboursement automatique en cas d'échec"
+      "aiNeverExpire": "🟠 Les crédits IA n'expirent jamais · Remboursement automatique en cas d'échec",
+      "aiQuotaTotal": "Opérations IA {n}/mois (génération + substitution incluses)"
     }
   },
   "points": {
@@ -360,7 +389,8 @@
       "non-compliant_dog_adult": "⚠ En dessous du cadre nutritionnel AAFCO (Chien Adulte)",
       "non-compliant_dog_puppy": "⚠ En dessous du cadre nutritionnel AAFCO (Chiot)",
       "non-compliant_cat_adult": "⚠ En dessous du cadre nutritionnel AAFCO (Chat Adulte)",
-      "non-compliant_cat_kitten": "⚠ En dessous du cadre nutritionnel AAFCO (Chaton)"
+      "non-compliant_cat_kitten": "⚠ En dessous du cadre nutritionnel AAFCO (Chaton)",
+      "non-compliant_pro": "⚠ Valeurs nutritionnelles non atteintes · Régénération recommandée"
     }
   },
   "supplement": {
@@ -368,16 +398,30 @@
       "calcium_deficiency": "Calcium insuffisant, supplémenté automatiquement",
       "omega3_deficiency": "Oméga-3 insuffisant, supplémenté automatiquement",
       "taurine_deficiency": "Taurine insuffisante (essentielle pour les chats), supplémentée automatiquement",
-      "phosphorus_deficiency": "Phosphore supplémenté avec phosphate dicalcique (DCP), Ca:P ≈ 1.2, source approuvée AAFCO"
+      "phosphorus_deficiency": "Phosphore supplémenté avec phosphate dicalcique (DCP), Ca:P ≈ 1.2, source approuvée AAFCO",
+      "fat_and_omega3_deficiency": "Supplément automatique de graisses et Oméga-3 · Améliore peau et pelage"
     }
   },
   "substitute": {
     "no_options": "Aucun substitut adéquat trouvé pour cet ingrédient",
     "creditUsed": "1 🟠 crédit IA utilisé",
     "creditUsedPro": "✓ 1 substitution Pro utilisée",
+    "btn": "🔄",
+    "apply": "Appliquer",
+    "collapse": "Réduire",
+    "tryAnother": "Essayer un autre",
+    "suggestions": "Remplacer {name}",
+    "loading": "Recherche...",
+    "needCredits": "🟠 Nécessite 1 crédit IA ou Pro",
+    "applied": "✓ Ingrédient remplacé",
     "error": {
       "safety_violation": "Le substitut ne répond pas aux exigences de santé, annulé",
       "nutrition_failure": "La vérification nutritionnelle post-substitution a échoué, annulé"
+    },
+    "warn": {
+      "proteinLow": "La protéine baisse après substitution",
+      "fatLow": "Les graisses baissent après substitution. Ajout d'huile de poisson recommandé",
+      "nonCompliant": "La nutrition ne respecte pas la norme après substitution. Régénération recommandée"
     }
   },
   "suitable": {
@@ -403,6 +447,89 @@
     "fr": "Français",
     "ja": "日本語",
     "ko": "한국어"
+  },
+  "mealPlan": {
+    "sectionTitle": "Plan hebdomadaire de 7 jours",
+    "sectionSubtitle": "L'IA génère un plan complet de 7 jours avec menu quotidien et liste de courses",
+    "generate": "✦ Générer le plan de 7 jours",
+    "generating": "⏳ Génération en cours...",
+    "cost": "3 🟠 crédits IA",
+    "needCredits": "3 🟠 crédits IA ou Pro requis",
+    "days": ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"],
+    "day": "Jour {n}",
+    "breakfast": "🌅 Petit-déjeuner",
+    "dinner": "🌆 Dîner",
+    "calories": "~{n}",
+    "shoppingList": "📋 Liste de courses",
+    "proteins": "Protéines",
+    "vegetables": "Légumes",
+    "grains": "Céréales",
+    "supplements": "Suppléments",
+    "weeklyNutrition": "Résumé nutritionnel hebdomadaire",
+    "avgCalories": "Calories quotidiennes moyennes",
+    "proteinSources": "Sources de protéines",
+    "standard": "Norme nutritionnelle",
+    "disclaimer": "⚠️ Généré par IA à titre de référence nutritionnelle uniquement. Ne remplace pas les conseils vétérinaires professionnels."
+  },
+  "risk": {
+    "lowFatNotForPuppies": "Cette recette est pauvre en graisses et ne convient pas aux chiots (les chiots ont besoin de ≥21g de graisses/1000kcal)",
+    "highFatForSedentaryDog": "Cette recette dépasse 40% d'énergie provenant des graisses. Convient aux chiens actifs. Pour les chiens sédentaires, remplacer une partie de la viande par du blanc de poulet ou de dinde est recommandé",
+    "consultVet": "Pour les animaux avec des antécédents de maladies chroniques, il est recommandé de consulter régulièrement un vétérinaire pour surveiller les indicateurs nutritionnels",
+    "organModeration": "Les abats ne doivent pas dépasser 2 fois par semaine. Un excès de vitamine A peut s'accumuler à des niveaux toxiques",
+    "longTermPremix": "Pour une utilisation à long terme comme alimentation principale unique, il est recommandé d'ajouter un supplément multivitaminé-minéral pour animaux (zinc, cuivre, iode et autres oligo-éléments)"
+  },
+  "ingredient": {
+    "note": {
+      "liver": "Riche en vitamine A, B12 et fer · Limiter hebdomadairement, pas plus de 10% du total",
+      "gizzard": "Faible en graisses, riche en protéines · Riche en zinc et sélénium, aide à la digestion",
+      "heart": "Source naturelle de taurine · Contient CoQ10, soutient la santé cardiaque",
+      "salmon": "Riche en oméga-3 (EPA+DHA) · Anti-inflammatoire, améliore l'éclat du pelage",
+      "mackerel": "L'un des poissons les plus riches en oméga-3 · Riche en vitamine D",
+      "sardines": "Source naturelle de calcium et phosphore · Choisir sans sel, prudence en cas de maladie rénale",
+      "beef": "Riche en zinc et fer · Riche en taurine, maintien musculaire",
+      "lamb": "Protéine hypoallergénique · Adaptée aux animaux avec allergies alimentaires",
+      "rabbit": "Très faible en graisses · Excellente protéine maigre, idéale pour contrôle du poids",
+      "egg": "Profil complet d'acides aminés · Haute biodisponibilité, doit être bien cuit",
+      "pumpkin": "Fibre alimentaire soluble · Améliore la digestion, soulage la constipation ou diarrhée",
+      "broccoli": "Riche en vitamine C et K · Antioxydant, soutient l'immunité",
+      "carrot": "Source de β-carotène · Soutient la santé visuelle et cutanée",
+      "blueberry": "Antioxydant aux anthocyanes · Faible en calories, utiliser modérément",
+      "sweet_potato": "Fibres et vitamine A · Limiter pour les animaux diabétiques",
+      "spinach": "Teneur élevée en oxalate · Interdit en cas de maladie rénale et problèmes urinaires",
+      "green_peas": "Supplément de protéines végétales · Limiter pour les animaux avec maladie rénale"
+    }
+  },
+  "feedingLog": {
+    "title": "Journal nutritionnel",
+    "addLog": "+ Enregistrer un repas",
+    "breakfast": "Petit-déjeuner",
+    "lunch": "Déjeuner",
+    "dinner": "Dîner",
+    "snack": "Collation",
+    "totalFeedings": "Total des repas",
+    "avgCalories": "Calories quotidiennes moyennes",
+    "aafcoRate": "Taux de conformité AAFCO",
+    "recentFeedings": "Repas récents",
+    "noLogs": "Aucun enregistrement. Commencez à suivre l'alimentation de votre animal !",
+    "export": "Exporter le rapport PDF",
+    "exportCost": "30 💙",
+    "proOnly": "🔒 Pro uniquement : Graphiques de tendances nutritionnelles",
+    "exportSuccess": "✓ Rapport téléchargé",
+    "exportError": "Crédits gratuits insuffisants (30 💙 requis)",
+    "thisMonth": "Ce mois-ci",
+    "delete": "Supprimer",
+    "logModal": {
+      "title": "Enregistrer un repas",
+      "petName": "Nom de l'animal",
+      "mealType": "Type de repas",
+      "mealTitle": "Nom du repas",
+      "calories": "Calories (facultatif)",
+      "fed_at": "Heure du repas",
+      "notes": "Notes (facultatif)",
+      "save": "Enregistrer",
+      "saving": "Enregistrement...",
+      "cancel": "Annuler"
+    }
   },
   "condition": {
     "disclaimer": "Cette recette est une référence nutritionnelle pour les animaux avec des problèmes de santé et ne constitue pas un plan de traitement médical. Consultez votre vétérinaire avant de modifier le régime alimentaire.",
