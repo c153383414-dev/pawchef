@@ -360,7 +360,8 @@
     "reason": {
       "calcium_deficiency": "Calcio deficiente, suplementado automáticamente",
       "omega3_deficiency": "Omega-3 deficiente, suplementado automáticamente",
-      "taurine_deficiency": "Taurina deficiente (esencial para gatos), suplementada automáticamente"
+      "taurine_deficiency": "Taurina deficiente (esencial para gatos), suplementada automáticamente",
+      "phosphorus_deficiency": "Fósforo deficiente, suplementado con fosfato dicálcico (Ca:P 1.2, fuente aprobada por AAFCO)"
     }
   },
   "substitute": {

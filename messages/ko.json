@@ -360,7 +360,8 @@
     "reason": {
       "calcium_deficiency": "칼슘 부족으로 자동 보충",
       "omega3_deficiency": "오메가3 부족으로 자동 보충",
-      "taurine_deficiency": "타우린 부족(고양이 필수 영양소)으로 자동 보충"
+      "taurine_deficiency": "타우린 부족(고양이 필수 영양소)으로 자동 보충",
+      "phosphorus_deficiency": "인 부족으로 인산수소칼슘(Ca:P 1.2, AAFCO 승인 원료) 자동 보충"
     }
   },
   "substitute": {

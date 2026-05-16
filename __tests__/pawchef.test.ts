@@ -126,16 +126,14 @@ describe('nutrition-validator', () => {
 
     test('8kg 成犬 DER 范围正确', () => {
       const der = calculateDER({ weightKg: 8, ageMonths: 36, species: 'dog', healthConditions: ['healthy'] })
-      // DER target≈533, ±15% → 453–613
       expect(der.min).toBeGreaterThanOrEqual(440)
-      expect(der.max).toBeLessThanOrEqual(620)
+      expect(der.max).toBeLessThanOrEqual(600)
     })
 
     test('16kg 成犬 DER 范围正确', () => {
       const der = calculateDER({ weightKg: 16, ageMonths: 84, species: 'dog', healthConditions: ['healthy'] })
-      // DER target≈896, ±15% → 762–1030
-      expect(der.min).toBeGreaterThanOrEqual(760)
-      expect(der.max).toBeLessThanOrEqual(1040)
+      expect(der.min).toBeGreaterThanOrEqual(780)
+      expect(der.max).toBeLessThanOrEqual(1000)
     })
 
     test('幼犬（6个月）DER 系数更高', () => {
@@ -552,9 +550,8 @@ describe('热量目标范围回归测试', () => {
         weightKg: weight, ageMonths: age, species,
         healthConditions: ['healthy']
       })
-      // DER 范围现为 ±15%，测试断言放宽到 ±20% 以容纳真实值边界
-      expect(der.min).toBeGreaterThanOrEqual(minCal * 0.8)
-      expect(der.max).toBeLessThanOrEqual(maxCal * 1.2)
+      expect(der.min).toBeGreaterThanOrEqual(minCal * 0.9)
+      expect(der.max).toBeLessThanOrEqual(maxCal * 1.1)
     })
   })
 })

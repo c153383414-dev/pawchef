@@ -397,6 +397,15 @@ export const NUTRITION_DB: FoodItem[] = [
     dogSafe: true, catSafe: true, forbiddenFor: [], cautionFor: []
   },
   {
+    // 二钙磷酸盐（DCP）：宠物食品工业标准磷源，含 Ca 22% / P 18%，Ca:P 比 ≈ 1.2，
+    // 长期摄入安全，AAFCO 认可。用于同时补充磷和钙的食谱
+    id: 'dicalcium_phosphate', dbName: 'dicalcium_phosphate',
+    names: ['二钙磷酸盐', '磷酸氢钙', 'dicalcium phosphate', 'DCP'],
+    category: 'supplement',
+    nutrients: { calories: 0, protein: 0, fat: 0, carbs: 0, calcium: 220, phosphorus: 180, omega3: 0, taurine: 0, vitaminA: 0, vitaminD: 0, zinc: 0, iodine: 0 },
+    dogSafe: true, catSafe: true, forbiddenFor: ['kidney'], cautionFor: []
+  },
+  {
     id: 'fish_oil', dbName: 'fish_oil',
     names: ['鱼油', '三文鱼油', 'fish oil', 'salmon oil'],
     category: 'oil',

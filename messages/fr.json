@@ -360,7 +360,8 @@
     "reason": {
       "calcium_deficiency": "Calcium insuffisant, supplémenté automatiquement",
       "omega3_deficiency": "Oméga-3 insuffisant, supplémenté automatiquement",
-      "taurine_deficiency": "Taurine insuffisante (essentielle pour les chats), supplémentée automatiquement"
+      "taurine_deficiency": "Taurine insuffisante (essentielle pour les chats), supplémentée automatiquement",
+      "phosphorus_deficiency": "Phosphore insuffisant, supplémenté avec phosphate dicalcique (Ca:P 1.2, source approuvée AAFCO)"
     }
   },
   "substitute": {

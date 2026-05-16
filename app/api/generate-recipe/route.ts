@@ -25,9 +25,10 @@ const LANGUAGE_MAP: Record<string, string> = {
 
 // Localized display names for auto-added supplements
 const SUPPLEMENT_NAMES: Record<string, Record<string, string>> = {
-  calcium_carbonate:  { zh: '碳酸钙', en: 'Calcium Carbonate', es: 'Carbonato de Calcio', fr: 'Carbonate de Calcium', ja: '炭酸カルシウム', ko: '탄산칼슘' },
-  fish_oil:           { zh: '鱼油',   en: 'Fish Oil',          es: 'Aceite de Pescado',   fr: "Huile de Poisson",    ja: '魚油',           ko: '어유' },
-  taurine_supplement: { zh: '牛磺酸', en: 'Taurine',           es: 'Taurina',             fr: 'Taurine',             ja: 'タウリン',         ko: '타우린' },
+  calcium_carbonate:    { zh: '碳酸钙',     en: 'Calcium Carbonate',    es: 'Carbonato de Calcio',   fr: 'Carbonate de Calcium', ja: '炭酸カルシウム', ko: '탄산칼슘' },
+  dicalcium_phosphate:  { zh: '磷酸氢钙',   en: 'Dicalcium Phosphate',  es: 'Fosfato Dicálcico',     fr: 'Phosphate Dicalcique', ja: 'リン酸水素カルシウム', ko: '인산수소칼슘' },
+  fish_oil:             { zh: '鱼油',       en: 'Fish Oil',             es: 'Aceite de Pescado',     fr: "Huile de Poisson",     ja: '魚油',             ko: '어유' },
+  taurine_supplement:   { zh: '牛磺酸',     en: 'Taurine',              es: 'Taurina',               fr: 'Taurine',              ja: 'タウリン',           ko: '타우린' },
 }
 
 // 清理 AI 返回的食材：移除禁用/不安全食材，去重油性鱼类，保证胰腺炎有足够脂肪蛋白
