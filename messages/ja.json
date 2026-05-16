@@ -361,7 +361,7 @@
       "calcium_deficiency": "カルシウム不足のため自動補充",
       "omega3_deficiency": "オメガ3不足のため自動補充",
       "taurine_deficiency": "タウリン不足（猫に必須）のため自動補充",
-      "phosphorus_deficiency": "リン不足のためリン酸水素カルシウム（Ca:P 1.2、AAFCO 認定）で自動補充"
+      "phosphorus_deficiency": "リン酸水素カルシウム（DCP）で自動補充・Ca:P ≈ 1.2、AAFCO 認可のリン源"
     }
   },
   "substitute": {

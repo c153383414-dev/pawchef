@@ -953,10 +953,12 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                             </summary>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '6px 8px', background: '#FDFAF5', borderRadius: 6, border: '1px solid rgba(28,26,22,0.06)' }}>
                               {metrics.map(({ key, m, unit }) => {
-                                const valueStr = unit === '' ? m.value.toFixed(2) : `${m.value}${unit}`
+                                // 钙磷比无单位（纯比例），其他指标均带 /1000kcal 后缀以杜绝歧义
+                                const suffix = unit === '' ? '' : `${unit}/1000kcal`
+                                const valueStr = unit === '' ? m.value.toFixed(2) : `${m.value}${suffix}`
                                 const range = m.max !== undefined
-                                  ? (unit === '' ? `${m.min}–${m.max}` : `${m.min}–${m.max}${unit}`)
-                                  : `≥${m.min}${unit}`
+                                  ? (unit === '' ? `${m.min}–${m.max}` : `${m.min}–${m.max}${suffix}`)
+                                  : `≥${m.min}${suffix}`
                                 return (
                                   <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, padding: '2px 0' }}>
                                     <span style={{ color: 'rgba(28,26,22,0.6)' }}>

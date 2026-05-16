@@ -118,8 +118,8 @@
     "shopCopy": "Copy List",
     "shopCopied": "Copied",
     "nutritionLogic": "Nutrition Logic",
-    "aafcoDetailsTitle": "▸ AAFCO detail metrics (per 1000 kcal)",
-    "aafcoDetailsHint": "✓ indicates AAFCO chronic-intake minimum is met; range shown is AAFCO standard requirement",
+    "aafcoDetailsTitle": "▸ AAFCO key macro-nutrient comparison (normalized per 1000 kcal)",
+    "aafcoDetailsHint": "Note: values shown are g (or mg) per 1000 kcal — the AAFCO comparison basis. This panel covers key macronutrients and essential macro-minerals only. A complete AAFCO Complete & Balanced certification additionally requires verification of vitamins (A/D/E/K/B-complex) and trace minerals (iron, zinc, copper, iodine, selenium, etc.), which are beyond home-cooking self-assessment. For long-term sole feeding, add a multivitamin & mineral supplement.",
     "aafco": {
       "protein":    "Protein",
       "fat":        "Fat",
@@ -399,7 +399,7 @@
       "omega3_deficiency": "Auto-added by AI · EPA+DHA supports coat health and joint mobility",
       "fat_and_omega3_deficiency": "Auto-added by AI · Supports healthy skin and coat in one step",
       "taurine_deficiency": "Auto-added by AI · Essential nutrient for cats, supports heart and vision",
-      "phosphorus_deficiency": "Auto-added by AI · Dicalcium phosphate (Ca:P 1.2), AAFCO-approved phosphorus source, safe long-term"
+      "phosphorus_deficiency": "Auto-added by AI · Dicalcium phosphate (DCP), Ca:P ≈ 1.2, AAFCO-approved phosphorus source"
     }
   },
   "suitable": {
