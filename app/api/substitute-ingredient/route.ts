@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
       currentRecipe,   // { ingredients: Ingredient[] }
       pet,             // PetParams shape from frontend
       allergens = [],
+      excludeExtra = [],  // extra dbNames to exclude (e.g. previously suggested substitute)
     } = body
 
     const targetCategory: string | undefined = body.targetCategory
@@ -93,11 +94,13 @@ export async function POST(req: NextRequest) {
     const species    = pet.species as 'dog' | 'cat'
 
     // 已在食谱中的食材 dbName（排除被替换的那个，避免建议已有食材）
-    const existingDbNames = new Set(
-      (currentRecipe?.ingredients || [])
+    // 同时排除前端传来的额外排除项（如上次建议的食材，避免"换一个"重复推荐）
+    const existingDbNames = new Set([
+      ...(currentRecipe?.ingredients || [])
         .filter((ing: any) => ing.dbName && ing.dbName !== targetDbName)
-        .map((ing: any) => ing.dbName as string)
-    )
+        .map((ing: any) => ing.dbName as string),
+      ...excludeExtra.filter((d: any) => typeof d === 'string'),
+    ])
 
     const allowedFoods = getAllowedFoodsByCategory(category, conditions, species)
 

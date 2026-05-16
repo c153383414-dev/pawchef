@@ -167,6 +167,15 @@ export default function HomePage() {
     setUser(u => u ? { ...u, free_points: freePoints, paid_points: paidPoints } : u)
   }
 
+  // Refresh user credits from DB (called after substitution to update nav credit display)
+  const refreshUserCredits = async () => {
+    const sb = supabaseRef.current
+    const { data: { user: authUser } } = await sb.auth.getUser()
+    if (!authUser) return
+    const { data: profile } = await sb.from('profiles').select('*').eq('id', authUser.id).single()
+    if (profile) setUser(profileFromAuth(authUser, profile))
+  }
+
   if (loading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FDFAF5' }}>
       <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 24, color: '#C8813A' }}>🐾 PawChef</div>
@@ -326,7 +335,7 @@ export default function HomePage() {
 
       {/* DEMO */}
       <div id="demo" style={{ background: '#F7F3EC', borderRadius: 24, margin: '0 max(24px,5vw)' }}>
-        <RecipeDemo user={user} onAuthRequired={(mode) => openAuth(mode ?? 'signup')} locale={locale} t={t} />
+        <RecipeDemo user={user} onAuthRequired={(mode) => openAuth(mode ?? 'signup')} locale={locale} t={t} onCreditsUsed={refreshUserCredits} />
       </div>
 
       {/* MEAL PLAN */}

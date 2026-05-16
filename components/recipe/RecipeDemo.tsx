@@ -9,6 +9,7 @@ interface Props {
   onAuthRequired: (mode?: 'login' | 'signup') => void
   locale: string
   t: (key: string, params?: Record<string, string | number>) => string
+  onCreditsUsed?: () => void   // notify parent to refresh user credit display
 }
 
 const HEALTH_OPTIONS = [
@@ -63,7 +64,7 @@ const INGREDIENT_NOTES: Record<string, string> = {
 
 const PREFS_KEY = 'pawchef_form_prefs'
 
-export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
+export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsUsed }: Props) {
   const [species,  setSpecies]  = useState<'dog' | 'cat'>('dog')
   const [petName,  setPetName]  = useState('')
   const [weight,   setWeight]   = useState('8')
@@ -395,6 +396,11 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
       setSubstitutes(prev => { const next = { ...prev }; delete next[index]; return next })
     }
     try {
+      // When retrying (换一个), exclude the previous suggestion to avoid repeats
+      const excludeExtra = forceRefresh && substitutes[index]?.dbName
+        ? [substitutes[index].dbName]
+        : []
+
       const res = await fetch('/api/substitute-ingredient', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -410,6 +416,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
             healthConditions: health,
           },
           allergens: [],
+          excludeExtra,
         }),
       })
       const data = await res.json()
@@ -418,16 +425,24 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
         else showToast(formatApiError(data, res.status), 'error')
         return
       }
-      setSubstitutes(prev => ({ ...prev, [index]: data.substitute }))
-      setExpandedSub(index)
 
-      // 更新食谱合规信息
-      if (data.updatedCompliance && recipe) {
-        setRecipeState(prev => prev ? { ...prev, compliance: { ...prev.compliance!, ...data.updatedCompliance } } : prev)
-      }
+      // Store substitute together with updated nutrition/compliance for later application
+      setSubstitutes(prev => ({
+        ...prev,
+        [index]: {
+          ...data.substitute,
+          _updatedNutrition:      data.updatedNutrition,
+          _updatedCompliance:     data.updatedCompliance,
+          _autoAddedSupplements:  data.autoAddedSupplements,
+        },
+      }))
+      setExpandedSub(index)
 
       // Pro 月度用量同步（替换也消耗 pro_monthly 配额）
       if (data.proMonthlyUsed) setProMonthlyDelta(d => d + 1)
+
+      // Notify parent to refresh user credit display (for paid/gift users)
+      onCreditsUsed?.()
 
       showToast(isPro ? t('substitute.creditUsedPro') : t('substitute.creditUsed'), 'success')
     } catch {
@@ -437,18 +452,42 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
     }
   }
 
-  const applySubstitute = (ingredientIndex: number, sub: SubstituteItem) => {
+  const applySubstitute = (ingredientIndex: number, sub: SubstituteItem & {
+    _updatedNutrition?: { calories: string; protein: string; fat: string; carbs: string }
+    _updatedCompliance?: { label: string; labelKey: string }
+    _autoAddedSupplements?: any[]
+  }) => {
     if (!recipe) return
     const newIngredients = recipe.content.ingredients.map((ing, i) =>
       i === ingredientIndex
-        ? { emoji: sub.emoji, name: sub.name, dbName: sub.dbName, amount: sub.amount || `${sub.amountG}g` }
+        ? { emoji: sub.emoji, name: sub.name, dbName: sub.dbName, amountG: sub.amountG, amount: sub.amount || `${sub.amountG}g` }
         : ing
     )
     // 使用 AI 重新生成的烹饪步骤（如有），否则保留原步骤
     const newSteps = sub.newSteps && sub.newSteps.length > 0
       ? sub.newSteps
       : recipe.content.steps
-    setRecipe({ ...recipe, content: { ...recipe.content, ingredients: newIngredients, steps: newSteps } })
+
+    // 更新营养数值（热量、蛋白质、脂肪、碳水）和合规标签
+    const updatedNutrition = sub._updatedNutrition
+      ? {
+          calories: sub._updatedNutrition.calories,
+          protein:  sub._updatedNutrition.protein,
+          fat:      sub._updatedNutrition.fat,
+          carbs:    sub._updatedNutrition.carbs,
+        }
+      : recipe.nutrition
+
+    const updatedCompliance = sub._updatedCompliance
+      ? { ...recipe.compliance, ...sub._updatedCompliance }
+      : recipe.compliance
+
+    setRecipe({
+      ...recipe,
+      content: { ...recipe.content, ingredients: newIngredients, steps: newSteps },
+      nutrition: updatedNutrition,
+      compliance: updatedCompliance,
+    })
     setExpandedSub(null)
     setSubstitutes(prev => { const next = { ...prev }; delete next[ingredientIndex]; return next })
     showToast(t('substitute.applied'), 'success')
