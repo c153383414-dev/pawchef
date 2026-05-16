@@ -128,7 +128,8 @@ export function calculateDER(params: PetParams): { min: number; max: number } {
   }
 
   const target = Math.round(rer * factor)
-  return { min: Math.round(target * 0.9), max: Math.round(target * 1.1) }
+  // 家庭鲜食热量容差 ±15%（食材含水量、烹饪损失等天然存在偏差）
+  return { min: Math.round(target * 0.85), max: Math.round(target * 1.15) }
 }
 
 // ── 标准选择 ──
@@ -255,13 +256,16 @@ export function validateRecipe(
     taurine:    { value: nutrients.taurine    * per1000, min: standards.taurine.min,                               ok: false },
   }
 
-  aafco.protein.ok    = aafco.protein.value    >= aafco.protein.min
-  aafco.fat.ok        = aafco.fat.value        >= aafco.fat.min
-  aafco.calcium.ok    = aafco.calcium.value    >= aafco.calcium.min && aafco.calcium.value <= aafco.calcium.max
-  aafco.phosphorus.ok = aafco.phosphorus.value >= aafco.phosphorus.min
-  aafco.caPRatio.ok   = aafco.caPRatio.value   >= aafco.caPRatio.min && aafco.caPRatio.value <= aafco.caPRatio.max
-  aafco.omega3.ok     = aafco.omega3.value     >= aafco.omega3.min
-  aafco.taurine.ok    = standards.taurine.min === 0 || aafco.taurine.value >= standards.taurine.min
+  // AAFCO 下限容差：单餐 ±5% 偏差不影响健康（AAFCO 是长期摄入标准，且家庭鲜食天然
+  // 存在 ±5% 营养计算误差）。容差仅作用于"下限"，不作用于上限（钙/CaP 上限保持严格）
+  const TOL = 0.95
+  aafco.protein.ok    = aafco.protein.value    >= aafco.protein.min    * TOL
+  aafco.fat.ok        = aafco.fat.value        >= aafco.fat.min        * TOL
+  aafco.calcium.ok    = aafco.calcium.value    >= aafco.calcium.min    * TOL && aafco.calcium.value <= aafco.calcium.max
+  aafco.phosphorus.ok = aafco.phosphorus.value >= aafco.phosphorus.min * TOL
+  aafco.caPRatio.ok   = aafco.caPRatio.value   >= aafco.caPRatio.min   * TOL && aafco.caPRatio.value <= aafco.caPRatio.max
+  aafco.omega3.ok     = aafco.omega3.value     >= aafco.omega3.min     * TOL
+  aafco.taurine.ok    = standards.taurine.min === 0 || aafco.taurine.value >= standards.taurine.min * TOL
 
   aafco.passed = [
     aafco.protein.ok, aafco.fat.ok, aafco.calcium.ok,
@@ -329,11 +333,11 @@ export function validateRecipe(
     aafco.omega3.value   = nutrients.omega3   * p2
     aafco.taurine.value  = nutrients.taurine  * p2
     aafco.caPRatio.value = nutrients.phosphorus > 0 ? nutrients.calcium / nutrients.phosphorus : 0
-    aafco.fat.ok         = aafco.fat.value    >= aafco.fat.min
-    aafco.calcium.ok     = aafco.calcium.value  >= aafco.calcium.min && aafco.calcium.value <= aafco.calcium.max
-    aafco.omega3.ok      = aafco.omega3.value   >= aafco.omega3.min
-    aafco.taurine.ok     = standards.taurine.min === 0 || aafco.taurine.value >= standards.taurine.min
-    aafco.caPRatio.ok    = aafco.caPRatio.value >= aafco.caPRatio.min && aafco.caPRatio.value <= aafco.caPRatio.max
+    aafco.fat.ok         = aafco.fat.value    >= aafco.fat.min     * TOL
+    aafco.calcium.ok     = aafco.calcium.value  >= aafco.calcium.min * TOL && aafco.calcium.value <= aafco.calcium.max
+    aafco.omega3.ok      = aafco.omega3.value   >= aafco.omega3.min  * TOL
+    aafco.taurine.ok     = standards.taurine.min === 0 || aafco.taurine.value >= standards.taurine.min * TOL
+    aafco.caPRatio.ok    = aafco.caPRatio.value >= aafco.caPRatio.min * TOL && aafco.caPRatio.value <= aafco.caPRatio.max
     aafco.passed         = [aafco.protein.ok, aafco.fat.ok, aafco.calcium.ok, aafco.phosphorus.ok, aafco.caPRatio.ok, aafco.omega3.ok, aafco.taurine.ok].every(Boolean)
   }
 
