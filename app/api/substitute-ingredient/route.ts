@@ -16,6 +16,53 @@ const LANGUAGE_MAP: Record<string, string> = {
   fr: 'French',  ja: 'Japanese',             ko: 'Korean',
 }
 
+// Gemini requires these to suppress thinking-chain leakage and enforce JSON mode
+const GEMINI_EXTRAS = {
+  response_format:  { type: 'json_object' },
+  thinking_config:  { include_thoughts: false },
+}
+
+// Robust JSON parser: handles Gemini markdown code-blocks and thinking preamble
+function parseSubstituteJson(text: string, requiredKey: string): any {
+  // Strategy 1: extract ```json ... ``` block
+  const codeBlock = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
+  if (codeBlock) {
+    try {
+      const p = JSON.parse(codeBlock[1])
+      if (p[requiredKey] !== undefined) return p
+    } catch {}
+  }
+
+  // Strategy 2: bracket-depth scan — find first complete {...} containing requiredKey
+  {
+    let depth = 0, start = -1
+    let inString = false, escape = false
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i]
+      if (escape) { escape = false; continue }
+      if (c === '\\' && inString) { escape = true; continue }
+      if (c === '"') { inString = !inString; continue }
+      if (inString) continue
+      if (c === '{') { if (depth === 0) start = i; depth++ }
+      else if (c === '}') {
+        depth--
+        if (depth === 0 && start !== -1) {
+          try {
+            const p = JSON.parse(text.slice(start, i + 1))
+            if (p[requiredKey] !== undefined) return p
+          } catch {}
+          start = -1
+        }
+      }
+    }
+  }
+
+  // Strategy 3: direct parse
+  try { return JSON.parse(text.trim()) } catch {}
+
+  throw new Error('AI response format error')
+}
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
@@ -155,7 +202,7 @@ ${allergens.length > 0 ? `Allergens to avoid: ${allergens.join(', ')}` : ''}
 
 IMPORTANT: You MUST pick a dbName from the allowed list. Do NOT suggest any ingredient already in the recipe.
 
-Output JSON only (no markdown):
+Output raw JSON only. No markdown, no code blocks, no explanation. Start with { and end with }:
 { "name": "ingredient name in ${language}", "dbName": "exact_key_from_allowed_list", "amountG": ${originalAmountG}, "emoji": "🍗", "reason": "brief reason in ${language}" }`
 
     let substitute: any
@@ -165,11 +212,10 @@ Output JSON only (no markdown):
         messages:    [{ role: 'user', content: substitutePrompt }],
         max_tokens:  400,
         temperature: 0.8,
-      })
-      const text      = completion.choices[0]?.message?.content || ''
-      const jsonMatch = text.match(/\{[\s\S]*\}/)
-      if (!jsonMatch) throw new Error('AI format error')
-      substitute = JSON.parse(jsonMatch[0])
+        ...GEMINI_EXTRAS,
+      } as any)
+      const text = completion.choices[0]?.message?.content || ''
+      substitute = parseSubstituteJson(text, 'dbName')
     } catch (aiError) {
       console.error('AI substitute failed:', aiError)
       await refundCredit(supabase, user.id, creditSource)
@@ -241,7 +287,7 @@ Rules:
 4. Steps should be clear, practical, and match the actual cooking method for each ingredient
 5. Consider correct preparation: fish needs deboning, chicken needs thorough cooking, grains need soaking/boiling, etc.
 
-Output JSON only (no markdown):
+Output raw JSON only. No markdown, no code blocks, no explanation. Start with { and end with }:
 {"steps": ["step 1", "step 2", "step 3", "step 4"]}`
 
       const stepsCompletion = await openai.chat.completions.create({
@@ -249,14 +295,16 @@ Output JSON only (no markdown):
         messages:    [{ role: 'user', content: stepsPrompt }],
         max_tokens:  600,
         temperature: 0.3,
-      })
-      const stepsText  = stepsCompletion.choices[0]?.message?.content || ''
-      const stepsMatch = stepsText.match(/\{[\s\S]*\}/)
-      if (stepsMatch) {
-        const stepsResult = JSON.parse(stepsMatch[0])
+        ...GEMINI_EXTRAS,
+      } as any)
+      const stepsText = stepsCompletion.choices[0]?.message?.content || ''
+      try {
+        const stepsResult = parseSubstituteJson(stepsText, 'steps')
         if (Array.isArray(stepsResult.steps) && stepsResult.steps.length > 0) {
           newSteps = stepsResult.steps
         }
+      } catch {
+        // parse failed — fall through to keep original steps
       }
     } catch {
       // 步骤生成失败时保留原步骤，不阻断主流程
