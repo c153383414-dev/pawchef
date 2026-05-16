@@ -479,7 +479,11 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
       : recipe.nutrition
 
     const updatedCompliance = sub._updatedCompliance
-      ? { ...recipe.compliance, ...sub._updatedCompliance }
+      ? {
+          ...recipe.compliance,
+          ...sub._updatedCompliance,
+          label: sub._updatedCompliance.label as 'compliant' | 'partial' | 'non-compliant',
+        }
       : recipe.compliance
 
     setRecipe({
