@@ -478,9 +478,9 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
         }
       : recipe.nutrition
 
-    const updatedCompliance = sub._updatedCompliance
+    const updatedCompliance = (sub._updatedCompliance && recipe.compliance)
       ? {
-          ...recipe.compliance,
+          ...recipe.compliance,           // narrowed to RecipeCompliance (not undefined)
           label:    sub._updatedCompliance.label as 'compliant' | 'partial' | 'non-compliant',
           labelKey: sub._updatedCompliance.labelKey,
         }
