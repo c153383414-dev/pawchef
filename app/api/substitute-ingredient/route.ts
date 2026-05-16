@@ -161,7 +161,7 @@ Output JSON only (no markdown):
     let substitute: any
     try {
       const completion = await openai.chat.completions.create({
-        model:       'anthropic/claude-sonnet-4-5',
+        model:       'google/gemini-3.1-flash-lite',
         messages:    [{ role: 'user', content: substitutePrompt }],
         max_tokens:  400,
         temperature: 0.8,
@@ -245,7 +245,7 @@ Output JSON only (no markdown):
 {"steps": ["step 1", "step 2", "step 3", "step 4"]}`
 
       const stepsCompletion = await openai.chat.completions.create({
-        model:       'anthropic/claude-sonnet-4-5',
+        model:       'google/gemini-3.1-flash-lite',
         messages:    [{ role: 'user', content: stepsPrompt }],
         max_tokens:  600,
         temperature: 0.3,
