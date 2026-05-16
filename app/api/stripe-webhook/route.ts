@@ -33,10 +33,39 @@ export async function POST(req: NextRequest) {
     if (session.mode === 'subscription') {
       const userId = session.client_reference_id
       if (userId) {
-        const expiresAt = new Date()
-        expiresAt.setMonth(expiresAt.getMonth() + 1)
-        await supabase.from('profiles').update({ is_pro: true, pro_expires_at: expiresAt.toISOString() }).eq('id', userId)
-        await supabase.from('subscriptions').insert({ user_id: userId, plan: 'monthly', stripe_subscription_id: session.subscription as string, current_period_end: expiresAt.toISOString() })
+        // Fetch current expiry to stack (don't reset if user already has remaining time)
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('pro_expires_at')
+          .eq('id', userId)
+          .single()
+
+        const now = new Date()
+        const currentExpiry = profile?.pro_expires_at ? new Date(profile.pro_expires_at) : null
+        // Stack on top of existing time if still valid; otherwise start from now
+        const baseDate = currentExpiry && currentExpiry > now ? currentExpiry : now
+
+        // Determine plan duration from metadata (default: monthly)
+        const plan = (session.metadata?.plan as string) || 'monthly'
+        const expiresAt = new Date(baseDate)
+        if (plan === 'annual') {
+          expiresAt.setFullYear(expiresAt.getFullYear() + 1)
+        } else {
+          expiresAt.setMonth(expiresAt.getMonth() + 1)
+        }
+
+        await supabase.from('profiles').update({
+          is_pro: true,
+          pro_expires_at: expiresAt.toISOString(),
+          monthly_ai_count: 0,   // reset quota counter for new billing period
+        }).eq('id', userId)
+
+        await supabase.from('subscriptions').insert({
+          user_id: userId,
+          plan,
+          stripe_subscription_id: session.subscription as string,
+          current_period_end: expiresAt.toISOString(),
+        })
       }
     }
   }
