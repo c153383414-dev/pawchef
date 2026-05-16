@@ -119,7 +119,7 @@
     "shopCopied": "已复制",
     "nutritionLogic": "营养逻辑说明",
     "aafcoDetailsTitle": "▸ AAFCO 关键宏量指标对比（按 g/1000kcal 标准化）",
-    "aafcoDetailsHint": "注：数值均为 g (或 mg) / 1000kcal，AAFCO 比对基准。本对比仅覆盖关键宏量与必需常量元素；完整 AAFCO Complete & Balanced 全价日粮认证还需检测多种维生素（A/D/E/K/B 族）与微量元素（铁、锌、铜、碘、硒等），超出家庭鲜食自测范围。长期作为唯一主食请搭配综合维矿补充剂。"
+    "aafcoDetailsHint": "注：数值均为 g (或 mg) / 1000kcal，AAFCO 比对基准。本对比仅覆盖关键宏量与必需常量元素；完整 AAFCO Complete & Balanced 全价日粮认证还需检测多种维生素（A/D/E/K/B 族）与微量元素（铁、锌、铜、碘、硒等），超出家庭鲜食自测范围。长期作为唯一主食请搭配综合维矿补充剂。",
     "aafco": {
       "protein":    "蛋白质",
       "fat":        "脂肪",
