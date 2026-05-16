@@ -86,12 +86,28 @@ export interface NutritionInfo {
   // standard 字段已移除，合规信息由 compliance 对象提供
 }
 
+export interface AafcoMetric {
+  value: number
+  min:   number
+  max?:  number
+  ok:    boolean
+}
+
 export interface RecipeCompliance {
   label:                'compliant' | 'partial' | 'non-compliant'
   labelKey:             string
   caloriesOk:           boolean
   targetCalories:       { min: number; max: number }
   autoAddedSupplements: Array<{ ingredient: string; dbName: string; amountG: number; reasonKey: string }>
+  aafcoDetails?: {
+    protein:    AafcoMetric
+    fat:        AafcoMetric
+    calcium:    AafcoMetric
+    phosphorus: AafcoMetric
+    caPRatio:   AafcoMetric
+    omega3:     AafcoMetric
+    taurine:    AafcoMetric
+  }
 }
 
 export type DeductSource =

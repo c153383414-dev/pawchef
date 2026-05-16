@@ -921,6 +921,63 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                         </div>
                       )}
 
+                      {/* AAFCO 详细指标透明度 — 让用户/兽医直接看到每 1000kcal 的关键营养素绝对值 */}
+                      {compliance?.aafcoDetails && (() => {
+                        const d = compliance.aafcoDetails
+                        const fmt = (m: { value: number; min: number; max?: number; ok: boolean }, unit: string, isRatio = false) => {
+                          const range = m.max !== undefined
+                            ? (isRatio ? `${m.min}–${m.max}` : `${m.min}–${m.max}${unit}`)
+                            : `≥${m.min}${unit}`
+                          return (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '2px 0', color: 'rgba(28,26,22,0.65)' }}>
+                              <span style={{ color: m.ok ? '#3B6D11' : '#C45C5C' }}>{m.ok ? '✓' : '✗'}</span>
+                              <span style={{ flex: 1, marginLeft: 6 }}>{t(`recipe.aafco.${unit === '' ? 'caPRatio' : ''}`)}</span>
+                            </div>
+                          )
+                        }
+                        // 准备指标列表
+                        const metrics: Array<{ key: string; m: typeof d.protein; unit: string }> = [
+                          { key: 'protein',    m: d.protein,    unit: 'g'  },
+                          { key: 'fat',        m: d.fat,        unit: 'g'  },
+                          { key: 'calcium',    m: d.calcium,    unit: 'mg' },
+                          { key: 'phosphorus', m: d.phosphorus, unit: 'mg' },
+                          { key: 'caPRatio',   m: d.caPRatio,   unit: ''   },
+                          { key: 'omega3',     m: d.omega3,     unit: 'mg' },
+                        ]
+                        if (species === 'cat') metrics.push({ key: 'taurine', m: d.taurine, unit: 'mg' })
+
+                        return (
+                          <details style={{ marginBottom: 10, paddingTop: 4 }}>
+                            <summary style={{ cursor: 'pointer', fontSize: 11, color: 'rgba(28,26,22,0.55)', fontWeight: 600, marginBottom: 6 }}>
+                              {t('recipe.aafcoDetailsTitle')}
+                            </summary>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '6px 8px', background: '#FDFAF5', borderRadius: 6, border: '1px solid rgba(28,26,22,0.06)' }}>
+                              {metrics.map(({ key, m, unit }) => {
+                                const valueStr = unit === '' ? m.value.toFixed(2) : `${m.value}${unit}`
+                                const range = m.max !== undefined
+                                  ? (unit === '' ? `${m.min}–${m.max}` : `${m.min}–${m.max}${unit}`)
+                                  : `≥${m.min}${unit}`
+                                return (
+                                  <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, padding: '2px 0' }}>
+                                    <span style={{ color: 'rgba(28,26,22,0.6)' }}>
+                                      <span style={{ color: m.ok ? '#3B6D11' : '#C45C5C', marginRight: 4, fontWeight: 600 }}>{m.ok ? '✓' : '✗'}</span>
+                                      {t(`recipe.aafco.${key}`)}
+                                    </span>
+                                    <span style={{ color: 'rgba(28,26,22,0.7)' }}>
+                                      <strong>{valueStr}</strong>
+                                      <span style={{ color: 'rgba(28,26,22,0.4)', marginLeft: 6 }}>{range}</span>
+                                    </span>
+                                  </div>
+                                )
+                              })}
+                              <div style={{ fontSize: 10, color: 'rgba(28,26,22,0.4)', marginTop: 6, paddingTop: 6, borderTop: '1px solid rgba(28,26,22,0.06)', lineHeight: 1.5 }}>
+                                {t('recipe.aafcoDetailsHint')}
+                              </div>
+                            </div>
+                          </details>
+                        )
+                      })()}
+
                       {/* 自动补充说明 */}
                       {recipe.content.ingredients.filter(i => i.autoAdded && i.reasonKey).map((ing, i) => (
                         <div key={i} style={{ fontSize: 11, color: '#3B6D11', marginBottom: 4, lineHeight: 1.5 }}>
@@ -946,6 +1003,11 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t }: Props) {
                       {(() => {
                         const risks: string[] = []
                         if (isPuppy && fPct < 18) risks.push('risk.lowFatNotForPuppies')
+                        // 脂肪偏高提示（仅成犬健康宠物，>40% 热量来自脂肪）
+                        // AAFCO 不限制脂肪上限，但久坐室内犬过高脂肪可能软便/胰腺压力
+                        if (!isPuppy && species === 'dog' && health.includes('healthy') && fPct > 40) {
+                          risks.push('risk.highFatForSedentaryDog')
+                        }
                         if (!health.includes('healthy')) risks.push('risk.consultVet')
                         if (hasOrgan) risks.push('risk.organModeration')
                         risks.push('risk.longTermPremix')

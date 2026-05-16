@@ -926,6 +926,16 @@ CRITICAL: Output raw JSON only. No markdown, no code blocks, no explanation text
         caloriesOk:           validation.caloriesOk,
         targetCalories:       validation.targetCalories,
         autoAddedSupplements: validation.supplements,
+        // AAFCO 每 1000kcal 详细指标 — 用于 UI 透明度展示
+        aafcoDetails: {
+          protein:    { value: Math.round(validation.aafco.protein.value),    min: validation.aafco.protein.min,    ok: validation.aafco.protein.ok },
+          fat:        { value: Math.round(validation.aafco.fat.value * 10) / 10, min: validation.aafco.fat.min,     ok: validation.aafco.fat.ok },
+          calcium:    { value: Math.round(validation.aafco.calcium.value),    min: validation.aafco.calcium.min,    max: validation.aafco.calcium.max, ok: validation.aafco.calcium.ok },
+          phosphorus: { value: Math.round(validation.aafco.phosphorus.value), min: validation.aafco.phosphorus.min, ok: validation.aafco.phosphorus.ok },
+          caPRatio:   { value: Math.round(validation.aafco.caPRatio.value * 100) / 100, min: validation.aafco.caPRatio.min, max: validation.aafco.caPRatio.max, ok: validation.aafco.caPRatio.ok },
+          omega3:     { value: Math.round(validation.aafco.omega3.value),     min: validation.aafco.omega3.min,     ok: validation.aafco.omega3.ok },
+          taurine:    { value: Math.round(validation.aafco.taurine.value),    min: validation.aafco.taurine.min,    ok: validation.aafco.taurine.ok },
+        },
       },
       conditionCompliance,
       unknownIngredients: validation.unknownIngredients,

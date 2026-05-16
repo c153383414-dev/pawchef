@@ -118,6 +118,17 @@
     "shopCopy": "Copy List",
     "shopCopied": "Copied",
     "nutritionLogic": "Nutrition Logic",
+    "aafcoDetailsTitle": "▸ AAFCO detail metrics (per 1000 kcal)",
+    "aafcoDetailsHint": "✓ indicates AAFCO chronic-intake minimum is met; range shown is AAFCO standard requirement",
+    "aafco": {
+      "protein":    "Protein",
+      "fat":        "Fat",
+      "calcium":    "Calcium",
+      "phosphorus": "Phosphorus",
+      "caPRatio":   "Ca:P ratio",
+      "omega3":     "Omega-3 (EPA+DHA)",
+      "taurine":    "Taurine"
+    },
     "organNote": "Organ meat (liver, heart, etc.) is rich in Vitamin A, B12 and iron — recommended at 5–10% of total food, not more",
     "pancreatitisNote": "Low-fat mode active: fat is strictly controlled within AAFCO safety limits to prevent pancreatitis relapse",
     "riskTitle": "Important Notes",
@@ -429,6 +440,7 @@
   },
   "risk": {
     "lowFatNotForPuppies": "This recipe is low in fat — not suitable for puppies (puppies need ≥21g fat/1000kcal)",
+    "highFatForSedentaryDog": "Fat contributes >40% of calories — suitable for active dogs; for sedentary indoor dogs, consider replacing part of the duck with chicken breast or turkey breast",
     "consultVet": "Pets with chronic conditions should have regular vet check-ups to monitor nutritional markers",
     "organModeration": "Organ meat max 2×/week — excess Vitamin A can accumulate to toxic levels",
     "longTermPremix": "For long-term sole feeding, add a dog/cat multivitamin & mineral supplement (zinc, copper, iodine, etc.)"

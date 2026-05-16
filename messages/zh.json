@@ -118,6 +118,17 @@
     "shopCopy": "复制清单",
     "shopCopied": "已复制",
     "nutritionLogic": "营养逻辑说明",
+    "aafcoDetailsTitle": "▸ AAFCO 详细指标（每 1000 kcal）",
+    "aafcoDetailsHint": "✓ 表示已满足 AAFCO 慢性长期摄入下限；范围数字为 AAFCO 标准要求",
+    "aafco": {
+      "protein":    "蛋白质",
+      "fat":        "脂肪",
+      "calcium":    "钙",
+      "phosphorus": "磷",
+      "caPRatio":   "钙磷比 (Ca:P)",
+      "omega3":     "Omega-3 (EPA+DHA)",
+      "taurine":    "牛磺酸"
+    },
     "organNote": "器官肉（肝脏/心脏等）富含维生素 A、B12 与铁，建议占总食量 5–10%，不宜超量",
     "pancreatitisNote": "低脂模式已激活：脂肪严格控制在 AAFCO 安全上限内，避免胰腺炎复发",
     "riskTitle": "注意事项",
@@ -469,6 +480,7 @@
   },
   "risk": {
     "lowFatNotForPuppies": "本食谱脂肪偏低，不适合幼犬（幼犬需 ≥21g 脂肪/1000kcal）",
+    "highFatForSedentaryDog": "本食谱脂肪供能 >40%，适合活跃犬；久坐室内犬建议替换部分鸭肉为鸡胸或火鸡胸",
     "consultVet": "有慢性病史的宠物，建议定期配合兽医随访，监测营养指标",
     "organModeration": "器官肉每周喂食不超过 2 次，过量维生素 A 可能积累至毒性水平",
     "longTermPremix": "长期作为唯一主食，建议额外添加犬猫综合维矿补充剂（锌、铜、碘等微量元素）"
