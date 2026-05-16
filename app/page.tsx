@@ -11,6 +11,94 @@ import LanguageSwitcher from '@/components/ui/LanguageSwitcher'
 import { useLocale } from '@/hooks/useLocale'
 import type { Profile } from '@/types'
 
+// ─── Pro membership chip with custom hover tooltip ───────────────────────────
+function ProNavChip({ user, t }: { user: Profile; t: (k: string, p?: Record<string, string | number>) => string }) {
+  const [hover, setHover] = useState(false)
+  const expiresAt = user.pro_expires_at ? new Date(user.pro_expires_at) : null
+  const daysLeft = expiresAt
+    ? Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null
+  const expiringSoon = daysLeft !== null && daysLeft <= 7
+  const expiryDateStr = expiresAt
+    ? expiresAt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+    : null
+  const tooltipText = expiryDateStr
+    ? (expiringSoon
+        ? t('nav.expiringSoonTip') + '\n' + t('nav.expiresOn', { date: expiryDateStr })
+        : t('nav.expiresOn', { date: expiryDateStr }))
+    : ''
+
+  return (
+    <div style={{ position: 'relative', display: 'inline-flex' }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      {/* Chip */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 0,
+        borderRadius: 20,
+        border: `1px solid ${expiringSoon ? '#F5A623' : 'rgba(200,129,58,0.25)'}`,
+        background: expiringSoon ? '#FFF8E8' : '#FFFBF5',
+        overflow: 'hidden', cursor: 'default',
+        boxShadow: expiringSoon ? '0 0 0 2px rgba(245,166,35,0.15)' : 'none',
+      }}>
+        {/* Avatar circle */}
+        <div style={{
+          width: 30, height: 30, flexShrink: 0,
+          background: '#1C1A16', color: '#FDFAF5',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 12, fontWeight: 700, userSelect: 'none',
+        }}>
+          {(user.display_name || user.email || '?').charAt(0).toUpperCase()}
+        </div>
+        {/* PRO badge + days */}
+        <div style={{ padding: '0 8px', height: 30, display: 'flex', alignItems: 'center', gap: 5 }}>
+          <span style={{
+            padding: '1px 6px', borderRadius: 8,
+            background: expiringSoon ? '#F5A623' : '#C8813A',
+            color: '#fff', fontSize: 10, fontWeight: 800, letterSpacing: '0.06em',
+          }}>
+            {t('nav.proBadge')}
+          </span>
+          {daysLeft !== null && (
+            <>
+              <span style={{ width: 1, height: 12, background: 'rgba(28,26,22,0.12)', display: 'inline-block' }} />
+              <span style={{
+                fontSize: 11, fontWeight: expiringSoon ? 700 : 400,
+                color: expiringSoon ? '#C45C5C' : '#A06520',
+              }}>
+                {expiringSoon && '⚠️ '}{t('nav.daysLeft', { days: daysLeft })}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Custom tooltip */}
+      {hover && tooltipText && (
+        <div style={{
+          position: 'absolute', top: '100%', right: 0, marginTop: 6,
+          background: '#1C1A16', color: '#FDFAF5',
+          fontSize: 12, lineHeight: 1.6, whiteSpace: 'pre',
+          padding: '7px 12px', borderRadius: 8,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
+          zIndex: 999, pointerEvents: 'none',
+        }}>
+          {tooltipText}
+          {/* Arrow */}
+          <div style={{
+            position: 'absolute', top: -5, right: 14,
+            width: 10, height: 10,
+            background: '#1C1A16',
+            transform: 'rotate(45deg)',
+            borderRadius: 2,
+          }} />
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function HomePage() {
   const [user, setUser] = useState<Profile | null>(null)
   const [authOpen, setAuthOpen] = useState(false)
@@ -131,73 +219,7 @@ export default function HomePage() {
               )}
 
               {/* Pro membership chip — Western-standard user status indicator */}
-              {user.is_pro && (() => {
-                const expiresAt = user.pro_expires_at ? new Date(user.pro_expires_at) : null
-                const daysLeft = expiresAt
-                  ? Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-                  : null
-                const expiringSoon = daysLeft !== null && daysLeft <= 7
-                const expiryDateStr = expiresAt
-                  ? expiresAt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
-                  : null
-                const tooltipText = expiryDateStr
-                  ? (expiringSoon
-                      ? t('nav.expiringSoonTip') + ' · ' + t('nav.expiresOn', { date: expiryDateStr })
-                      : t('nav.expiresOn', { date: expiryDateStr }))
-                  : ''
-                return (
-                  <div
-                    title={tooltipText}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 0,
-                      borderRadius: 20,
-                      border: `1px solid ${expiringSoon ? '#F5A623' : 'rgba(200,129,58,0.25)'}`,
-                      background: expiringSoon ? '#FFF8E8' : '#FFFBF5',
-                      overflow: 'hidden', cursor: 'default',
-                      boxShadow: expiringSoon ? '0 0 0 2px rgba(245,166,35,0.15)' : 'none',
-                    }}
-                  >
-                    {/* Avatar circle */}
-                    <div style={{
-                      width: 30, height: 30, flexShrink: 0,
-                      background: '#1C1A16', color: '#FDFAF5',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 12, fontWeight: 700, userSelect: 'none',
-                    }}>
-                      {(user.display_name || user.email || '?').charAt(0).toUpperCase()}
-                    </div>
-
-                    {/* PRO badge */}
-                    <div style={{
-                      padding: '0 8px', height: 30,
-                      display: 'flex', alignItems: 'center', gap: 5,
-                    }}>
-                      <span style={{
-                        padding: '1px 6px', borderRadius: 8,
-                        background: expiringSoon ? '#F5A623' : '#C8813A',
-                        color: '#fff',
-                        fontSize: 10, fontWeight: 800, letterSpacing: '0.06em',
-                      }}>
-                        {t('nav.proBadge')}
-                      </span>
-
-                      {/* Days remaining */}
-                      {daysLeft !== null && (
-                        <>
-                          <span style={{ width: 1, height: 12, background: 'rgba(28,26,22,0.12)', display: 'inline-block' }} />
-                          <span style={{
-                            fontSize: 11, fontWeight: expiringSoon ? 700 : 400,
-                            color: expiringSoon ? '#C45C5C' : '#A06520',
-                          }}>
-                            {expiringSoon && '⚠️ '}
-                            {t('nav.daysLeft', { days: daysLeft })}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )
-              })()}
+              {user.is_pro && <ProNavChip user={user} t={t} />}
 
               <a href="/dashboard" style={{
                 ...btnStyle, background: 'transparent',
