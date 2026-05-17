@@ -391,6 +391,11 @@
     "applied": "✓ 食材已替换",
     "preview": "替换后预估",
     "no_options": "未找到符合条件的替代食材",
+    "freeToExplore": "浏览免费 · 应用时消耗积分",
+    "pool_fetching": "正在分析替代食材...",
+    "next_batch": "换一批",
+    "no_more": "该食材暂无更多替代选项",
+    "condition_warn": "请注意该食材可能不完全符合健康状态营养要求",
     "error": {
       "safety_violation": "替代食材不符合宠物健康要求，已取消",
       "nutrition_failure": "替换后营养校验不通过，已取消"
@@ -398,7 +403,8 @@
     "warn": {
       "proteinLow": "替换后蛋白质偏低",
       "fatLow": "替换后脂肪偏低，建议增加鱼油",
-      "nonCompliant": "替换后营养不达标，建议重新生成"
+      "nonCompliant": "替换后营养不达标，建议重新生成",
+      "conditionAttention": "替换后可能不符合健康状态饮食要求，建议重新生成"
     }
   },
   "mealPlan": {

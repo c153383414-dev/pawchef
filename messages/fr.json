@@ -422,8 +422,14 @@
     "warn": {
       "proteinLow": "La protéine baisse après substitution",
       "fatLow": "Les graisses baissent après substitution. Ajout d'huile de poisson recommandé",
-      "nonCompliant": "La nutrition ne respecte pas la norme après substitution. Régénération recommandée"
-    }
+      "nonCompliant": "La nutrition ne respecte pas la norme après substitution. Régénération recommandée",
+      "conditionAttention": "[TODO:fr] 替换后可能不符合健康状态饮食要求，建议重新生成"
+    },
+    "freeToExplore": "[TODO:fr] 浏览免费 · 应用时消耗积分",
+    "pool_fetching": "[TODO:fr] 正在分析替代食材...",
+    "next_batch": "[TODO:fr] 换一批",
+    "no_more": "[TODO:fr] 该食材暂无更多替代选项",
+    "condition_warn": "[TODO:fr] 请注意该食材可能不完全符合健康状态营养要求"
   },
   "suitable": {
     "healthyAdult": "✓ Adulte en bonne santé",
@@ -456,7 +462,15 @@
     "generating": "⏳ Génération en cours...",
     "cost": "3 🟠 crédits IA",
     "needCredits": "3 🟠 crédits IA ou Pro requis",
-    "days": ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"],
+    "days": [
+      "Lundi",
+      "Mardi",
+      "Mercredi",
+      "Jeudi",
+      "Vendredi",
+      "Samedi",
+      "Dimanche"
+    ],
     "day": "Jour {n}",
     "breakfast": "🌅 Petit-déjeuner",
     "dinner": "🌆 Dîner",

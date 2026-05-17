@@ -422,8 +422,14 @@
     "warn": {
       "proteinLow": "交換後タンパク質が低くなります",
       "fatLow": "交換後脂質が低くなります。魚油の追加をお勧めします",
-      "nonCompliant": "交換後栄養基準に達しません。再生成をお勧めします"
-    }
+      "nonCompliant": "交換後栄養基準に達しません。再生成をお勧めします",
+      "conditionAttention": "[TODO:ja] 替换后可能不符合健康状态饮食要求，建议重新生成"
+    },
+    "freeToExplore": "[TODO:ja] 浏览免费 · 应用时消耗积分",
+    "pool_fetching": "[TODO:ja] 正在分析替代食材...",
+    "next_batch": "[TODO:ja] 换一批",
+    "no_more": "[TODO:ja] 该食材暂无更多替代选项",
+    "condition_warn": "[TODO:ja] 请注意该食材可能不完全符合健康状态营养要求"
   },
   "suitable": {
     "healthyAdult": "✓ 健康な成体",
@@ -456,7 +462,15 @@
     "generating": "⏳ 生成中...",
     "cost": "3 🟠 AIクレジット",
     "needCredits": "3 🟠 AIクレジットまたはProが必要",
-    "days": ["月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日", "日曜日"],
+    "days": [
+      "月曜日",
+      "火曜日",
+      "水曜日",
+      "木曜日",
+      "金曜日",
+      "土曜日",
+      "日曜日"
+    ],
     "day": "第{n}日",
     "breakfast": "🌅 朝食",
     "dinner": "🌆 夕食",

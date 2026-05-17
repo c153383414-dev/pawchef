@@ -422,8 +422,14 @@
     "warn": {
       "proteinLow": "교체 후 단백질이 낮아집니다",
       "fatLow": "교체 후 지방이 낮아집니다. 어유 추가를 권장합니다",
-      "nonCompliant": "교체 후 영양이 기준에 미달됩니다. 다시 생성하는 것을 권장합니다"
-    }
+      "nonCompliant": "교체 후 영양이 기준에 미달됩니다. 다시 생성하는 것을 권장합니다",
+      "conditionAttention": "[TODO:ko] 替换后可能不符合健康状态饮食要求，建议重新生成"
+    },
+    "freeToExplore": "[TODO:ko] 浏览免费 · 应用时消耗积分",
+    "pool_fetching": "[TODO:ko] 正在分析替代食材...",
+    "next_batch": "[TODO:ko] 换一批",
+    "no_more": "[TODO:ko] 该食材暂无更多替代选项",
+    "condition_warn": "[TODO:ko] 请注意该食材可能不完全符合健康状态营养要求"
   },
   "suitable": {
     "healthyAdult": "✓ 건강한 성체",
@@ -456,7 +462,15 @@
     "generating": "⏳ 생성 중...",
     "cost": "3 🟠 AI 크레딧",
     "needCredits": "3 🟠 AI 크레딧 또는 Pro 필요",
-    "days": ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"],
+    "days": [
+      "월요일",
+      "화요일",
+      "수요일",
+      "목요일",
+      "금요일",
+      "토요일",
+      "일요일"
+    ],
     "day": "{n}일차",
     "breakfast": "🌅 아침",
     "dinner": "🌆 저녁",

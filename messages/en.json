@@ -128,13 +128,13 @@
     "aafcoDetailsTitle": "▸ AAFCO key macro-nutrient comparison (normalized per 1000 kcal)",
     "aafcoDetailsHint": "Note: values shown are g (or mg) per 1000 kcal — the AAFCO comparison basis. This panel covers key macronutrients and essential macro-minerals only. A complete AAFCO Complete & Balanced certification additionally requires verification of vitamins (A/D/E/K/B-complex) and trace minerals (iron, zinc, copper, iodine, selenium, etc.), which are beyond home-cooking self-assessment. For long-term sole feeding, add a multivitamin & mineral supplement.",
     "aafco": {
-      "protein":    "Protein",
-      "fat":        "Fat",
-      "calcium":    "Calcium",
+      "protein": "Protein",
+      "fat": "Fat",
+      "calcium": "Calcium",
       "phosphorus": "Phosphorus",
-      "caPRatio":   "Ca:P ratio",
-      "omega3":     "Omega-3 (EPA+DHA)",
-      "taurine":    "Taurine"
+      "caPRatio": "Ca:P ratio",
+      "omega3": "Omega-3 (EPA+DHA)",
+      "taurine": "Taurine"
     },
     "organNote": "Organ meat (liver, heart, etc.) is rich in Vitamin A, B12 and iron — recommended at 5–10% of total food, not more",
     "pancreatitisNote": "Low-fat mode active: fat is strictly controlled within AAFCO safety limits to prevent pancreatitis relapse",
@@ -166,9 +166,16 @@
     "kidneyWarning": "🫘 Kidney Disease Note:",
     "pancreatitisWarning": "🔥 Pancreatitis Note:",
     "qi": {
-      "chicken": "Chicken", "salmon": "Salmon", "broccoli": "Broccoli",
-      "onion": "Onion", "grapes": "Grapes", "blueberry": "Blueberry",
-      "xylitol": "Xylitol", "pumpkin": "Pumpkin", "egg": "Egg", "chocolate": "Chocolate"
+      "chicken": "Chicken",
+      "salmon": "Salmon",
+      "broccoli": "Broccoli",
+      "onion": "Onion",
+      "grapes": "Grapes",
+      "blueberry": "Blueberry",
+      "xylitol": "Xylitol",
+      "pumpkin": "Pumpkin",
+      "egg": "Egg",
+      "chocolate": "Chocolate"
     }
   },
   "pricing": {
@@ -241,20 +248,60 @@
     "autoRefund": "Auto refund on failure",
     "noRefund": "Non-refundable, non-transferable",
     "earn": {
-      "register": { "title": "Registration Bonus", "desc": "One-time gift on signup", "val": "+20" },
-      "checkin": { "title": "Daily Check-in", "desc": "Login daily to earn", "val": "+5" },
-      "share": { "title": "Share Recipe", "desc": "Once per recipe, max 2/day", "val": "+10" },
-      "invite": { "title": "Invite Friend", "desc": "After email verification, max 5 lifetime", "val": "+30" }
+      "register": {
+        "title": "Registration Bonus",
+        "desc": "One-time gift on signup",
+        "val": "+20"
+      },
+      "checkin": {
+        "title": "Daily Check-in",
+        "desc": "Login daily to earn",
+        "val": "+5"
+      },
+      "share": {
+        "title": "Share Recipe",
+        "desc": "Once per recipe, max 2/day",
+        "val": "+10"
+      },
+      "invite": {
+        "title": "Invite Friend",
+        "desc": "After email verification, max 5 lifetime",
+        "val": "+30"
+      }
     },
     "freeSpend": {
-      "collection": { "title": "Unlock Extra Recipe Slots", "desc": "+10 slots", "val": "50💙" },
-      "export": { "title": "Export Diet Log PDF", "desc": "Per export", "val": "30💙" },
-      "pet2": { "title": "Unlock 2nd Pet Profile", "desc": "One-time unlock", "val": "100💙" }
+      "collection": {
+        "title": "Unlock Extra Recipe Slots",
+        "desc": "+10 slots",
+        "val": "50💙"
+      },
+      "export": {
+        "title": "Export Diet Log PDF",
+        "desc": "Per export",
+        "val": "30💙"
+      },
+      "pet2": {
+        "title": "Unlock 2nd Pet Profile",
+        "desc": "One-time unlock",
+        "val": "100💙"
+      }
     },
     "aiSpend": {
-      "generate": { "title": "AI Recipe Generation", "desc": "After quota or non-member", "val": "1🟠" },
-      "substitute": { "title": "Ingredient Substitution", "desc": "AI smart swap", "val": "1🟠" },
-      "weekly": { "title": "7-Day Meal Plan", "desc": "Full meal plan + shopping list", "val": "3🟠" }
+      "generate": {
+        "title": "AI Recipe Generation",
+        "desc": "After quota or non-member",
+        "val": "1🟠"
+      },
+      "substitute": {
+        "title": "Ingredient Substitution",
+        "desc": "AI smart swap",
+        "val": "1🟠"
+      },
+      "weekly": {
+        "title": "7-Day Meal Plan",
+        "desc": "Full meal plan + shopping list",
+        "val": "3🟠"
+      }
     },
     "packages": {
       "starter": "Starter Pack",
@@ -358,8 +405,14 @@
     "warn": {
       "proteinLow": "Protein may be low after substitution",
       "fatLow": "Fat may be low after substitution, consider adding fish oil",
-      "nonCompliant": "Nutrition below standard after substitution, consider regenerating"
-    }
+      "nonCompliant": "Nutrition below standard after substitution, consider regenerating",
+      "conditionAttention": "[TODO:en] 替换后可能不符合健康状态饮食要求，建议重新生成"
+    },
+    "freeToExplore": "[TODO:en] 浏览免费 · 应用时消耗积分",
+    "pool_fetching": "[TODO:en] 正在分析替代食材...",
+    "next_batch": "[TODO:en] 换一批",
+    "no_more": "[TODO:en] 该食材暂无更多替代选项",
+    "condition_warn": "[TODO:en] 请注意该食材可能不完全符合健康状态营养要求"
   },
   "mealPlan": {
     "sectionTitle": "7-Day Meal Plan",
@@ -368,7 +421,15 @@
     "generating": "⏳ Generating...",
     "cost": "3 🟠 AI credits",
     "needCredits": "Need 3 🟠 AI credits or Pro",
-    "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    "days": [
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+      "Sun"
+    ],
     "day": "Day {n}",
     "breakfast": "🌅 Breakfast",
     "dinner": "🌆 Dinner",
@@ -429,21 +490,21 @@
     "disclaimer": "This recipe is a nutritional reference for pets with health conditions and does not constitute a medical treatment plan. Please consult your veterinarian before making dietary changes to confirm the plan is appropriate for your pet.",
     "vetRecommend": "Consult your veterinarian to confirm",
     "label": {
-      "kidney_within_range":          "Within low-phosphorus guideline range",
-      "kidney_attention_needed":       "Phosphorus above guideline — please review",
-      "pancreatitis_within_range":     "Within low-fat guideline range",
+      "kidney_within_range": "Within low-phosphorus guideline range",
+      "kidney_attention_needed": "Phosphorus above guideline — please review",
+      "pancreatitis_within_range": "Within low-fat guideline range",
       "pancreatitis_attention_needed": "Fat above guideline — please review",
-      "diabetes_within_range":         "Within low-carb guideline range",
-      "diabetes_attention_needed":     "Carbs above guideline — please review",
-      "obesity_within_range":          "Within calorie control guideline range",
-      "obesity_attention_needed":      "Calories above guideline — please review"
+      "diabetes_within_range": "Within low-carb guideline range",
+      "diabetes_attention_needed": "Carbs above guideline — please review",
+      "obesity_within_range": "Within calorie control guideline range",
+      "obesity_attention_needed": "Calories above guideline — please review"
     },
     "expertOpinion": "Expert opinion; individual variation expected",
     "fail": {
       "phosphorus_high": "Phosphorus exceeds low-phosphorus guideline range",
-      "fat_high":        "Fat exceeds low-fat guideline range",
-      "carbs_high":      "Carbohydrates exceed low-carb guideline range",
-      "protein_low":     "Protein below minimum guideline — monitor muscle mass"
+      "fat_high": "Fat exceeds low-fat guideline range",
+      "carbs_high": "Carbohydrates exceed low-carb guideline range",
+      "protein_low": "Protein below minimum guideline — monitor muscle mass"
     }
   },
   "risk": {

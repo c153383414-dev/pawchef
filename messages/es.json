@@ -422,8 +422,14 @@
     "warn": {
       "proteinLow": "La proteína baja tras la sustitución",
       "fatLow": "La grasa baja tras la sustitución. Se recomienda agregar aceite de pescado",
-      "nonCompliant": "La nutrición no cumple el estándar tras la sustitución. Se recomienda regenerar"
-    }
+      "nonCompliant": "La nutrición no cumple el estándar tras la sustitución. Se recomienda regenerar",
+      "conditionAttention": "[TODO:es] 替换后可能不符合健康状态饮食要求，建议重新生成"
+    },
+    "freeToExplore": "[TODO:es] 浏览免费 · 应用时消耗积分",
+    "pool_fetching": "[TODO:es] 正在分析替代食材...",
+    "next_batch": "[TODO:es] 换一批",
+    "no_more": "[TODO:es] 该食材暂无更多替代选项",
+    "condition_warn": "[TODO:es] 请注意该食材可能不完全符合健康状态营养要求"
   },
   "suitable": {
     "healthyAdult": "✓ Adulto sano",
@@ -456,7 +462,15 @@
     "generating": "⏳ Generando...",
     "cost": "3 🟠 créditos IA",
     "needCredits": "Se necesitan 3 🟠 créditos IA o Pro",
-    "days": ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
+    "days": [
+      "Lunes",
+      "Martes",
+      "Miércoles",
+      "Jueves",
+      "Viernes",
+      "Sábado",
+      "Domingo"
+    ],
     "day": "Día {n}",
     "breakfast": "🌅 Desayuno",
     "dinner": "🌆 Cena",

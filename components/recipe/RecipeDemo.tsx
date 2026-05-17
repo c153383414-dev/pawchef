@@ -12,6 +12,29 @@ interface Props {
   onCreditsUsed?: () => void   // notify parent to refresh user credit display
 }
 
+// ── Substitute pool types ──────────────────────────────────────────────────────
+interface PoolCandidate {
+  dbName: string
+  name: string
+  emoji: string
+  amountG: number
+  nutritionDelta: {
+    calories: { before: number; after: number }
+    protein:  { before: number; after: number }
+    fat:      { before: number; after: number }
+  }
+  supplementChanges: Array<{ dbName: string; name: string; before: number; after: number }>
+  validationScore: number
+  conditionOk: boolean
+}
+interface CandidatePool {
+  candidates: PoolCandidate[]
+  page:       number    // current page (3 per page)
+  poolIndex:  number    // which AI batch (0,1,2)
+  loading:    boolean
+  exhausted:  boolean
+}
+
 const HEALTH_OPTIONS = [
   { key: 'healthy',      labelKey: 'recipe.healthy' },
   { key: 'kidney',       labelKey: 'recipe.kidney' },
@@ -136,11 +159,11 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
   const reconciledForUser  = useRef<string | null>(null)
   const reconciledFreeLeft = useRef<number | null>(null)
 
-  // 食材替换：单个 substitute 替代原来的数组
-  const [substituting, setSubstituting] = useState<number | null>(null)
-  const [substitutes,  setSubstitutes]  = useState<Record<number, SubstituteItem & { reason?: string }>>({})
-  const [expandedSubs, setExpandedSubs] = useState<Set<number>>(new Set())
-  // tracks original dbName for each ingredient slot so it's permanently excluded from future suggestions
+  // 食材替换：候选池（每次AI调用返回8-10个候选，前端分页3个展示）
+  const [candidatePools,    setCandidatePools]    = useState<Record<number, CandidatePool>>({})
+  const [applyingSubstitute, setApplyingSubstitute] = useState<number | null>(null)
+  const [expandedSubs,      setExpandedSubs]      = useState<Set<number>>(new Set())
+  // tracks original dbName for each slot so it's permanently excluded from future suggestions
   const [replacedFrom, setReplacedFrom] = useState<Record<number, string>>({})
 
   const [freeRemaining, setFreeRemaining] = useState<number | null>(null)
@@ -323,7 +346,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
         conditionCompliance: data.conditionCompliance ?? null,
         tier:                ['claude-sonnet', 'gemini-3.1-pro', 'gemini-2.5-flash'].includes(data.generatedBy) ? 'premium' : 'standard',
       })
-      setSubstitutes({})
+      setCandidatePools({})
       setExpandedSubs(new Set())
       setReplacedFrom({})
 
@@ -382,38 +405,36 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
   }
 
   // ── Substitute ───────────────────────────────────────────────────────────
-  const handleSubstitute = async (ing: Ingredient, index: number, forceRefresh = false) => {
+  // Fetch a pool of candidates (no credit deduction — browsing is free)
+  const fetchPool = async (ing: Ingredient, index: number, poolIndex: number) => {
     if (!user) { onAuthRequired(); return }
     const canSub = (user.gift_ai_points ?? 0) > 0 || (user.paid_points ?? 0) > 0 ||
                    (isPro && ((user.monthly_ai_count ?? 0) + proMonthlyDelta) < 30)
     if (!canSub) { showToast(t('substitute.needCredits'), 'warn'); return }
 
-    // 折叠：再次点击同一个且没有强制刷新
-    if (expandedSubs.has(index) && !forceRefresh) {
-      setExpandedSubs(prev => { const next = new Set(prev); next.delete(index); return next })
-      return
-    }
-    // 有缓存且不强制刷新：直接展开，不消耗积分
-    if (substitutes[index] && !forceRefresh) {
-      setExpandedSubs(prev => new Set(Array.from(prev).concat(index)))
-      return
-    }
+    // Exclude: all candidates already shown + the original ingredient that was replaced
+    const existingCandidateDbNames = (candidatePools[index]?.candidates || []).map(c => c.dbName)
+    const excludeExtra: string[] = [...existingCandidateDbNames]
+    if (replacedFrom[index]) excludeExtra.push(replacedFrom[index])
 
-    setSubstituting(index)
-    // 强制刷新时清除旧结果
-    if (forceRefresh) {
-      setSubstitutes(prev => { const next = { ...prev }; delete next[index]; return next })
-    }
+    setCandidatePools(prev => ({
+      ...prev,
+      [index]: {
+        candidates: prev[index]?.candidates || [],
+        page:       0,
+        poolIndex,
+        loading:    true,
+        exhausted:  false,
+      },
+    }))
+    setExpandedSubs(prev => new Set(Array.from(prev).concat(index)))
+
     try {
-      // 换一个时：排除上次推荐的食材 + 该槽位历史上被替换掉的原食材（避免原食材重复出现）
-      const excludeExtra: string[] = []
-      if (forceRefresh && substitutes[index]?.dbName) excludeExtra.push(substitutes[index].dbName as string)
-      if (replacedFrom[index]) excludeExtra.push(replacedFrom[index])
-
       const res = await fetch('/api/substitute-ingredient', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
+          action:           'pool',
           targetIngredient: ing.name,
           targetDbName:     ing.dbName,
           targetCategory:   ing.category,
@@ -424,8 +445,93 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
             ageMonths:        parseAgeToMonths(age),
             healthConditions: health,
           },
-          allergens: [],
+          allergens:  [],
           excludeExtra,
+          poolIndex,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        if (res.status === 402)  showToast('🟠 ' + t('substitute.needCredits'), 'error')
+        else if (res.status === 429) {
+          setCandidatePools(prev => ({ ...prev, [index]: { ...prev[index], loading: false, exhausted: true } }))
+          return
+        }
+        else showToast(formatApiError(data, res.status), 'error')
+        setCandidatePools(prev => ({ ...prev, [index]: { ...prev[index], loading: false } }))
+        return
+      }
+      // Replace pool with new batch (page 0)
+      setCandidatePools(prev => ({
+        ...prev,
+        [index]: { candidates: data.pool || [], page: 0, poolIndex, loading: false, exhausted: false },
+      }))
+    } catch {
+      showToast('Network error', 'error')
+      setCandidatePools(prev => ({ ...prev, [index]: { ...prev[index], loading: false } }))
+    }
+  }
+
+  const handleSubstitute = (ing: Ingredient, index: number) => {
+    // Toggle collapse if already open and has candidates loaded
+    if (expandedSubs.has(index) && candidatePools[index] && !candidatePools[index].loading) {
+      setExpandedSubs(prev => { const next = new Set(prev); next.delete(index); return next })
+      return
+    }
+    // Open panel and fetch first pool if not yet loaded
+    if (!candidatePools[index] || candidatePools[index].exhausted) {
+      fetchPool(ing, index, 0)
+    } else {
+      // Just expand (pool already loaded)
+      setExpandedSubs(prev => new Set(Array.from(prev).concat(index)))
+    }
+  }
+
+  const handleNextPage = (ing: Ingredient, index: number) => {
+    const pool = candidatePools[index]
+    if (!pool || pool.loading) return
+    const nextPage = pool.page + 1
+    const hasMore  = nextPage * 3 < pool.candidates.length
+
+    if (hasMore) {
+      // Show next 3 from current pool (no API call)
+      setCandidatePools(prev => ({ ...prev, [index]: { ...prev[index], page: nextPage } }))
+    } else if (pool.poolIndex < 2) {
+      // Fetch next AI batch (poolIndex 1 or 2)
+      fetchPool(ing, index, pool.poolIndex + 1)
+    } else {
+      // All 3 pools exhausted
+      setCandidatePools(prev => ({ ...prev, [index]: { ...prev[index], exhausted: true } }))
+    }
+  }
+
+  // Apply the chosen candidate — this is where the credit is deducted
+  const applySubstitute = async (ingredientIndex: number, candidate: PoolCandidate, ing: Ingredient) => {
+    if (!recipe) return
+    setApplyingSubstitute(ingredientIndex)
+
+    try {
+      const res = await fetch('/api/substitute-ingredient', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          action:           'apply',
+          targetIngredient: ing.name,
+          targetDbName:     ing.dbName,
+          targetCategory:   ing.category,
+          currentRecipe:    {
+            ingredients: recipe.content.ingredients,
+            steps:       recipe.content.steps,
+          },
+          pet: {
+            species,
+            weightKg:         parseFloat(weight) || 5,
+            ageMonths:        parseAgeToMonths(age),
+            healthConditions: health,
+          },
+          allergens:      [],
+          excludeExtra:   [],
+          chosenCandidate: candidate,
         }),
       })
       const data = await res.json()
@@ -435,103 +541,72 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
         return
       }
 
-      // Store substitute together with updated nutrition/compliance for later application
-      setSubstitutes(prev => ({
-        ...prev,
-        [index]: {
-          ...data.substitute,
-          _updatedNutrition:      data.updatedNutrition,
-          _updatedCompliance:     data.updatedCompliance,
-          _autoAddedSupplements:  data.autoAddedSupplements,
-        },
-      }))
-      setExpandedSubs(prev => new Set(Array.from(prev).concat(index)))
+      const sub = data.substitute
+      const originalIng = recipe.content.ingredients[ingredientIndex]
 
-      // Pro 月度用量同步（替换也消耗 pro_monthly 配额）
+      // 记录原食材 dbName，永久排除于该槽位的后续建议
+      if (originalIng?.dbName) {
+        setReplacedFrom(prev => ({ ...prev, [ingredientIndex]: originalIng.dbName! }))
+      }
+
+      // 替换食材：保留原食材的 category（保证购物清单分类正确）
+      const newIngredients = recipe.content.ingredients.map((ingItem, i) =>
+        i === ingredientIndex
+          ? {
+              ...ingItem,
+              emoji:     sub.emoji || ingItem.emoji,
+              name:      sub.name,
+              dbName:    sub.dbName,
+              amountG:   sub.amountG,
+              amount:    sub.amount || `${sub.amountG}g`,
+              autoAdded: false,
+              reasonKey: undefined,
+            }
+          : ingItem,
+      )
+
+      // AI-updated steps (falls back to original if step update failed)
+      const newSteps = sub.newSteps && sub.newSteps.length > 0
+        ? sub.newSteps
+        : recipe.content.steps
+
+      // Clear AI-generated raw-text warnings (outdated after substitution)
+      const TRANSLATABLE_WARNINGS = new Set(['nutrition_critical_warning'])
+      const filteredWarnings = (recipe.content.warnings || []).filter(w => TRANSLATABLE_WARNINGS.has(w))
+
+      const updatedNutrition = data.updatedNutrition ?? recipe.nutrition
+      const updatedCompliance = (data.updatedCompliance && recipe.compliance)
+        ? {
+            ...recipe.compliance,
+            label:          data.updatedCompliance.label as 'compliant' | 'partial' | 'non-compliant',
+            labelKey:       data.updatedCompliance.labelKey,
+            caloriesOk:     data.updatedCompliance.caloriesOk     ?? recipe.compliance.caloriesOk,
+            targetCalories: data.updatedCompliance.targetCalories ?? recipe.compliance.targetCalories,
+            aafcoDetails:   data.updatedCompliance.aafcoDetails   ?? recipe.compliance.aafcoDetails,
+          }
+        : recipe.compliance
+
+      setRecipe({
+        ...recipe,
+        content:    { ...recipe.content, ingredients: newIngredients, steps: newSteps, warnings: filteredWarnings },
+        nutrition:  updatedNutrition,
+        compliance: updatedCompliance,
+      })
+
+      // Close panel and clear pool for this slot
+      setExpandedSubs(prev => { const next = new Set(prev); next.delete(ingredientIndex); return next })
+      setCandidatePools(prev => { const next = { ...prev }; delete next[ingredientIndex]; return next })
+
+      // Pro monthly usage sync
       if (data.proMonthlyUsed) setProMonthlyDelta(d => d + 1)
-
-      // Notify parent to refresh user credit display (for paid/gift users)
       onCreditsUsed?.()
 
-      showToast(isPro ? t('substitute.creditUsedPro') : t('substitute.creditUsed'), 'success')
+      showToast(t('substitute.applied'), 'success')
     } catch {
       showToast('Network error', 'error')
     } finally {
-      setSubstituting(null)
+      setApplyingSubstitute(null)
     }
-  }
-
-  const applySubstitute = (ingredientIndex: number, sub: SubstituteItem & {
-    _updatedNutrition?: { calories: string; protein: string; fat: string; carbs: string }
-    _updatedCompliance?: { label: string; labelKey: string; caloriesOk?: boolean; targetCalories?: { min: number; max: number }; aafcoDetails?: any }
-    _autoAddedSupplements?: any[]
-  }) => {
-    if (!recipe) return
-
-    const originalIng = recipe.content.ingredients[ingredientIndex]
-
-    // 记录原食材 dbName，永久排除于该槽位的后续建议
-    if (originalIng?.dbName) {
-      setReplacedFrom(prev => ({ ...prev, [ingredientIndex]: originalIng.dbName! }))
-    }
-
-    // 替换食材：保留原食材的 category（保证购物清单分类正确）
-    const newIngredients = recipe.content.ingredients.map((ing, i) =>
-      i === ingredientIndex
-        ? {
-            ...ing,                                    // 保留 category / autoAdded / reasonKey
-            emoji:   sub.emoji || ing.emoji,
-            name:    sub.name,
-            dbName:  sub.dbName,
-            amountG: sub.amountG,
-            amount:  sub.amount || `${sub.amountG}g`,
-            autoAdded: false,
-            reasonKey: undefined,
-          }
-        : ing
-    )
-
-    // 使用 AI 重新生成的烹饪步骤（如有），否则保留原步骤
-    const newSteps = sub.newSteps && sub.newSteps.length > 0
-      ? sub.newSteps
-      : recipe.content.steps
-
-    // 清除 AI 生成的含食材名的 raw 文本 warnings（替换后已过时）
-    const TRANSLATABLE_WARNINGS = new Set(['nutrition_critical_warning'])
-    const filteredWarnings = (recipe.content.warnings || [])
-      .filter(w => TRANSLATABLE_WARNINGS.has(w))
-
-    // 更新营养数值（热量、蛋白质、脂肪、碳水）
-    const updatedNutrition = sub._updatedNutrition
-      ? {
-          calories: sub._updatedNutrition.calories,
-          protein:  sub._updatedNutrition.protein,
-          fat:      sub._updatedNutrition.fat,
-          carbs:    sub._updatedNutrition.carbs,
-        }
-      : recipe.nutrition
-
-    // 更新合规标签（含 AAFCO 详细指标）
-    const updatedCompliance = (sub._updatedCompliance && recipe.compliance)
-      ? {
-          ...recipe.compliance,
-          label:       sub._updatedCompliance.label as 'compliant' | 'partial' | 'non-compliant',
-          labelKey:    sub._updatedCompliance.labelKey,
-          caloriesOk:     sub._updatedCompliance.caloriesOk     ?? recipe.compliance.caloriesOk,
-          targetCalories: sub._updatedCompliance.targetCalories ?? recipe.compliance.targetCalories,
-          aafcoDetails: sub._updatedCompliance.aafcoDetails ?? recipe.compliance.aafcoDetails,
-        }
-      : recipe.compliance
-
-    setRecipe({
-      ...recipe,
-      content: { ...recipe.content, ingredients: newIngredients, steps: newSteps, warnings: filteredWarnings },
-      nutrition: updatedNutrition,
-      compliance: updatedCompliance,
-    })
-    setExpandedSubs(prev => { const next = new Set(prev); next.delete(ingredientIndex); return next })
-    setSubstitutes(prev => { const next = { ...prev }; delete next[ingredientIndex]; return next })
-    showToast(t('substitute.applied'), 'success')
   }
 
   const toastColors = {
@@ -845,89 +920,119 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
                         {user && !ing.autoAdded && (
                           <button
                             onClick={() => handleSubstitute(ing, i)}
-                            disabled={substituting === i}
+                            disabled={candidatePools[i]?.loading}
                             title={t('substitute.suggestions', { name: ing.name })}
                             style={{
                               padding: '2px 7px', borderRadius: 5, fontSize: 11,
-                              cursor: substituting === i ? 'wait' : 'pointer',
+                              cursor: candidatePools[i]?.loading ? 'wait' : 'pointer',
                               border: '1px solid rgba(28,26,22,0.15)',
                               background: expandedSubs.has(i) ? '#7A9E7E' : '#FDFAF5',
                               color: expandedSubs.has(i) ? '#fff' : 'rgba(28,26,22,0.5)',
                               fontFamily: 'inherit', flexShrink: 0, lineHeight: 1.6,
                             }}>
-                            {substituting === i ? '…' : t('substitute.btn')}
+                            {candidatePools[i]?.loading ? '…' : t('substitute.btn')}
                           </button>
                         )}
                       </div>
 
-                      {expandedSubs.has(i) && substitutes[i] && (
+                      {expandedSubs.has(i) && (
                         <div style={{
                           border: '1px solid rgba(122,158,126,0.3)', borderTop: 'none',
                           borderRadius: '0 0 8px 8px', background: '#F7FCF8', padding: '10px 12px',
                         }}>
                           <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.5)', marginBottom: 8, fontWeight: 500 }}>
-                            {t('substitute.suggestions', { name: ing.name })} · <span style={{ color: isPro ? '#7A9E7E' : '#C8813A' }}>{isPro ? t('substitute.creditUsedPro') : t('substitute.creditUsed')}</span>
+                            {t('substitute.suggestions', { name: ing.name })}
+                            <span style={{ marginLeft: 6, color: '#7A9E7E' }}>{t('substitute.freeToExplore')}</span>
                           </div>
-                          <div style={{ padding: '8px 10px', borderRadius: 8, background: '#FDFAF5', border: '1px solid rgba(28,26,22,0.08)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
-                              <span style={{ fontSize: 13, fontWeight: 500 }}>
-                                {substitutes[i].emoji} {substitutes[i].name} <span style={{ color: 'rgba(28,26,22,0.5)', fontWeight: 400 }}>{substitutes[i].amount}</span>
-                              </span>
-                              <button onClick={() => applySubstitute(i, substitutes[i])} style={{
-                                padding: '2px 8px', borderRadius: 5, fontSize: 11,
-                                cursor: 'pointer', border: 'none',
-                                background: '#1C1A16', color: '#FDFAF5', fontFamily: 'inherit',
-                              }}>
-                                {t('substitute.apply')}
-                              </button>
+
+                          {/* Loading state */}
+                          {candidatePools[i]?.loading && (
+                            <div style={{ textAlign: 'center', padding: '16px 0', fontSize: 12, color: 'rgba(28,26,22,0.4)' }}>
+                              {t('substitute.pool_fetching')}
                             </div>
-                            {substitutes[i].reason && (
-                              <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.5)', lineHeight: 1.4 }}>{substitutes[i].reason}</div>
-                            )}
+                          )}
 
-                            {/* 替换后营养预览（应用前可见） */}
-                            {(() => {
-                              const sub = substitutes[i] as any
-                              const nu  = sub._updatedNutrition
-                              const co  = sub._updatedCompliance
-                              if (!nu) return null
-                              const caloriesOk = co?.caloriesOk !== false
-                              const tc = co?.targetCalories
-                              return (
-                                <div style={{ marginTop: 6, padding: '5px 8px', borderRadius: 5, background: caloriesOk ? '#F0F7F0' : '#FBF0E4', border: `1px solid ${caloriesOk ? 'rgba(122,158,126,0.25)' : 'rgba(200,129,58,0.35)'}`, fontSize: 11, lineHeight: 1.5 }}>
-                                  <span style={{ color: caloriesOk ? '#3B6D11' : '#854F0B', fontWeight: 500 }}>
-                                    {caloriesOk ? '✓ ' : '⚠ '}{t('substitute.preview')}：
-                                  </span>
-                                  <span style={{ color: 'rgba(28,26,22,0.65)' }}>
-                                    {nu.calories} · {t('recipe.nutriProtein')} {nu.protein} · {t('recipe.nutriFat')} {nu.fat}
-                                  </span>
-                                  {!caloriesOk && tc && (
-                                    <div style={{ color: '#854F0B', marginTop: 2 }}>
-                                      {t('recipe.calories_warning', { actual: nu.calories.replace('~',''), min: tc.min, max: tc.max })}
+                          {/* Exhausted state */}
+                          {!candidatePools[i]?.loading && candidatePools[i]?.exhausted && (
+                            <div style={{ textAlign: 'center', padding: '10px 0', fontSize: 12, color: 'rgba(28,26,22,0.45)' }}>
+                              {t('substitute.no_more')}
+                            </div>
+                          )}
+
+                          {/* 3-card candidate grid */}
+                          {!candidatePools[i]?.loading && !candidatePools[i]?.exhausted && (() => {
+                            const pool = candidatePools[i]
+                            if (!pool || pool.candidates.length === 0) return null
+                            const pageCandidates = pool.candidates.slice(pool.page * 3, pool.page * 3 + 3)
+                            return (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                {pageCandidates.map(candidate => {
+                                  const d = candidate.nutritionDelta
+                                  const isApplying = applyingSubstitute === i
+                                  return (
+                                    <div key={candidate.dbName} style={{
+                                      padding: '8px 10px', borderRadius: 8,
+                                      background: '#FDFAF5', border: '1px solid rgba(28,26,22,0.08)',
+                                    }}>
+                                      {/* Header: name + apply button */}
+                                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+                                        <span style={{ fontSize: 13, fontWeight: 500 }}>
+                                          {candidate.emoji} {candidate.name}
+                                          <span style={{ color: 'rgba(28,26,22,0.45)', fontWeight: 400, fontSize: 11 }}> {candidate.amountG}g</span>
+                                        </span>
+                                        <button
+                                          onClick={() => applySubstitute(i, candidate, ing)}
+                                          disabled={isApplying}
+                                          style={{
+                                            padding: '2px 8px', borderRadius: 5, fontSize: 11, flexShrink: 0,
+                                            cursor: isApplying ? 'wait' : 'pointer', border: 'none',
+                                            background: '#1C1A16', color: '#FDFAF5', fontFamily: 'inherit',
+                                          }}>
+                                          {isApplying ? '…' : t('substitute.apply')}
+                                        </button>
+                                      </div>
+                                      {/* Nutrition delta */}
+                                      <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.6)', lineHeight: 1.6 }}>
+                                        {t('recipe.nutriCalories')} {d.calories.before} → <strong>{d.calories.after}</strong> kcal
+                                        {'  ·  '}
+                                        {t('recipe.nutriProtein')} {d.protein.before} → <strong>{d.protein.after}</strong> g/1000kcal
+                                        {'  ·  '}
+                                        {t('recipe.nutriFat')} {d.fat.before} → <strong>{d.fat.after}</strong> g/1000kcal
+                                      </div>
+                                      {/* Supplement changes */}
+                                      {candidate.supplementChanges.length > 0 && (
+                                        <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.45)', marginTop: 2 }}>
+                                          {candidate.supplementChanges.map(s =>
+                                            `${s.name} ${s.before}g→${s.after}g`
+                                          ).join('  ·  ')}
+                                        </div>
+                                      )}
+                                      {/* Condition warning */}
+                                      {!candidate.conditionOk && (
+                                        <div style={{ marginTop: 4, fontSize: 11, color: '#854F0B' }}>
+                                          ⚠ {t('substitute.condition_warn')}
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
-                                </div>
-                              )
-                            })()}
-
-                            {substitutes[i].nutritionWarnings && substitutes[i].nutritionWarnings!.length > 0 && (
-                              <div style={{ marginTop: 4, padding: '4px 8px', borderRadius: 5, background: '#FBF0E4', border: '1px solid rgba(200,129,58,0.25)', fontSize: 11, color: '#854F0B', lineHeight: 1.4 }}>
-                                ⚠️ {substitutes[i].nutritionWarnings!.map(w =>
-                                  w === 'protein_low'  ? t('substitute.warn.proteinLow')  :
-                                  w === 'fat_low'      ? t('substitute.warn.fatLow')      :
-                                  w === 'non_compliant'? t('substitute.warn.nonCompliant') : w
-                                ).join(' · ')}
+                                  )
+                                })}
                               </div>
-                            )}
-                          </div>
+                            )
+                          })()}
+
+                          {/* Bottom controls */}
                           <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                            {!candidatePools[i]?.exhausted && (
+                              <button
+                                onClick={() => handleNextPage(ing, i)}
+                                disabled={candidatePools[i]?.loading}
+                                style={{ fontSize: 11, color: '#854F0B', background: 'none', border: 'none', cursor: candidatePools[i]?.loading ? 'wait' : 'pointer', fontFamily: 'inherit', padding: 0 }}>
+                                {candidatePools[i]?.loading ? '…' : `↻ ${t('substitute.next_batch')}`}
+                              </button>
+                            )}
                             <button
-                              onClick={() => handleSubstitute(ing, i, true)}
-                              disabled={substituting === i}
-                              style={{ fontSize: 11, color: '#854F0B', background: 'none', border: 'none', cursor: substituting === i ? 'wait' : 'pointer', fontFamily: 'inherit', padding: 0 }}>
-                              {substituting === i ? '…' : `↻ ${t('substitute.tryAnother')}`}
-                            </button>
-                            <button onClick={() => setExpandedSubs(prev => { const next = new Set(prev); next.delete(i); return next })} style={{ fontSize: 11, color: 'rgba(28,26,22,0.4)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
+                              onClick={() => setExpandedSubs(prev => { const next = new Set(prev); next.delete(i); return next })}
+                              style={{ fontSize: 11, color: 'rgba(28,26,22,0.4)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
                               {t('substitute.collapse')}
                             </button>
                           </div>
