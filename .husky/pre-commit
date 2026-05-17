@@ -1,0 +1,12 @@
+#!/bin/sh
+# PawChef pre-commit checks — blocks commit if any check fails
+
+set -e
+
+echo "🔍 TypeScript check..."
+npx tsc --noEmit
+
+echo "🌐 i18n key sync check..."
+node scripts/check-i18n.mjs
+
+echo "✅ All checks passed"
