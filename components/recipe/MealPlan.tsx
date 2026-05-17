@@ -39,7 +39,7 @@ export default function MealPlan({ user, onAuthRequired, t }: Props) {
   }
 
   const canGenerate = user && (
-    (user.is_pro && (user.monthly_ai_count ?? 0) < 28) ||
+    (user.is_pro && (user.monthly_ai_count ?? 0) < 18) ||
     ((user.gift_ai_points ?? 0) + (user.paid_points ?? 0)) >= 3
   )
 

@@ -164,7 +164,7 @@ export async function POST(req: NextRequest) {
     const hasCredits =
       (profile?.gift_ai_points ?? 0) > 0 ||
       (profile?.paid_points    ?? 0) > 0 ||
-      (isPro && (profile?.monthly_ai_count ?? 0) < 30)
+      (isPro && (profile?.monthly_ai_count ?? 0) < 20)
 
     if (!hasCredits) {
       return NextResponse.json(

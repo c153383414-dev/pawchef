@@ -242,7 +242,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
   const hasPaidAI = user && (
     (user.gift_ai_points ?? 0) > 0 ||
     (user.paid_points    ?? 0) > 0 ||
-    (isPro && ((user.monthly_ai_count ?? 0) + proMonthlyDelta) < 30)
+    (isPro && ((user.monthly_ai_count ?? 0) + proMonthlyDelta) < 20)
   )
 
   const canGenerate = weightValid && (!user
@@ -259,7 +259,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
     }
     // Pro users: show Pro quota, or fallback credit source if monthly exhausted
     if (isPro) {
-      const proLeft = 30 - ((user.monthly_ai_count ?? 0) + proMonthlyDelta)
+      const proLeft = 20 - ((user.monthly_ai_count ?? 0) + proMonthlyDelta)
       if (proLeft > 0) return t('recipe.generatePro', { n: proLeft })
       if ((user.gift_ai_points ?? 0) > 0) return t('recipe.generateGift', { n: user.gift_ai_points })
       if ((user.paid_points    ?? 0) > 0) return t('recipe.generatePaid', { n: user.paid_points })
@@ -409,7 +409,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
   const fetchPool = async (ing: Ingredient, index: number, poolIndex: number) => {
     if (!user) { onAuthRequired(); return }
     const canSub = (user.gift_ai_points ?? 0) > 0 || (user.paid_points ?? 0) > 0 ||
-                   (isPro && ((user.monthly_ai_count ?? 0) + proMonthlyDelta) < 30)
+                   (isPro && ((user.monthly_ai_count ?? 0) + proMonthlyDelta) < 20)
     if (!canSub) { showToast(t('substitute.needCredits'), 'warn'); return }
 
     // Exclude: all candidates already shown + the original ingredient that was replaced

@@ -198,7 +198,7 @@ export async function POST(req: NextRequest) {
         deductSource = 'gift_ai_points'
       } else if ((profile.paid_points ?? 0) > 0) {
         deductSource = 'paid_points'
-      } else if (isPro && (profile.monthly_ai_count ?? 0) < 30) {
+      } else if (isPro && (profile.monthly_ai_count ?? 0) < 20) {
         deductSource = 'pro_monthly'
       } else {
         return NextResponse.json({ error: 'NO_CREDITS' }, { status: 402 })

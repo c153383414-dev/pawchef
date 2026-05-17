@@ -67,7 +67,7 @@ Priority order when generating a recipe:
 1. `free_ai_quota` — 2 free uses per registered user (`free_ai_used` < `free_ai_limit`)
 2. `gift_ai_points` — gifted credits (expire monthly)
 3. `paid_points` — purchased credit packs
-4. `pro_monthly` — Pro subscribers, 30/month (`monthly_ai_count` < 30)
+4. `pro_monthly` — Pro subscribers, 20/month (`monthly_ai_count` < 20)
 5. `guest` — 1 lifetime use per device (tracked by token + IP + fingerprint in `guest_usage` table)
 
 Credits are deducted via Supabase RPC: `deduct_free_ai` / `deduct_ai_credits`. Refunded on failure via `refund_free_ai` / `refund_ai_credit`.

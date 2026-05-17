@@ -75,7 +75,7 @@ export default function PricingSection({ onSignup, t }: Props) {
           </div>
           <div style={priceWrap}>
             <span style={{ ...currStyle, color: '#FDFAF5' }}>$</span>
-            <span style={{ ...numStyle, color: '#FDFAF5' }}>{billing === 'monthly' ? '14.9' : '8.25'}</span>
+            <span style={{ ...numStyle, color: '#FDFAF5' }}>{billing === 'monthly' ? '14.9' : '9.9'}</span>
           </div>
           <div style={{ ...perStyle, color: 'rgba(253,250,245,0.6)' }}>
             {billing === 'monthly' ? t('pricing.perMonth') : t('pricing.perAnnual')}
@@ -85,14 +85,14 @@ export default function PricingSection({ onSignup, t }: Props) {
           )}
           <div style={{ ...divStyle, background: 'rgba(253,250,245,0.15)' }} />
           <div style={{ ...secLabel, color: 'rgba(253,250,245,0.4)' }}>{t('pricing.aiSection')}</div>
-          <Feature text={t('pricing.feat.aiQuotaTotal', { n: billing === 'monthly' ? '30' : '60' })} featured />
+          <Feature text={t('pricing.feat.aiQuotaTotal', { n: billing === 'monthly' ? '20' : '40' })} featured />
           <Feature text={t('pricing.feat.mealPlanCount', { n: billing === 'monthly' ? '2' : '4' })} featured />
           <Feature text={t('pricing.feat.healthMode')} featured />
           <div style={{ ...secLabel, color: 'rgba(253,250,245,0.4)' }}>{t('pricing.valueSection')}</div>
           <Feature text={t('pricing.feat.petProfiles')} featured />
           <Feature text={t('pricing.feat.unlimitedBookmarks')} featured />
           <Feature text={t('pricing.feat.unlimitedExports')} featured />
-          <Feature text={t('pricing.feat.aiCreditsGift', { n: billing === 'monthly' ? '50' : '100' })} featured />
+
           <button onClick={onSignup} style={{ ...btnStyle, background: '#FDFAF5', color: '#1C1A16', marginTop: 24 }}>
             {t('pricing.subscribePro')}
           </button>
