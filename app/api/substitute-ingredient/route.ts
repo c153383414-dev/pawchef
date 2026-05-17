@@ -190,15 +190,21 @@ export async function POST(req: NextRequest) {
     const locale   = req.headers.get('x-locale') || 'zh'
     const language = LANGUAGE_MAP[locale] || 'Chinese (Simplified)'
 
+    // 取打乱后的前5个作为"优先推荐"，引导 AI 不总选同一食材
+    const top5 = shuffledCandidates.slice(0, 5).map(f => f.dbName).join(', ')
+
     const substitutePrompt = `You are a pet nutritionist. Recommend ONE substitute ingredient.
 Respond in ${language}.
 
 Replacing: ${targetIngredient} (category: ${category})
 Pet: ${species}, ${pet.weightKg || 5}kg, health: ${(pet.healthConditions || ['healthy']).join(', ')}
 ${species === 'cat' ? 'Cat is an obligate carnivore - prioritize protein, avoid high carb substitutes.' : ''}
-Allowed dbName keys ONLY (pick from this list): ${allowedDbNames}
+Allowed dbName keys (pick ONLY from this list): ${allowedDbNames}
 ${existingNote}
 ${allergens.length > 0 ? `Allergens to avoid: ${allergens.join(', ')}` : ''}
+
+VARIETY INSTRUCTION: Strongly prefer one of these top candidates today: ${top5}
+Avoid always defaulting to the most common proteins — be adventurous and pick something less typical when appropriate.
 
 IMPORTANT: You MUST pick a dbName from the allowed list. Do NOT suggest any ingredient already in the recipe.
 
