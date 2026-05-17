@@ -12,7 +12,7 @@ import { useLocale } from '@/hooks/useLocale'
 import type { Profile } from '@/types'
 
 // ─── Pro membership chip with custom hover tooltip ───────────────────────────
-function ProNavChip({ user, t }: { user: Profile; t: (k: string, p?: Record<string, string | number>) => string }) {
+function ProNavChip({ user, t, locale }: { user: Profile; t: (k: string, p?: Record<string, string | number>) => string; locale: string }) {
   const [hover, setHover] = useState(false)
   const expiresAt = user.pro_expires_at ? new Date(user.pro_expires_at) : null
   const daysLeft = expiresAt
@@ -20,7 +20,7 @@ function ProNavChip({ user, t }: { user: Profile; t: (k: string, p?: Record<stri
     : null
   const expiringSoon = daysLeft !== null && daysLeft <= 7
   const expiryDateStr = expiresAt
-    ? expiresAt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+    ? expiresAt.toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' })
     : null
   const tooltipText = expiryDateStr
     ? (expiringSoon
@@ -228,7 +228,7 @@ export default function HomePage() {
               )}
 
               {/* Pro membership chip — Western-standard user status indicator */}
-              {user.is_pro && <ProNavChip user={user} t={t} />}
+              {user.is_pro && <ProNavChip user={user} t={t} locale={locale} />}
 
               <a href="/dashboard" style={{
                 ...btnStyle, background: 'transparent',
