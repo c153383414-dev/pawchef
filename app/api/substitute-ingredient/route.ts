@@ -211,7 +211,7 @@ Output raw JSON only. No markdown, no code blocks, no explanation. Start with { 
         model:       'google/gemini-3.1-flash-lite',
         messages:    [{ role: 'user', content: substitutePrompt }],
         max_tokens:  400,
-        temperature: 0.8,
+        temperature: 1.0,
         ...GEMINI_EXTRAS,
       } as any)
       const text = completion.choices[0]?.message?.content || ''
@@ -329,8 +329,18 @@ Output raw JSON only. No markdown, no code blocks, no explanation. Start with { 
       proMonthlyUsed: creditSource === 'pro',
       autoAddedSupplements: validation.supplements,
       updatedCompliance: {
-        label:    validation.complianceLabel,
-        labelKey: validation.complianceLabelKey,
+        label:       validation.complianceLabel,
+        labelKey:    validation.complianceLabelKey,
+        caloriesOk:  validation.caloriesOk,
+        aafcoDetails: {
+          protein:    validation.aafco.protein,
+          fat:        validation.aafco.fat,
+          calcium:    validation.aafco.calcium,
+          phosphorus: validation.aafco.phosphorus,
+          caPRatio:   validation.aafco.caPRatio,
+          omega3:     validation.aafco.omega3,
+          taurine:    validation.aafco.taurine,
+        },
       },
       updatedNutrition: {
         calories: `~${validation.actualCalories}`,

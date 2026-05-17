@@ -139,10 +139,12 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
   // 食材替换：单个 substitute 替代原来的数组
   const [substituting, setSubstituting] = useState<number | null>(null)
   const [substitutes,  setSubstitutes]  = useState<Record<number, SubstituteItem & { reason?: string }>>({})
-  const [expandedSub,  setExpandedSub]  = useState<number | null>(null)
+  const [expandedSubs, setExpandedSubs] = useState<Set<number>>(new Set())
+  // tracks original dbName for each ingredient slot so it's permanently excluded from future suggestions
+  const [replacedFrom, setReplacedFrom] = useState<Record<number, string>>({})
 
   const [freeRemaining, setFreeRemaining] = useState<number | null>(null)
-  const [showShoppingList, setShowShoppingList] = useState(false)
+  const [showShoppingList, setShowShoppingList] = useState(true)
   const [autoLogged,       setAutoLogged]       = useState(false)
   const [copyDone,         setCopyDone]         = useState(false)
 
@@ -322,7 +324,8 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
         tier:                ['claude-sonnet', 'gemini-3.1-pro', 'gemini-2.5-flash'].includes(data.generatedBy) ? 'premium' : 'standard',
       })
       setSubstitutes({})
-      setExpandedSub(null)
+      setExpandedSubs(new Set())
+      setReplacedFrom({})
 
       if (data.freeRemaining !== undefined) setFreeRemaining(data.freeRemaining)
       if (data.proMonthlyUsed) {
@@ -386,9 +389,15 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
     if (!canSub) { showToast(t('substitute.needCredits'), 'warn'); return }
 
     // 折叠：再次点击同一个且没有强制刷新
-    if (expandedSub === index && !forceRefresh) { setExpandedSub(null); return }
+    if (expandedSubs.has(index) && !forceRefresh) {
+      setExpandedSubs(prev => { const next = new Set(prev); next.delete(index); return next })
+      return
+    }
     // 有缓存且不强制刷新：直接展开，不消耗积分
-    if (substitutes[index] && !forceRefresh) { setExpandedSub(index); return }
+    if (substitutes[index] && !forceRefresh) {
+      setExpandedSubs(prev => new Set(Array.from(prev).concat(index)))
+      return
+    }
 
     setSubstituting(index)
     // 强制刷新时清除旧结果
@@ -396,10 +405,10 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
       setSubstitutes(prev => { const next = { ...prev }; delete next[index]; return next })
     }
     try {
-      // When retrying (换一个), exclude the previous suggestion to avoid repeats
-      const excludeExtra = forceRefresh && substitutes[index]?.dbName
-        ? [substitutes[index].dbName]
-        : []
+      // 换一个时：排除上次推荐的食材 + 该槽位历史上被替换掉的原食材（避免原食材重复出现）
+      const excludeExtra: string[] = []
+      if (forceRefresh && substitutes[index]?.dbName) excludeExtra.push(substitutes[index].dbName as string)
+      if (replacedFrom[index]) excludeExtra.push(replacedFrom[index])
 
       const res = await fetch('/api/substitute-ingredient', {
         method:  'POST',
@@ -436,7 +445,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
           _autoAddedSupplements:  data.autoAddedSupplements,
         },
       }))
-      setExpandedSub(index)
+      setExpandedSubs(prev => new Set(Array.from(prev).concat(index)))
 
       // Pro 月度用量同步（替换也消耗 pro_monthly 配额）
       if (data.proMonthlyUsed) setProMonthlyDelta(d => d + 1)
@@ -454,21 +463,45 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
 
   const applySubstitute = (ingredientIndex: number, sub: SubstituteItem & {
     _updatedNutrition?: { calories: string; protein: string; fat: string; carbs: string }
-    _updatedCompliance?: { label: string; labelKey: string }
+    _updatedCompliance?: { label: string; labelKey: string; caloriesOk?: boolean; aafcoDetails?: any }
     _autoAddedSupplements?: any[]
   }) => {
     if (!recipe) return
+
+    const originalIng = recipe.content.ingredients[ingredientIndex]
+
+    // 记录原食材 dbName，永久排除于该槽位的后续建议
+    if (originalIng?.dbName) {
+      setReplacedFrom(prev => ({ ...prev, [ingredientIndex]: originalIng.dbName! }))
+    }
+
+    // 替换食材：保留原食材的 category（保证购物清单分类正确）
     const newIngredients = recipe.content.ingredients.map((ing, i) =>
       i === ingredientIndex
-        ? { emoji: sub.emoji, name: sub.name, dbName: sub.dbName, amountG: sub.amountG, amount: sub.amount || `${sub.amountG}g` }
+        ? {
+            ...ing,                                    // 保留 category / autoAdded / reasonKey
+            emoji:   sub.emoji || ing.emoji,
+            name:    sub.name,
+            dbName:  sub.dbName,
+            amountG: sub.amountG,
+            amount:  sub.amount || `${sub.amountG}g`,
+            autoAdded: false,
+            reasonKey: undefined,
+          }
         : ing
     )
+
     // 使用 AI 重新生成的烹饪步骤（如有），否则保留原步骤
     const newSteps = sub.newSteps && sub.newSteps.length > 0
       ? sub.newSteps
       : recipe.content.steps
 
-    // 更新营养数值（热量、蛋白质、脂肪、碳水）和合规标签
+    // 清除 AI 生成的含食材名的 raw 文本 warnings（替换后已过时）
+    const TRANSLATABLE_WARNINGS = new Set(['nutrition_critical_warning'])
+    const filteredWarnings = (recipe.content.warnings || [])
+      .filter(w => TRANSLATABLE_WARNINGS.has(w))
+
+    // 更新营养数值（热量、蛋白质、脂肪、碳水）
     const updatedNutrition = sub._updatedNutrition
       ? {
           calories: sub._updatedNutrition.calories,
@@ -478,21 +511,24 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
         }
       : recipe.nutrition
 
+    // 更新合规标签（含 AAFCO 详细指标）
     const updatedCompliance = (sub._updatedCompliance && recipe.compliance)
       ? {
-          ...recipe.compliance,           // narrowed to RecipeCompliance (not undefined)
-          label:    sub._updatedCompliance.label as 'compliant' | 'partial' | 'non-compliant',
-          labelKey: sub._updatedCompliance.labelKey,
+          ...recipe.compliance,
+          label:       sub._updatedCompliance.label as 'compliant' | 'partial' | 'non-compliant',
+          labelKey:    sub._updatedCompliance.labelKey,
+          caloriesOk:  sub._updatedCompliance.caloriesOk ?? recipe.compliance.caloriesOk,
+          aafcoDetails: sub._updatedCompliance.aafcoDetails ?? recipe.compliance.aafcoDetails,
         }
       : recipe.compliance
 
     setRecipe({
       ...recipe,
-      content: { ...recipe.content, ingredients: newIngredients, steps: newSteps },
+      content: { ...recipe.content, ingredients: newIngredients, steps: newSteps, warnings: filteredWarnings },
       nutrition: updatedNutrition,
       compliance: updatedCompliance,
     })
-    setExpandedSub(null)
+    setExpandedSubs(prev => { const next = new Set(prev); next.delete(ingredientIndex); return next })
     setSubstitutes(prev => { const next = { ...prev }; delete next[ingredientIndex]; return next })
     showToast(t('substitute.applied'), 'success')
   }
@@ -784,11 +820,11 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
                   {recipe.content.ingredients.map((ing, i) => (
                     <div key={i}>
                       <div style={{
-                        padding: '8px 12px', borderRadius: expandedSub === i ? '8px 8px 0 0' : 8,
-                        background: ing.autoAdded ? '#F0F7F0' : (expandedSub === i ? '#EBF2EC' : '#F7F3EC'),
+                        padding: '8px 12px', borderRadius: expandedSubs.has(i) ? '8px 8px 0 0' : 8,
+                        background: ing.autoAdded ? '#F0F7F0' : (expandedSubs.has(i) ? '#EBF2EC' : '#F7F3EC'),
                         display: 'flex', alignItems: 'center', gap: 8,
-                        border: expandedSub === i ? '1px solid rgba(122,158,126,0.3)' : (ing.autoAdded ? '1px solid rgba(122,158,126,0.2)' : '1px solid transparent'),
-                        borderBottom: expandedSub === i ? 'none' : undefined,
+                        border: expandedSubs.has(i) ? '1px solid rgba(122,158,126,0.3)' : (ing.autoAdded ? '1px solid rgba(122,158,126,0.2)' : '1px solid transparent'),
+                        borderBottom: expandedSubs.has(i) ? 'none' : undefined,
                         transition: 'background 0.15s',
                       }}>
                         <span style={{ fontSize: 13, flex: 1 }}>
@@ -814,8 +850,8 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
                               padding: '2px 7px', borderRadius: 5, fontSize: 11,
                               cursor: substituting === i ? 'wait' : 'pointer',
                               border: '1px solid rgba(28,26,22,0.15)',
-                              background: expandedSub === i ? '#7A9E7E' : '#FDFAF5',
-                              color: expandedSub === i ? '#fff' : 'rgba(28,26,22,0.5)',
+                              background: expandedSubs.has(i) ? '#7A9E7E' : '#FDFAF5',
+                              color: expandedSubs.has(i) ? '#fff' : 'rgba(28,26,22,0.5)',
                               fontFamily: 'inherit', flexShrink: 0, lineHeight: 1.6,
                             }}>
                             {substituting === i ? '…' : t('substitute.btn')}
@@ -823,7 +859,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
                         )}
                       </div>
 
-                      {expandedSub === i && substitutes[i] && (
+                      {expandedSubs.has(i) && substitutes[i] && (
                         <div style={{
                           border: '1px solid rgba(122,158,126,0.3)', borderTop: 'none',
                           borderRadius: '0 0 8px 8px', background: '#F7FCF8', padding: '10px 12px',
@@ -864,7 +900,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
                               style={{ fontSize: 11, color: '#854F0B', background: 'none', border: 'none', cursor: substituting === i ? 'wait' : 'pointer', fontFamily: 'inherit', padding: 0 }}>
                               {substituting === i ? '…' : `↻ ${t('substitute.tryAnother')}`}
                             </button>
-                            <button onClick={() => setExpandedSub(null)} style={{ fontSize: 11, color: 'rgba(28,26,22,0.4)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
+                            <button onClick={() => setExpandedSubs(prev => { const next = new Set(prev); next.delete(i); return next })} style={{ fontSize: 11, color: 'rgba(28,26,22,0.4)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
                               {t('substitute.collapse')}
                             </button>
                           </div>
@@ -990,7 +1026,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
                         if (species === 'cat') metrics.push({ key: 'taurine', m: d.taurine, unit: 'mg' })
 
                         return (
-                          <details style={{ marginBottom: 10, paddingTop: 4 }}>
+                          <details open style={{ marginBottom: 10, paddingTop: 4 }}>
                             <summary style={{ cursor: 'pointer', fontSize: 11, color: 'rgba(28,26,22,0.55)', fontWeight: 600, marginBottom: 6 }}>
                               {t('recipe.aafcoDetailsTitle')}
                             </summary>

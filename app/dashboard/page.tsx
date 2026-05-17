@@ -9,6 +9,7 @@ export default function DashboardPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [pets, setPets] = useState<Pet[]>([])
   const [loading, setLoading] = useState(true)
+  const [expandedRecipe, setExpandedRecipe] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -60,14 +61,14 @@ export default function DashboardPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, fontWeight: 700 }}>我的宠物</h2>
             {(profile.is_pro || pets.length < 1) && (
-              <button onClick={() => router.push('/dashboard/pets/new')} style={{ padding: '8px 16px', borderRadius: 8, background: '#1C1A16', color: '#FDFAF5', border: 'none', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>+ 添加宠物</button>
+              <button onClick={() => router.push('/?addPet=1')} style={{ padding: '8px 16px', borderRadius: 8, background: '#1C1A16', color: '#FDFAF5', border: 'none', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>+ 添加宠物</button>
             )}
           </div>
           {pets.length === 0 ? (
             <div style={{ padding: '40px', textAlign: 'center', background: '#F7F3EC', borderRadius: 16, color: 'rgba(28,26,22,0.4)' }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>🐾</div>
               <p>还没有宠物档案，添加第一只宠物吧</p>
-              <button onClick={() => router.push('/dashboard/pets/new')} style={{ marginTop: 16, padding: '10px 24px', borderRadius: 8, background: '#1C1A16', color: '#FDFAF5', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>添加宠物</button>
+              <button onClick={() => router.push('/?addPet=1')} style={{ marginTop: 16, padding: '10px 24px', borderRadius: 8, background: '#1C1A16', color: '#FDFAF5', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>添加宠物</button>
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 12 }}>
@@ -114,18 +115,60 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {recipes.map(r => (
-                <div key={r.id} style={{ background: '#FDFAF5', borderRadius: 14, border: '1px solid rgba(28,26,22,0.12)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 4 }}>{r.title}</div>
-                    <div style={{ fontSize: 12, color: 'rgba(28,26,22,0.5)' }}>{new Date(r.created_at).toLocaleDateString('zh-CN')}</div>
+              {recipes.map(r => {
+                const isOpen = expandedRecipe === r.id
+                const ings = r.content?.ingredients || []
+                const proteins = ings.filter((i: any) => i.category === 'protein' || i.category === 'organ')
+                return (
+                  <div key={r.id} style={{ background: '#FDFAF5', borderRadius: 14, border: `1px solid ${isOpen ? 'rgba(122,158,126,0.3)' : 'rgba(28,26,22,0.12)'}`, overflow: 'hidden' }}>
+                    {/* 摘要行（可点击） */}
+                    <div
+                      onClick={() => setExpandedRecipe(isOpen ? null : r.id)}
+                      style={{ padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 3 }}>{r.title}</div>
+                        <div style={{ fontSize: 12, color: 'rgba(28,26,22,0.5)', display: 'flex', gap: 8 }}>
+                          <span>{new Date(r.created_at).toLocaleDateString('zh-CN')}</span>
+                          {proteins.length > 0 && <span>· {proteins.map((i: any) => i.name).join('、')}</span>}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        {r.nutrition && <span style={{ fontSize: 12, color: 'rgba(28,26,22,0.5)', background: '#F7F3EC', padding: '4px 10px', borderRadius: 6 }}>{r.nutrition.calories}</span>}
+                        <span style={{ fontSize: 11, color: '#7A9E7E', background: '#EBF2EC', padding: '4px 10px', borderRadius: 6 }}>✓ AAFCO</span>
+                        <span style={{ fontSize: 11, color: 'rgba(28,26,22,0.35)' }}>{isOpen ? '▲' : '▼'}</span>
+                      </div>
+                    </div>
+
+                    {/* 展开详情 */}
+                    {isOpen && (
+                      <div style={{ padding: '0 20px 16px', borderTop: '1px solid rgba(28,26,22,0.08)' }}>
+                        {/* 食材列表 */}
+                        <div style={{ marginTop: 12, marginBottom: 10 }}>
+                          <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(28,26,22,0.4)', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>食材</div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                            {ings.map((ing: any, i: number) => (
+                              <span key={i} style={{ fontSize: 12, padding: '3px 9px', borderRadius: 6, background: ing.autoAdded ? '#EBF2EC' : '#F7F3EC', color: ing.autoAdded ? '#3B6D11' : '#1C1A16' }}>
+                                {ing.emoji} {ing.name} {ing.amount || (ing.amountG ? `${ing.amountG}g` : '')}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        {/* 营养摘要 */}
+                        {r.nutrition && (
+                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                            {[['热量', r.nutrition.calories], ['蛋白质', r.nutrition.protein], ['脂肪', r.nutrition.fat], ['碳水', r.nutrition.carbs]].map(([k, v]) => (
+                              <span key={k} style={{ fontSize: 11, padding: '3px 8px', borderRadius: 5, background: '#F7F3EC', color: 'rgba(28,26,22,0.6)' }}>
+                                <strong>{k}</strong> {v}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {r.nutrition && <span style={{ fontSize: 12, color: 'rgba(28,26,22,0.5)', background: '#F7F3EC', padding: '4px 10px', borderRadius: 6 }}>{r.nutrition.calories}</span>}
-                    <span style={{ fontSize: 11, color: '#7A9E7E', background: '#EBF2EC', padding: '4px 10px', borderRadius: 6 }}>✓ AAFCO</span>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
