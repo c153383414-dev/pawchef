@@ -348,6 +348,7 @@
     "creditUsedPro": "✓ 1 Pro ingredient substitution used",
     "loading": "Searching...",
     "needCredits": "Needs 1 🟠 AI credit or Pro",
+    "preview": "After substitution",
     "applied": "✓ Ingredient replaced",
     "no_options": "No suitable substitute found for this ingredient",
     "error": {

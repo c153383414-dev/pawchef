@@ -252,8 +252,17 @@ Output raw JSON only. No markdown, no code blocks, no explanation. Start with { 
       healthConditions: pet.healthConditions || ['healthy'],
     }
 
-    // 如果 AI 给出的用量远小于原食材（原食材>100g 且建议<原食材30%），退回原食材用量
-    if (originalAmountG > 100 && substitute.amountG < originalAmountG * 0.3) {
+    // ── 等热量缩放：调整替换食材用量使热量贡献与原食材相同 ─────────────────
+    // 这样替换后总热量基本不变，避免热量偏差警告
+    const origFood = findFood(targetDbName || targetIngredient, !!targetDbName)
+    const subFood  = findFood(substitute.dbName, true)
+    if (origFood && subFood && subFood.nutrients.calories > 0 && origFood.nutrients.calories > 0) {
+      const origCalContrib  = originalAmountG * (origFood.nutrients.calories / 100)
+      const isoAmountG = Math.round(origCalContrib / (subFood.nutrients.calories / 100))
+      // 允许在原用量 50%–200% 之间缩放，防止极端结果
+      substitute.amountG = Math.min(originalAmountG * 2, Math.max(originalAmountG * 0.5, isoAmountG))
+    } else if (originalAmountG > 100 && substitute.amountG < originalAmountG * 0.3) {
+      // 兜底：AI 给出用量远小于原食材时退回原用量
       substitute.amountG = originalAmountG
     }
 
@@ -335,9 +344,10 @@ Output raw JSON only. No markdown, no code blocks, no explanation. Start with { 
       proMonthlyUsed: creditSource === 'pro',
       autoAddedSupplements: validation.supplements,
       updatedCompliance: {
-        label:       validation.complianceLabel,
-        labelKey:    validation.complianceLabelKey,
-        caloriesOk:  validation.caloriesOk,
+        label:          validation.complianceLabel,
+        labelKey:       validation.complianceLabelKey,
+        caloriesOk:     validation.caloriesOk,
+        targetCalories: validation.targetCalories,
         aafcoDetails: {
           protein:    validation.aafco.protein,
           fat:        validation.aafco.fat,

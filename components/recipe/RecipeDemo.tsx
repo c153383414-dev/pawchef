@@ -463,7 +463,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
 
   const applySubstitute = (ingredientIndex: number, sub: SubstituteItem & {
     _updatedNutrition?: { calories: string; protein: string; fat: string; carbs: string }
-    _updatedCompliance?: { label: string; labelKey: string; caloriesOk?: boolean; aafcoDetails?: any }
+    _updatedCompliance?: { label: string; labelKey: string; caloriesOk?: boolean; targetCalories?: { min: number; max: number }; aafcoDetails?: any }
     _autoAddedSupplements?: any[]
   }) => {
     if (!recipe) return
@@ -517,7 +517,8 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
           ...recipe.compliance,
           label:       sub._updatedCompliance.label as 'compliant' | 'partial' | 'non-compliant',
           labelKey:    sub._updatedCompliance.labelKey,
-          caloriesOk:  sub._updatedCompliance.caloriesOk ?? recipe.compliance.caloriesOk,
+          caloriesOk:     sub._updatedCompliance.caloriesOk     ?? recipe.compliance.caloriesOk,
+          targetCalories: sub._updatedCompliance.targetCalories ?? recipe.compliance.targetCalories,
           aafcoDetails: sub._updatedCompliance.aafcoDetails ?? recipe.compliance.aafcoDetails,
         }
       : recipe.compliance
@@ -883,8 +884,34 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
                             {substitutes[i].reason && (
                               <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.5)', lineHeight: 1.4 }}>{substitutes[i].reason}</div>
                             )}
+
+                            {/* 替换后营养预览（应用前可见） */}
+                            {(() => {
+                              const sub = substitutes[i] as any
+                              const nu  = sub._updatedNutrition
+                              const co  = sub._updatedCompliance
+                              if (!nu) return null
+                              const caloriesOk = co?.caloriesOk !== false
+                              const tc = co?.targetCalories
+                              return (
+                                <div style={{ marginTop: 6, padding: '5px 8px', borderRadius: 5, background: caloriesOk ? '#F0F7F0' : '#FBF0E4', border: `1px solid ${caloriesOk ? 'rgba(122,158,126,0.25)' : 'rgba(200,129,58,0.35)'}`, fontSize: 11, lineHeight: 1.5 }}>
+                                  <span style={{ color: caloriesOk ? '#3B6D11' : '#854F0B', fontWeight: 500 }}>
+                                    {caloriesOk ? '✓ ' : '⚠ '}{t('substitute.preview')}：
+                                  </span>
+                                  <span style={{ color: 'rgba(28,26,22,0.65)' }}>
+                                    {nu.calories} · {t('recipe.nutriProtein')} {nu.protein} · {t('recipe.nutriFat')} {nu.fat}
+                                  </span>
+                                  {!caloriesOk && tc && (
+                                    <div style={{ color: '#854F0B', marginTop: 2 }}>
+                                      {t('recipe.calories_warning', { actual: nu.calories.replace('~',''), min: tc.min, max: tc.max })}
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            })()}
+
                             {substitutes[i].nutritionWarnings && substitutes[i].nutritionWarnings!.length > 0 && (
-                              <div style={{ marginTop: 6, padding: '4px 8px', borderRadius: 5, background: '#FBF0E4', border: '1px solid rgba(200,129,58,0.25)', fontSize: 11, color: '#854F0B', lineHeight: 1.4 }}>
+                              <div style={{ marginTop: 4, padding: '4px 8px', borderRadius: 5, background: '#FBF0E4', border: '1px solid rgba(200,129,58,0.25)', fontSize: 11, color: '#854F0B', lineHeight: 1.4 }}>
                                 ⚠️ {substitutes[i].nutritionWarnings!.map(w =>
                                   w === 'protein_low'  ? t('substitute.warn.proteinLow')  :
                                   w === 'fat_low'      ? t('substitute.warn.fatLow')      :

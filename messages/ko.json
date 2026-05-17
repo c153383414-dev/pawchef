@@ -413,6 +413,7 @@
     "suggestions": "{name} 교체",
     "loading": "조회 중...",
     "needCredits": "🟠 AI 크레딧 1개 또는 Pro 필요",
+    "preview": "대체 후 예상",
     "applied": "✓ 재료가 교체되었습니다",
     "error": {
       "safety_violation": "대체 재료가 반려동물 건강 요구 사항을 충족하지 않아 취소되었습니다",

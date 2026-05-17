@@ -413,6 +413,7 @@
     "suggestions": "Sustituir {name}",
     "loading": "Buscando...",
     "needCredits": "🟠 Requiere 1 crédito IA o Pro",
+    "preview": "Vista previa tras sustitución",
     "applied": "✓ Ingrediente sustituido",
     "error": {
       "safety_violation": "El sustituto no cumple los requisitos de salud, cancelado",

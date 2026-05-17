@@ -389,6 +389,7 @@
     "loading": "查询中...",
     "needCredits": "需要 1 🟠 AI 积分或 Pro",
     "applied": "✓ 食材已替换",
+    "preview": "替换后预估",
     "no_options": "未找到符合条件的替代食材",
     "error": {
       "safety_violation": "替代食材不符合宠物健康要求，已取消",

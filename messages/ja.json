@@ -413,6 +413,7 @@
     "suggestions": "{name}を交換",
     "loading": "検索中...",
     "needCredits": "🟠 AIクレジット1個またはProが必要",
+    "preview": "置換後の予測",
     "applied": "✓ 食材が交換されました",
     "error": {
       "safety_violation": "代替食材がペットの健康要件を満たしていないためキャンセルしました",
