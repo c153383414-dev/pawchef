@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { validateRecipe, PetParams } from '@/lib/nutrition-validator'
+import { validateRecipe, scaleToTargetCalories, PetParams } from '@/lib/nutrition-validator'
 import { getAllowedFoodsByCategory, findFood, getForbiddenFoods } from '@/lib/nutrition-db'
 import { DeductSource } from '@/types'
 import OpenAI from 'openai'
@@ -272,7 +272,31 @@ Output raw JSON only. No markdown, no code blocks, no explanation. Start with { 
         : ing
     )
 
-    const validation = validateRecipe(newIngredients, petParams)
+    let validation = validateRecipe(newIngredients, petParams)
+
+    // ── 热量超标时整体缩放（与 generate-recipe 保持一致）────────────────────
+    // 偏差 ≤50% 时按比例缩放所有主食材以命中目标热量中点
+    if (!validation.caloriesOk && validation.actualCalories > 0) {
+      const calorieDiff = Math.abs(validation.actualCalories - (validation.targetCalories.min + validation.targetCalories.max) / 2)
+      const diffRatio   = calorieDiff / validation.actualCalories
+      if (diffRatio <= 0.5) {
+        const scaled = scaleToTargetCalories(
+          validation.supplements.length > 0
+            ? [...newIngredients, ...validation.supplements.map(s => ({ name: s.ingredient, dbName: s.dbName, amountG: s.amountG }))]
+            : newIngredients,
+          petParams,
+          validation.actualCalories,
+        )
+        // 用缩放后的食材列表更新 newIngredients（同步到步骤生成）
+        newIngredients.length = 0
+        scaled.scaledIngredients.forEach(i => newIngredients.push(i))
+        // 用缩放后的验证结果替换原始验证结果
+        validation = scaled.revalidation
+        // 同步替换食材的用量
+        const scaledSub = scaled.scaledIngredients.find((i: any) => i.dbName === substitute.dbName)
+        if (scaledSub) substitute.amountG = scaledSub.amountG
+      }
+    }
 
     // 营养偏差 → 软警告（不硬拒，不退费，让用户自决）
     const nutritionWarnings: string[] = []
