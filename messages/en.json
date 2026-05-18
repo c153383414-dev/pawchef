@@ -68,7 +68,7 @@
     "disclaimer": "This recipe is AI-generated, designed based on the AAFCO nutritional framework, for home-cooked food reference only. It does not constitute a complete balanced diet and does not replace professional veterinary advice. Consult a veterinary nutritionist before using as a sole long-term diet.",
     "premixHintDog": "💡 For long-term use as a main diet, consider adding a dog-specific vitamin & mineral supplement (containing zinc, copper, iodine, vitamin E, etc.) per product instructions",
     "premixHintCat": "💡 For long-term use as a main diet, consider adding a cat-specific vitamin & mineral supplement (containing zinc, copper, iodine, vitamin E, etc.) per product instructions",
-    "proMonthUsage": "👑 Pro Member · Used {used}/30 this month (recipes + substitutions)",
+    "proMonthUsage": "👑 Pro Member · Used {used}/20 this month (recipes + substitutions)",
     "proExpiresIn": "{days} days until expiry",
     "proExpiringSoon": "⚠️ Membership expires in {days} days — renew soon",
     "proExpiresOn": "Expires: {date}",
@@ -412,6 +412,7 @@
     "pool_fetching": "[TODO:en] 正在分析替代食材...",
     "next_batch": "[TODO:en] 换一批",
     "no_more": "[TODO:en] 该食材暂无更多替代选项",
+    "no_options_retry": "No substitutes found — click ↻ to retry",
     "condition_warn": "[TODO:en] 请注意该食材可能不完全符合健康状态营养要求"
   },
   "mealPlan": {

@@ -68,7 +68,7 @@
     "disclaimer": "이 레시피는 AI가 생성하였으며 AAFCO 영양 프레임워크를 기반으로 설계되었습니다. 가정식 참고용으로만 사용하며 완전한 균형 식단 계획이 아닙니다. 전문적인 수의사 조언을 대체하지 않습니다. 장기적으로 유일한 주식으로 사용하기 전에 수의사 영양사와 상담하세요.",
     "premixHintDog": "💡 장기적으로 주식으로 사용할 경우, 제품 설명에 따라 강아지용 종합 비타민·미네랄 보충제(아연, 구리, 요오드, 비타민 E 등)를 추가하는 것을 권장합니다",
     "premixHintCat": "💡 장기적으로 주식으로 사용할 경우, 제품 설명에 따라 고양이용 종합 비타민·미네랄 보충제(아연, 구리, 요오드, 비타민 E 등)를 추가하는 것을 권장합니다",
-    "proMonthUsage": "👑 Pro 회원 · 이번 달 {used}/30 사용",
+    "proMonthUsage": "👑 Pro 회원 · 이번 달 {used}/20 사용",
     "proExpiresIn": "만료까지 {days}일 남음",
     "proExpiringSoon": "⚠️ 멤버십이 {days}일 후 만료됩니다 — 갱신해 주세요",
     "proExpiresOn": "만료일: {date}",
@@ -429,6 +429,7 @@
     "pool_fetching": "[TODO:ko] 正在分析替代食材...",
     "next_batch": "[TODO:ko] 换一批",
     "no_more": "[TODO:ko] 该食材暂无更多替代选项",
+    "no_options_retry": "대체 식재료를 찾지 못했습니다 — ↻ 를 클릭하여 재시도",
     "condition_warn": "[TODO:ko] 请注意该食材可能不完全符合健康状态营养要求"
   },
   "suitable": {

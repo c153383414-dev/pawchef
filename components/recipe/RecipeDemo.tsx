@@ -962,7 +962,11 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
                           {/* 3-card candidate grid */}
                           {!candidatePools[i]?.loading && !candidatePools[i]?.exhausted && (() => {
                             const pool = candidatePools[i]
-                            if (!pool || pool.candidates.length === 0) return null
+                            if (!pool || pool.candidates.length === 0) return (
+                              <div style={{ textAlign: 'center', padding: '10px 0', fontSize: 12, color: 'rgba(28,26,22,0.45)' }}>
+                                {t('substitute.no_options_retry')}
+                              </div>
+                            )
                             const pageCandidates = pool.candidates.slice(pool.page * 3, pool.page * 3 + 3)
                             return (
                               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

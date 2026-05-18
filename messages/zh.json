@@ -68,7 +68,7 @@
     "disclaimer": "本食谱由 AI 生成，基于 AAFCO 营养框架设计，仅供家庭鲜食参考，不构成完整均衡主食方案，不替代专业兽医建议。长期作为唯一主食前请咨询兽医营养师。",
     "premixHintDog": "💡 如需长期作为主食，建议额外添加犬用综合维矿补充剂（含锌、铜、碘、维生素 E 等微量营养素），按产品说明添加",
     "premixHintCat": "💡 如需长期作为主食，建议额外添加猫用综合维矿补充剂（含锌、铜、碘、维生素 E 等微量营养素），按产品说明添加",
-    "proMonthUsage": "👑 Pro 会员 · 本月已用 {used}/30 次（含食谱生成+食材替换）",
+    "proMonthUsage": "👑 Pro 会员 · 本月已用 {used}/20 次（含食谱生成+食材替换）",
     "proExpiresIn": "到期剩余 {days} 天",
     "proExpiringSoon": "⚠️ 会员将在 {days} 天后到期，请及时续费",
     "proExpiresOn": "到期日：{date}",
@@ -395,6 +395,7 @@
     "pool_fetching": "正在分析替代食材...",
     "next_batch": "换一批",
     "no_more": "该食材暂无更多替代选项",
+    "no_options_retry": "暂未找到替代选项，点击「换一批」重试",
     "condition_warn": "请注意该食材可能不完全符合健康状态营养要求",
     "error": {
       "safety_violation": "替代食材不符合宠物健康要求，已取消",

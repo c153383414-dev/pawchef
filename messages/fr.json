@@ -68,7 +68,7 @@
     "disclaimer": "Cette recette est générée par IA, basée sur le cadre nutritionnel AAFCO, uniquement à titre de référence culinaire maison. Elle ne constitue pas un plan alimentaire complet et ne remplace pas l'avis vétérinaire. Consultez un nutritionniste vétérinaire avant de l'utiliser comme alimentation unique à long terme.",
     "premixHintDog": "💡 Pour un usage à long terme comme alimentation principale, ajoutez un complément vitamines et minéraux pour chiens (zinc, cuivre, iode, vitamine E, etc.) selon les instructions du produit",
     "premixHintCat": "💡 Pour un usage à long terme comme alimentation principale, ajoutez un complément vitamines et minéraux pour chats (zinc, cuivre, iode, vitamine E, etc.) selon les instructions du produit",
-    "proMonthUsage": "👑 Membre Pro · Utilisé {used}/30 ce mois",
+    "proMonthUsage": "👑 Membre Pro · Utilisé {used}/20 ce mois",
     "proExpiresIn": "Expire dans {days} jours",
     "proExpiringSoon": "⚠️ L'abonnement expire dans {days} jours — renouvelez bientôt",
     "proExpiresOn": "Expire le : {date}",
@@ -429,6 +429,7 @@
     "pool_fetching": "[TODO:fr] 正在分析替代食材...",
     "next_batch": "[TODO:fr] 换一批",
     "no_more": "[TODO:fr] 该食材暂无更多替代选项",
+    "no_options_retry": "Aucun substitut trouvé — cliquez ↻ pour réessayer",
     "condition_warn": "[TODO:fr] 请注意该食材可能不完全符合健康状态营养要求"
   },
   "suitable": {

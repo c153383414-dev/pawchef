@@ -68,7 +68,7 @@
     "disclaimer": "Esta receta es generada por IA, basada en el marco nutricional AAFCO, solo como referencia de comida casera. No constituye un plan de dieta completo y no reemplaza el consejo veterinario profesional. Consulte a un nutricionista veterinario antes de usarla como dieta única a largo plazo.",
     "premixHintDog": "💡 Para uso a largo plazo como dieta principal, agregue un suplemento vitamínico y mineral para perros (zinc, cobre, yodo, vitamina E, etc.) según las instrucciones del producto",
     "premixHintCat": "💡 Para uso a largo plazo como dieta principal, agregue un suplemento vitamínico y mineral para gatos (zinc, cobre, yodo, vitamina E, etc.) según las instrucciones del producto",
-    "proMonthUsage": "👑 Miembro Pro · Usado {used}/30 este mes",
+    "proMonthUsage": "👑 Miembro Pro · Usado {used}/20 este mes",
     "proExpiresIn": "Vence en {days} días",
     "proExpiringSoon": "⚠️ La membresía vence en {days} días — renueva pronto",
     "proExpiresOn": "Vence el: {date}",
@@ -429,6 +429,7 @@
     "pool_fetching": "[TODO:es] 正在分析替代食材...",
     "next_batch": "[TODO:es] 换一批",
     "no_more": "[TODO:es] 该食材暂无更多替代选项",
+    "no_options_retry": "No se encontraron sustitutos — haz clic en ↻ para reintentar",
     "condition_warn": "[TODO:es] 请注意该食材可能不完全符合健康状态营养要求"
   },
   "suitable": {
