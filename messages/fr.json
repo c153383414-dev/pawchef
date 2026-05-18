@@ -437,7 +437,16 @@
     "no_candidates": "[TODO:fr] 本次食谱暂无符合条件的替代食材，建议重新生成食谱",
     "range_normal": "[TODO:fr] 正常",
     "range_low": "[TODO:fr] 偏低",
-    "range_high": "[TODO:fr] 偏高"
+    "range_high": "[TODO:fr] 偏高",
+    "status_balanced": "[TODO:fr] 营养均衡",
+    "nutri_calories": "[TODO:fr] 热量",
+    "nutri_protein": "[TODO:fr] 蛋白质",
+    "nutri_fat": "[TODO:fr] 脂肪",
+    "nutri_calcium": "[TODO:fr] 钙",
+    "nutri_phosphorus": "[TODO:fr] 磷",
+    "nutri_ca_p_ratio": "[TODO:fr] 钙磷比",
+    "nutri_omega3": "[TODO:fr] Omega-3",
+    "nutri_taurine": "[TODO:fr] 牛磺酸"
   },
   "suitable": {
     "healthyAdult": "✓ Adulte en bonne santé",

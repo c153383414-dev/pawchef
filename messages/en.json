@@ -420,7 +420,16 @@
     "no_candidates": "[TODO:en] 本次食谱暂无符合条件的替代食材，建议重新生成食谱",
     "range_normal": "[TODO:en] 正常",
     "range_low": "[TODO:en] 偏低",
-    "range_high": "[TODO:en] 偏高"
+    "range_high": "[TODO:en] 偏高",
+    "status_balanced": "[TODO:en] 营养均衡",
+    "nutri_calories": "[TODO:en] 热量",
+    "nutri_protein": "[TODO:en] 蛋白质",
+    "nutri_fat": "[TODO:en] 脂肪",
+    "nutri_calcium": "[TODO:en] 钙",
+    "nutri_phosphorus": "[TODO:en] 磷",
+    "nutri_ca_p_ratio": "[TODO:en] 钙磷比",
+    "nutri_omega3": "[TODO:en] Omega-3",
+    "nutri_taurine": "[TODO:en] 牛磺酸"
   },
   "mealPlan": {
     "sectionTitle": "7-Day Meal Plan",

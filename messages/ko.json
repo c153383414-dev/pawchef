@@ -437,7 +437,16 @@
     "no_candidates": "[TODO:ko] 本次食谱暂无符合条件的替代食材，建议重新生成食谱",
     "range_normal": "[TODO:ko] 正常",
     "range_low": "[TODO:ko] 偏低",
-    "range_high": "[TODO:ko] 偏高"
+    "range_high": "[TODO:ko] 偏高",
+    "status_balanced": "[TODO:ko] 营养均衡",
+    "nutri_calories": "[TODO:ko] 热量",
+    "nutri_protein": "[TODO:ko] 蛋白质",
+    "nutri_fat": "[TODO:ko] 脂肪",
+    "nutri_calcium": "[TODO:ko] 钙",
+    "nutri_phosphorus": "[TODO:ko] 磷",
+    "nutri_ca_p_ratio": "[TODO:ko] 钙磷比",
+    "nutri_omega3": "[TODO:ko] Omega-3",
+    "nutri_taurine": "[TODO:ko] 牛磺酸"
   },
   "suitable": {
     "healthyAdult": "✓ 건강한 성체",

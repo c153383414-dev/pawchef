@@ -23,9 +23,16 @@ interface PoolCandidate {
     protein:  { before: number; after: number }
     fat:      { before: number; after: number }
   }
-  caloriesStatus: 'normal' | 'low' | 'high'
-  proteinStatus:  'normal' | 'low' | 'high'
-  fatStatus:      'normal' | 'low' | 'high'
+  nutritionStatus: {
+    calories:   'normal' | 'low' | 'high'
+    protein:    'normal' | 'low' | 'high'
+    fat:        'normal' | 'low' | 'high'
+    calcium:    'normal' | 'low' | 'high'
+    phosphorus: 'normal' | 'low' | 'high'
+    caPRatio:   'normal' | 'low' | 'high'
+    omega3:     'normal' | 'low' | 'high'
+    taurine:    'normal' | 'low' | 'high'
+  }
   supplementChanges: Array<{ dbName: string; name: string; before: number; after: number }>
   validationScore: number
   conditionOk: boolean
@@ -986,26 +993,48 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
                                           {isApplying ? '…' : t('substitute.apply')}
                                         </button>
                                       </div>
-                                      {/* Nutrition delta */}
+                                      {/* Nutrition delta — numbers only */}
+                                      <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.6)', lineHeight: 1.6 }}>
+                                        {t('recipe.nutriCalories')} {d.calories.before} → <strong>{d.calories.after}</strong> kcal
+                                        {'  ·  '}
+                                        {t('recipe.nutriProtein')} {d.protein.before}g → <strong>{d.protein.after}g</strong>
+                                        {'  ·  '}
+                                        {t('recipe.nutriFat')} {d.fat.before}g → <strong>{d.fat.after}g</strong>
+                                      </div>
+                                      {/* Nutrition status tags — all 8 metrics, only show non-normal */}
                                       {(() => {
-                                        const statusEmoji = { normal: '🟢', low: '🟡', high: '🟠' }
-                                        const statusColor = { normal: '#3B6D11', low: '#854F0B', high: '#C05A00' }
-                                        const statusLabel = (s: 'normal' | 'low' | 'high') =>
-                                          s === 'normal' ? t('substitute.range_normal')
-                                          : s === 'low'  ? t('substitute.range_low')
-                                          :                t('substitute.range_high')
-                                        const Tag = ({ s }: { s: 'normal' | 'low' | 'high' }) => (
-                                          <span style={{ fontSize: 10, fontWeight: 500, color: statusColor[s], whiteSpace: 'nowrap' }}>
-                                            {statusEmoji[s]} {statusLabel(s)}
-                                          </span>
-                                        )
+                                        const ns = candidate.nutritionStatus
+                                        const METRICS: Array<{ key: keyof typeof ns; labelKey: string }> = [
+                                          { key: 'calories',   labelKey: 'substitute.nutri_calories'   },
+                                          { key: 'protein',    labelKey: 'substitute.nutri_protein'    },
+                                          { key: 'fat',        labelKey: 'substitute.nutri_fat'        },
+                                          { key: 'calcium',    labelKey: 'substitute.nutri_calcium'    },
+                                          { key: 'phosphorus', labelKey: 'substitute.nutri_phosphorus' },
+                                          { key: 'caPRatio',   labelKey: 'substitute.nutri_ca_p_ratio' },
+                                          { key: 'omega3',     labelKey: 'substitute.nutri_omega3'     },
+                                          { key: 'taurine',    labelKey: 'substitute.nutri_taurine'    },
+                                        ]
+                                        const problems = METRICS.filter(m => ns[m.key] !== 'normal')
+                                        const emoji = { low: '🟡', high: '🟠' }
+                                        const color = { low: '#854F0B', high: '#C05A00' }
+                                        const rangeLabel = (s: 'low' | 'high') =>
+                                          s === 'low' ? t('substitute.range_low') : t('substitute.range_high')
                                         return (
-                                          <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.6)', lineHeight: 1.8 }}>
-                                            <span>{t('recipe.nutriCalories')} {d.calories.before} → <strong>{d.calories.after}</strong> kcal{' '}<Tag s={candidate.caloriesStatus} /></span>
-                                            {'  ·  '}
-                                            <span>{t('recipe.nutriProtein')} {d.protein.before}g → <strong>{d.protein.after}g</strong>{' '}<Tag s={candidate.proteinStatus} /></span>
-                                            {'  ·  '}
-                                            <span>{t('recipe.nutriFat')} {d.fat.before}g → <strong>{d.fat.after}g</strong>{' '}<Tag s={candidate.fatStatus} /></span>
+                                          <div style={{ marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                            {problems.length === 0 ? (
+                                              <span style={{ fontSize: 10, fontWeight: 500, color: '#3B6D11' }}>
+                                                🟢 {t('substitute.status_balanced')}
+                                              </span>
+                                            ) : problems.map(m => (
+                                              <span key={m.key} style={{
+                                                fontSize: 10, fontWeight: 500,
+                                                color: color[ns[m.key] as 'low' | 'high'],
+                                                background: ns[m.key] === 'low' ? '#FBF0E4' : '#FFF0E0',
+                                                padding: '1px 6px', borderRadius: 10,
+                                              }}>
+                                                {emoji[ns[m.key] as 'low' | 'high']} {t(m.labelKey)}{rangeLabel(ns[m.key] as 'low' | 'high')}
+                                              </span>
+                                            ))}
                                           </div>
                                         )
                                       })()}
