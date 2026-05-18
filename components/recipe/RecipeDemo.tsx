@@ -432,6 +432,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
           targetDbName:     ing.dbName,
           targetCategory:   ing.category,
           currentRecipe:    { ingredients: recipe?.content.ingredients || [] },
+          currentNutrition: recipe?.nutrition,
           pet: {
             species,
             weightKg:         parseFloat(weight) || 5,

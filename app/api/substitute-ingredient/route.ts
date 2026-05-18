@@ -134,6 +134,7 @@ export async function POST(req: NextRequest) {
       targetIngredient,
       targetDbName,
       currentRecipe,
+      currentNutrition,             // stored recipe nutrition — used as before baseline
       pet,
       allergens        = [],
       chosenCandidate,              // { dbName, name, amountG, emoji } — apply action only
@@ -269,17 +270,21 @@ export async function POST(req: NextRequest) {
         nutrientsOverride: ing.dbName ? overrideMap.get(ing.dbName) : undefined,
       }))
 
-      // ── Compute "before" baseline using enriched ingredients (includes Pro non-DB foods) ──
+      // ── "Before" baseline: use stored recipe nutrition so display matches bottom of recipe card ──
+      // Parse stored strings like "524 kcal", "42.9g" — avoids re-validation drift
+      const beforeCalories = Math.round(parseFloat(currentNutrition?.calories) || 0)
+      const storedProteinG = parseFloat(currentNutrition?.protein) || 0
+      const storedFatG     = parseFloat(currentNutrition?.fat)     || 0
+      const beforeProtein  = beforeCalories > 0
+        ? Math.round(storedProteinG / beforeCalories * 1000 * 10) / 10
+        : 0
+      const beforeFat      = beforeCalories > 0
+        ? Math.round(storedFatG / beforeCalories * 1000 * 10) / 10
+        : 0
+      // Still run validation to get beforeSupplements for supplement-change tracking
       const { validation: beforeValidation } = runValidationChain(
         enrichedCurrentIngredients, petParams, conditions, species,
       )
-      const beforeCalories = Math.round(beforeValidation.actualCalories)
-      const beforeProtein  = beforeValidation.actualCalories > 0
-        ? Math.round(beforeValidation.nutrients.protein * 1000 / beforeValidation.actualCalories * 10) / 10
-        : 0
-      const beforeFat      = beforeValidation.actualCalories > 0
-        ? Math.round(beforeValidation.nutrients.fat * 1000 / beforeValidation.actualCalories * 10) / 10
-        : 0
       const beforeSupplements: Record<string, number> = {}
       const beforeSupplementNames: Record<string, string> = {}
       beforeValidation.supplements.forEach(s => {
