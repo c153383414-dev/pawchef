@@ -257,7 +257,11 @@ export async function POST(req: NextRequest) {
       ? Math.round(beforeValidation.nutrients.fat * 1000 / beforeValidation.actualCalories * 10) / 10
       : 0
     const beforeSupplements: Record<string, number> = {}
-    beforeValidation.supplements.forEach(s => { beforeSupplements[s.dbName] = s.amountG })
+    const beforeSupplementNames: Record<string, string> = {}
+    beforeValidation.supplements.forEach(s => {
+      beforeSupplements[s.dbName]     = s.amountG
+      beforeSupplementNames[s.dbName] = s.ingredient
+    })
 
     // ═══════════════════════════════════════════════════════════════════════════
     // POOL ACTION — generate candidate pool, no credit deduction
@@ -369,7 +373,7 @@ Output raw JSON only. No markdown, no explanation:
           if (before !== after) {
             supplementChanges.push({
               dbName: sDbName,
-              name:   afterSupplements[sDbName]?.name || sDbName,
+              name:   findFood(sDbName, true)?.names[0] || afterSupplements[sDbName]?.name || sDbName,
               before,
               after,
             })
