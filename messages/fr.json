@@ -425,7 +425,7 @@
       "nonCompliant": "La nutrition ne respecte pas la norme après substitution. Régénération recommandée",
       "conditionAttention": "[TODO:fr] 替换后可能不符合健康状态饮食要求，建议重新生成"
     },
-    "freeToExplore": "[TODO:fr] 浏览免费 · 应用时消耗积分",
+    "freeToExplore": "Navigation gratuite · 1 crédit à l'application",
     "pool_fetching": "[TODO:fr] 正在分析替代食材...",
     "next_batch": "[TODO:fr] 换一批",
     "no_more": "[TODO:fr] 该食材暂无更多替代选项",

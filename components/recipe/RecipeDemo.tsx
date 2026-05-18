@@ -884,11 +884,6 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
 
                 <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(28,26,22,0.5)', marginBottom: 8 }}>
                   {t('recipe.ingredientsLabel')}
-                  {user && (
-                    <span style={{ fontWeight: 400, marginLeft: 6, color: 'rgba(28,26,22,0.35)' }}>
-                      · {t('substitute.freeToExplore')}
-                    </span>
-                  )}
                 </div>
 
                 {/* 食材列表 */}

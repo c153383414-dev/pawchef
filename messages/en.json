@@ -408,7 +408,7 @@
       "nonCompliant": "Nutrition below standard after substitution, consider regenerating",
       "conditionAttention": "[TODO:en] 替换后可能不符合健康状态饮食要求，建议重新生成"
     },
-    "freeToExplore": "[TODO:en] 浏览免费 · 应用时消耗积分",
+    "freeToExplore": "Browse free · 1 credit on apply",
     "pool_fetching": "[TODO:en] 正在分析替代食材...",
     "next_batch": "[TODO:en] 换一批",
     "no_more": "[TODO:en] 该食材暂无更多替代选项",

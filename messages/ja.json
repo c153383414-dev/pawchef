@@ -425,7 +425,7 @@
       "nonCompliant": "交換後栄養基準に達しません。再生成をお勧めします",
       "conditionAttention": "[TODO:ja] 替换后可能不符合健康状态饮食要求，建议重新生成"
     },
-    "freeToExplore": "[TODO:ja] 浏览免费 · 应用时消耗积分",
+    "freeToExplore": "閲覧無料 · 適用時 1 クレジット消費",
     "pool_fetching": "[TODO:ja] 正在分析替代食材...",
     "next_batch": "[TODO:ja] 换一批",
     "no_more": "[TODO:ja] 该食材暂无更多替代选项",
