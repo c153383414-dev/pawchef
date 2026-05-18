@@ -307,6 +307,7 @@ Output raw JSON only. No markdown, no explanation:
         const parsed = parseJson(text, 'candidates')
         candidateDbNames = (parsed.candidates || [])
           .filter((d: any) => typeof d === 'string' && allowedSet.has(d))
+        console.log(`[pool] target=${targetDbName||targetIngredient} category=${category} allowedCount=${shuffled.length} aiRaw=${parsed.candidates?.length??0} aiFiltered=${candidateDbNames.length}`)
       } catch (e) {
         console.error('[substitute/pool] AI call failed:', e)
         return NextResponse.json({ error: 'AI generation failed' }, { status: 500 })
@@ -319,6 +320,7 @@ Output raw JSON only. No markdown, no explanation:
           .filter(d => !candidateDbNames.includes(d))
           .slice(0, 8 - candidateDbNames.length)
         candidateDbNames = [...candidateDbNames, ...extras]
+        console.log(`[pool] fallback applied → total candidateDbNames=${candidateDbNames.length}`)
       }
       // Deduplicate and cap at 10
       candidateDbNames = Array.from(new Set(candidateDbNames)).slice(0, 10)
@@ -404,6 +406,7 @@ Output raw JSON only. No markdown, no explanation:
       }
 
       // Sort best candidates first
+      console.log(`[pool] final pool size=${pool.length} for target=${targetDbName||targetIngredient}`)
       pool.sort((a, b) => b.validationScore - a.validationScore)
 
       return NextResponse.json({ pool, poolIndex })
