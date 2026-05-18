@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { validateRecipe, validateIngredients, scaleToTargetCalories, PetParams, ValidationResult } from '@/lib/nutrition-validator'
 import { validateConditionRecipe } from '@/lib/condition-standards'
 import { getAllowedFoodsByCategory, findFood, OILY_FISH_DBNAMES } from '@/lib/nutrition-db'
+import { resolveUnknownIngredients } from '@/lib/usda-api'
 import { DeductSource } from '@/types'
 import OpenAI from 'openai'
 
@@ -240,24 +241,6 @@ export async function POST(req: NextRequest) {
       (originalIngredient?.amount ? parseInt(String(originalIngredient.amount)) : 0) ||
       50
 
-    // ── Compute "before" baseline nutrition ────────────────────────────────────
-    // Use runValidationChain (same as "after") so before/after use consistent scaling
-    const { validation: beforeValidation } = runValidationChain(
-      currentRecipe?.ingredients || [], petParams, conditions, species,
-    )
-    const beforeCalories    = Math.round(beforeValidation.actualCalories)
-    const beforeProtein     = beforeValidation.actualCalories > 0
-      ? Math.round(beforeValidation.nutrients.protein * 1000 / beforeValidation.actualCalories * 10) / 10
-      : 0
-    const beforeFat         = beforeValidation.actualCalories > 0
-      ? Math.round(beforeValidation.nutrients.fat * 1000 / beforeValidation.actualCalories * 10) / 10
-      : 0
-    const beforeSupplements: Record<string, number> = {}
-    const beforeSupplementNames: Record<string, string> = {}
-    beforeValidation.supplements.forEach(s => {
-      beforeSupplements[s.dbName]     = s.amountG
-      beforeSupplementNames[s.dbName] = s.ingredient
-    })
     // dbNames that are already explicit ingredients in the original recipe
     const recipeIngDbNames = new Set<string>(
       (currentRecipe?.ingredients || []).map((ing: any) => ing.dbName).filter(Boolean),
@@ -267,6 +250,47 @@ export async function POST(req: NextRequest) {
     // POOL ACTION — generate candidate pool, no credit deduction
     // ═══════════════════════════════════════════════════════════════════════════
     if (action === 'pool') {
+      // Resolve nutrientsOverride for Pro ingredients not in local DB
+      // (same mechanism used by generate-recipe — checks nutrition_cache then USDA API)
+      const rawCurrentIngredients = (currentRecipe?.ingredients || []).map((ing: any) => ({
+        name:    ing.name,
+        dbName:  ing.dbName || '',
+        amountG: ing.amountG || 0,
+      }))
+      const resolvedCurrentIngredients = await resolveUnknownIngredients(rawCurrentIngredients)
+
+      const overrideMap = new Map<string, any>()
+      resolvedCurrentIngredients.forEach(r => {
+        if (r.nutrientsOverride && r.dbName) overrideMap.set(r.dbName, r.nutrientsOverride)
+      })
+
+      const enrichedCurrentIngredients = (currentRecipe?.ingredients || []).map((ing: any) => ({
+        ...ing,
+        nutrientsOverride: ing.dbName ? overrideMap.get(ing.dbName) : undefined,
+      }))
+
+      // ── Compute "before" baseline using enriched ingredients (includes Pro non-DB foods) ──
+      const { validation: beforeValidation } = runValidationChain(
+        enrichedCurrentIngredients, petParams, conditions, species,
+      )
+      const beforeCalories = Math.round(beforeValidation.actualCalories)
+      const beforeProtein  = beforeValidation.actualCalories > 0
+        ? Math.round(beforeValidation.nutrients.protein * 1000 / beforeValidation.actualCalories * 10) / 10
+        : 0
+      const beforeFat      = beforeValidation.actualCalories > 0
+        ? Math.round(beforeValidation.nutrients.fat * 1000 / beforeValidation.actualCalories * 10) / 10
+        : 0
+      const beforeSupplements: Record<string, number> = {}
+      const beforeSupplementNames: Record<string, string> = {}
+      beforeValidation.supplements.forEach(s => {
+        beforeSupplements[s.dbName]     = s.amountG
+        beforeSupplementNames[s.dbName] = s.ingredient
+      })
+
+      // Target ingredient nutrients (with override for non-DB ingredients)
+      const origResolved = resolvedCurrentIngredients.find(r => r.dbName === targetDbName)
+      const origNutrientsPerHundred = origResolved?.nutrientsOverride ?? origFood?.nutrients
+
       // Pure-math candidate selection — no AI call
       const candidateDbNames: string[] = candidateFoods
         .filter(f => f.dbName !== targetDbName)
@@ -279,16 +303,16 @@ export async function POST(req: NextRequest) {
         const food = findFood(dbName, true)
         if (!food) continue
 
-        // Iso-caloric amount scaling
+        // Iso-caloric amount scaling (uses resolved nutrients for non-DB target ingredients)
         let amountG = originalAmountG
-        if (origFood && food.nutrients.calories > 0 && origFood.nutrients.calories > 0) {
-          const origCal = originalAmountG * (origFood.nutrients.calories / 100)
+        if (origNutrientsPerHundred && food.nutrients.calories > 0 && origNutrientsPerHundred.calories > 0) {
+          const origCal = originalAmountG * (origNutrientsPerHundred.calories / 100)
           const iso     = Math.round(origCal / (food.nutrients.calories / 100))
           amountG       = Math.min(originalAmountG * 2, Math.max(originalAmountG * 0.5, iso))
         }
 
-        // Build new ingredient list with this candidate
-        const newIngredients = (currentRecipe?.ingredients || []).map((ing: any) =>
+        // Build new ingredient list with this candidate (non-target ingredients keep their nutrientsOverride)
+        const newIngredients = enrichedCurrentIngredients.map((ing: any) =>
           (targetDbName ? ing.dbName === targetDbName : ing.name === targetIngredient)
             ? { name: food.names[0], dbName: food.dbName, amountG }
             : ing,
