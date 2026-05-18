@@ -430,7 +430,11 @@
     "next_batch": "[TODO:ko] 换一批",
     "no_more": "[TODO:ko] 该食材暂无更多替代选项",
     "no_options_retry": "대체 식재료를 찾지 못했습니다 — ↻ 를 클릭하여 재시도",
-    "condition_warn": "[TODO:ko] 请注意该食材可能不完全符合健康状态营养要求"
+    "condition_warn": "[TODO:ko] 请注意该食材可能不完全符合健康状态营养要求",
+    "all_shown": "[TODO:ko] 已展示全部 {count} 个可用替代食材",
+    "regen_hint": "[TODO:ko] 如需更多选择，可尝试重新生成食谱",
+    "browse_again": "[TODO:ko] 重新浏览",
+    "no_candidates": "[TODO:ko] 本次食谱暂无符合条件的替代食材，建议重新生成食谱"
   },
   "suitable": {
     "healthyAdult": "✓ 건강한 성체",

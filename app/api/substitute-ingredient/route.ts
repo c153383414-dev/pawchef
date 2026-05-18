@@ -135,8 +135,6 @@ export async function POST(req: NextRequest) {
       currentRecipe,
       pet,
       allergens        = [],
-      excludeExtra     = [],        // previously replaced/suggested dbNames to exclude
-      poolIndex        = 0,         // which pool batch (0,1,2) — pool action only
       chosenCandidate,              // { dbName, name, amountG, emoji } — apply action only
     } = body
 
@@ -192,12 +190,11 @@ export async function POST(req: NextRequest) {
     const category    = (VALID_CATEGORIES.includes(rawCategory as FoodCategory) ? rawCategory : 'protein') as FoodCategory
 
     // dbNames to exclude from suggestions
-    const existingDbNames = new Set<string>([
-      ...(currentRecipe?.ingredients || [])
+    const existingDbNames = new Set<string>(
+      (currentRecipe?.ingredients || [])
         .filter((ing: any) => ing.dbName && ing.dbName !== targetDbName)
         .map((ing: any) => ing.dbName as string),
-      ...excludeExtra.filter((d: any) => typeof d === 'string'),
-    ])
+    )
 
     const allowedFoods = getAllowedFoodsByCategory(category, conditions, species)
     if (allowedFoods.length === 0) {
@@ -232,10 +229,6 @@ export async function POST(req: NextRequest) {
           !allergens.some((a: string) => f.names.some(n => n.toLowerCase().includes(a.toLowerCase()))) &&
           !conditions.some((c: string) => f.forbiddenFor.includes(c as any)),
         )
-
-    const shuffled       = [...candidateFoods].sort(() => Math.random() - 0.5)
-    const allowedDbNames = shuffled.map(f => f.dbName).join(', ')
-    const allowedSet     = new Set(shuffled.map(f => f.dbName))
 
     // Original ingredient amount
     const originalIngredient = (currentRecipe?.ingredients || []).find(
@@ -274,63 +267,10 @@ export async function POST(req: NextRequest) {
     // POOL ACTION — generate candidate pool, no credit deduction
     // ═══════════════════════════════════════════════════════════════════════════
     if (action === 'pool') {
-      // Rate limit: max 3 AI pool calls per ingredient slot
-      if (poolIndex >= 3) {
-        return NextResponse.json({ error: 'POOL_LIMIT_REACHED' }, { status: 429 })
-      }
-
-      const excludeNote = existingDbNames.size > 0
-        ? `Do NOT suggest these (already in recipe or previously used): ${Array.from(existingDbNames).join(', ')}`
-        : ''
-      const oilyFishNote = recipeHasOilyFish
-        ? `Recipe already contains oily fish — do NOT suggest: ${OILY_FISH_DBNAMES.join(', ')}`
-        : ''
-      const conditionNote = conditions.length > 0
-        ? `Health conditions: ${conditions.join(', ')} — prioritize ingredients suitable for these conditions`
-        : ''
-
-      const poolPrompt = `You are a pet nutritionist. Suggest 8-10 diverse substitute ingredients for "${targetIngredient}" (category: ${category}).
-Pet: ${species}, ${pet.weightKg || 5}kg${conditions.length ? ', health: ' + conditions.join(', ') : ''}
-${species === 'cat' ? 'Cat is an obligate carnivore — prioritize protein-rich substitutes.' : ''}
-Allowed dbNames (pick ONLY from this exact list): ${allowedDbNames}
-${excludeNote}
-${oilyFishNote}
-${conditionNote}
-
-Be diverse — pick ingredients with varied nutrient profiles. Avoid always defaulting to the most common options.
-Output raw JSON only. No markdown, no explanation:
-{"candidates": ["dbName1", "dbName2", ...]}`
-
-      let candidateDbNames: string[] = []
-      try {
-        const completion = await openai.chat.completions.create({
-          model:       'google/gemini-3.1-flash-lite',
-          messages:    [{ role: 'user', content: poolPrompt }],
-          max_tokens:  300,
-          temperature: 1.0,
-          ...GEMINI_EXTRAS,
-        } as any)
-        const text   = completion.choices[0]?.message?.content || ''
-        const parsed = parseJson(text, 'candidates')
-        candidateDbNames = (parsed.candidates || [])
-          .filter((d: any) => typeof d === 'string' && allowedSet.has(d))
-        console.log(`[pool] target=${targetDbName||targetIngredient} category=${category} allowedCount=${shuffled.length} aiRaw=${parsed.candidates?.length??0} aiFiltered=${candidateDbNames.length}`)
-      } catch (e) {
-        console.error('[substitute/pool] AI call failed:', e)
-        return NextResponse.json({ error: 'AI generation failed' }, { status: 500 })
-      }
-
-      // Fallback: supplement with shuffled candidates if AI returned too few
-      if (candidateDbNames.length < 3) {
-        const extras = shuffled
-          .map(f => f.dbName)
-          .filter(d => !candidateDbNames.includes(d))
-          .slice(0, 8 - candidateDbNames.length)
-        candidateDbNames = [...candidateDbNames, ...extras]
-        console.log(`[pool] fallback applied → total candidateDbNames=${candidateDbNames.length}`)
-      }
-      // Deduplicate and cap at 10
-      candidateDbNames = Array.from(new Set(candidateDbNames)).slice(0, 10)
+      // Pure-math candidate selection — no AI call
+      const candidateDbNames: string[] = candidateFoods
+        .filter(f => f.dbName !== targetDbName)
+        .map(f => f.dbName)
 
       // ── Validate each candidate mathematically (pure math, no AI) ────────────
       const pool: any[] = []
@@ -414,11 +354,8 @@ Output raw JSON only. No markdown, no explanation:
         })
       }
 
-      // Sort best candidates first
-      console.log(`[pool] final pool size=${pool.length} for target=${targetDbName||targetIngredient}`)
       pool.sort((a, b) => b.validationScore - a.validationScore)
-
-      return NextResponse.json({ pool, poolIndex })
+      return NextResponse.json({ pool })
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

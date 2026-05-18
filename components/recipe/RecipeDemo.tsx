@@ -30,7 +30,6 @@ interface PoolCandidate {
 interface CandidatePool {
   candidates: PoolCandidate[]
   page:       number    // current page (3 per page)
-  poolIndex:  number    // which AI batch (0,1,2)
   loading:    boolean
   exhausted:  boolean
 }
@@ -406,23 +405,17 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
 
   // ── Substitute ───────────────────────────────────────────────────────────
   // Fetch a pool of candidates (no credit deduction — browsing is free)
-  const fetchPool = async (ing: Ingredient, index: number, poolIndex: number) => {
+  const fetchPool = async (ing: Ingredient, index: number) => {
     if (!user) { onAuthRequired(); return }
     const canSub = (user.gift_ai_points ?? 0) > 0 || (user.paid_points ?? 0) > 0 ||
                    (isPro && ((user.monthly_ai_count ?? 0) + proMonthlyDelta) < 20)
     if (!canSub) { showToast(t('substitute.needCredits'), 'warn'); return }
-
-    // Exclude: all candidates already shown + the original ingredient that was replaced
-    const existingCandidateDbNames = (candidatePools[index]?.candidates || []).map(c => c.dbName)
-    const excludeExtra: string[] = [...existingCandidateDbNames]
-    if (replacedFrom[index]) excludeExtra.push(replacedFrom[index])
 
     setCandidatePools(prev => ({
       ...prev,
       [index]: {
         candidates: prev[index]?.candidates || [],
         page:       0,
-        poolIndex,
         loading:    true,
         exhausted:  false,
       },
@@ -445,26 +438,19 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
             ageMonths:        parseAgeToMonths(age),
             healthConditions: health,
           },
-          allergens:  [],
-          excludeExtra,
-          poolIndex,
+          allergens: [],
         }),
       })
       const data = await res.json()
       if (!res.ok) {
-        if (res.status === 402)  showToast('🟠 ' + t('substitute.needCredits'), 'error')
-        else if (res.status === 429) {
-          setCandidatePools(prev => ({ ...prev, [index]: { ...prev[index], loading: false, exhausted: true } }))
-          return
-        }
+        if (res.status === 402) showToast('🟠 ' + t('substitute.needCredits'), 'error')
         else showToast(formatApiError(data, res.status), 'error')
         setCandidatePools(prev => ({ ...prev, [index]: { ...prev[index], loading: false } }))
         return
       }
-      // Replace pool with new batch (page 0)
       setCandidatePools(prev => ({
         ...prev,
-        [index]: { candidates: data.pool || [], page: 0, poolIndex, loading: false, exhausted: false },
+        [index]: { candidates: data.pool || [], page: 0, loading: false, exhausted: false },
       }))
     } catch {
       showToast('Network error', 'error')
@@ -478,11 +464,13 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
       setExpandedSubs(prev => { const next = new Set(prev); next.delete(index); return next })
       return
     }
-    // Open panel and fetch first pool if not yet loaded
-    if (!candidatePools[index] || candidatePools[index].exhausted) {
-      fetchPool(ing, index, 0)
+    if (!candidatePools[index]) {
+      fetchPool(ing, index)
+    } else if (candidatePools[index].exhausted) {
+      // Reset to first page — no API call
+      setCandidatePools(prev => ({ ...prev, [index]: { ...prev[index], page: 0, exhausted: false } }))
+      setExpandedSubs(prev => new Set(Array.from(prev).concat(index)))
     } else {
-      // Just expand (pool already loaded)
       setExpandedSubs(prev => new Set(Array.from(prev).concat(index)))
     }
   }
@@ -491,16 +479,10 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
     const pool = candidatePools[index]
     if (!pool || pool.loading) return
     const nextPage = pool.page + 1
-    const hasMore  = nextPage * 3 < pool.candidates.length
 
-    if (hasMore) {
-      // Show next 3 from current pool (no API call)
+    if (nextPage * 3 < pool.candidates.length) {
       setCandidatePools(prev => ({ ...prev, [index]: { ...prev[index], page: nextPage } }))
-    } else if (pool.poolIndex < 2) {
-      // Fetch next AI batch (poolIndex 1 or 2)
-      fetchPool(ing, index, pool.poolIndex + 1)
     } else {
-      // All 3 pools exhausted
       setCandidatePools(prev => ({ ...prev, [index]: { ...prev[index], exhausted: true } }))
     }
   }
@@ -949,8 +931,18 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
 
                           {/* Exhausted state */}
                           {!candidatePools[i]?.loading && candidatePools[i]?.exhausted && (
-                            <div style={{ textAlign: 'center', padding: '10px 0', fontSize: 12, color: 'rgba(28,26,22,0.45)' }}>
-                              {t('substitute.no_more')}
+                            <div style={{ textAlign: 'center', padding: '10px 0' }}>
+                              <div style={{ fontSize: 12, color: 'rgba(28,26,22,0.45)', marginBottom: 2 }}>
+                                {t('substitute.all_shown', { count: candidatePools[i].candidates.length })}
+                              </div>
+                              <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.35)', marginBottom: 6 }}>
+                                {t('substitute.regen_hint')}
+                              </div>
+                              <button
+                                onClick={() => setCandidatePools(prev => ({ ...prev, [i]: { ...prev[i], page: 0, exhausted: false } }))}
+                                style={{ fontSize: 11, color: '#854F0B', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                                ↺ {t('substitute.browse_again')}
+                              </button>
                             </div>
                           )}
 
@@ -959,7 +951,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
                             const pool = candidatePools[i]
                             if (!pool || pool.candidates.length === 0) return (
                               <div style={{ textAlign: 'center', padding: '10px 0', fontSize: 12, color: 'rgba(28,26,22,0.45)' }}>
-                                {t('substitute.no_options_retry')}
+                                {t('substitute.no_candidates')}
                               </div>
                             )
                             const pageCandidates = pool.candidates.slice(pool.page * 3, pool.page * 3 + 3)

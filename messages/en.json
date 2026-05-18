@@ -413,7 +413,11 @@
     "next_batch": "[TODO:en] 换一批",
     "no_more": "[TODO:en] 该食材暂无更多替代选项",
     "no_options_retry": "No substitutes found — click ↻ to retry",
-    "condition_warn": "[TODO:en] 请注意该食材可能不完全符合健康状态营养要求"
+    "condition_warn": "[TODO:en] 请注意该食材可能不完全符合健康状态营养要求",
+    "all_shown": "[TODO:en] 已展示全部 {count} 个可用替代食材",
+    "regen_hint": "[TODO:en] 如需更多选择，可尝试重新生成食谱",
+    "browse_again": "[TODO:en] 重新浏览",
+    "no_candidates": "[TODO:en] 本次食谱暂无符合条件的替代食材，建议重新生成食谱"
   },
   "mealPlan": {
     "sectionTitle": "7-Day Meal Plan",
