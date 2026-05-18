@@ -967,6 +967,441 @@ export const SAFETY_DB: Record<string, IngredientSafety> = {
       },
     },
   },
+
+  /* ─── DANGER (新增) ─────────────────────────────────────────────────────── */
+
+  '核桃': {
+    name: '核桃',
+    aliases: ['walnut', 'walnuts', 'black walnut', 'english walnut',
+              'noix', 'nuez', 'くるみ', '호두'],
+    level: 'danger', title: '禁止喂食', dogSafe: false, catSafe: false,
+    // Source: ASPCA Animal Poison Control — tremorgenic mycotoxins
+    message:   '含震颤性霉菌毒素，可致肌肉震颤、癫痫，ASPCA列为明确有毒坚果，严格禁止。',
+    messageEn: 'Contains tremorgenic mycotoxins causing muscle tremors and seizures. Listed as clearly toxic by ASPCA. Strictly forbidden.',
+  },
+
+  '生酵母面团': {
+    name: '生酵母面团',
+    aliases: ['raw dough', 'raw bread dough', 'yeast dough', 'unbaked dough',
+              'pâte crue', 'masa cruda', '生地', '날반죽'],
+    level: 'danger', title: '禁止喂食', dogSafe: false, catSafe: false,
+    // Source: ASPCA Animal Poison Control — ethanol production + gastric bloat
+    message:   '酵母在胃内发酵产生乙醇（酒精中毒）及大量气体（胃扩张），两者均可致命。',
+    messageEn: 'Yeast ferments in the stomach producing ethanol (alcohol poisoning) and CO2 (life-threatening bloat). Strictly forbidden.',
+  },
+
+  '肉豆蔻': {
+    name: '肉豆蔻',
+    aliases: ['nutmeg', 'mace', 'noix de muscade', 'nuez moscada', 'ナツメグ', '육두구'],
+    level: 'danger', title: '禁止喂食', dogSafe: false, catSafe: false,
+    // Source: ASPCA Animal Poison Control — myristicin
+    message:   '含肉豆蔻醚（myristicin），可致幻觉、定向障碍、心动过速、癫痫，ASPCA列为有毒香料。',
+    messageEn: 'Contains myristicin causing hallucinations, disorientation, rapid heart rate, and seizures. Listed as toxic by ASPCA.',
+  },
+
+  '煮熟骨头': {
+    name: '煮熟骨头',
+    aliases: ['cooked bone', 'cooked bones', 'chicken bone', 'pork bone', 'fried bone',
+              'os cuit', 'hueso cocido', '加熱した骨', '조리된 뼈'],
+    level: 'danger', title: '严禁喂食', dogSafe: false, catSafe: false,
+    // Source: AVMA — splintering causes internal laceration
+    message:   '煮熟后骨质变脆，极易碎裂成尖锐碎片，可刺穿口腔/食道/肠壁，引发内出血甚至死亡。生骨头另当别论。',
+    messageEn: 'Cooking makes bones brittle — they splinter into sharp shards that can pierce the mouth, esophagus, or intestinal wall causing internal bleeding or death. Raw bones are a separate topic.',
+  },
+
+  '生猪肉': {
+    name: '生猪肉',
+    aliases: ['raw pork', 'uncooked pork', 'raw pig meat',
+              'porc cru', 'cerdo crudo', '生豚肉', '날돼지고기'],
+    level: 'danger', title: '禁止喂食', dogSafe: false, catSafe: false,
+    // Source: AVMA — Aujeszky's disease (pseudorabies) fatal in dogs; Trichinella spiralis
+    message:   '可能携带伪狂犬病毒（Aujeszky病，对犬100%致命，无治疗手段）及旋毛虫，所有形态严格禁止。',
+    messageEn: "May carry Aujeszky's disease (pseudorabies — 100% fatal in dogs, no treatment) and Trichinella spiralis. All forms strictly forbidden.",
+  },
+
+  /* ─── CAUTION (新增) ────────────────────────────────────────────────────── */
+
+  '花生酱': {
+    name: '花生酱',
+    aliases: ['peanut butter', 'peanut paste', 'pb',
+              'beurre de cacahuète', 'mantequilla de maní', 'ピーナッツバター', '땅콩버터'],
+    level: 'caution', title: '慎用（必须确认无木糖醇）', dogSafe: true, catSafe: true,
+    // Source: AKC / AVMA — xylitol risk; high fat
+    message:   '部分品牌含木糖醇（对犬极毒），喂食前必须仔细核查配料表。无木糖醇原味花生酱少量可喂，但脂肪高，胰腺炎禁用。',
+    messageEn: 'Some brands contain xylitol (deadly for dogs) — always check ingredient label carefully. Plain xylitol-free peanut butter is ok in small amounts, but high fat — avoid in pancreatitis.',
+    pancreatitisWarning:   '高脂，胰腺炎严格禁止',
+    pancreatitisWarningEn: 'High fat — strictly forbidden for pancreatitis.',
+  },
+
+  '牛奶': {
+    name: '牛奶',
+    aliases: ['milk', 'cow milk', 'dairy milk', 'whole milk',
+              'lait', 'leche', '牛乳', '우유'],
+    level: 'caution', title: '慎用（乳糖不耐）', dogSafe: true, catSafe: true,
+    // Source: AVMA — lactase deficiency in adult pets
+    message:   '成年猫狗普遍缺乏乳糖酶，饮用后易引发腹泻/呕吐。宠物专用低乳糖奶更安全，普通牛奶尽量避免。',
+    messageEn: "Most adult pets lack lactase — milk commonly causes diarrhea and vomiting. Pet-specific lactose-free milk is safer. Avoid regular cow's milk.",
+  },
+
+  '奶酪': {
+    name: '奶酪',
+    aliases: ['cheese', 'cheddar', 'mozzarella', 'parmesan', 'gouda',
+              'fromage', 'queso', 'チーズ', '치즈'],
+    level: 'caution', title: '慎用（限极少量）', dogSafe: true, catSafe: true,
+    // Source: AKC / AVMA — high fat and sodium
+    message:   '脂肪和钠含量高，过多引发腹泻或胰腺炎。硬质奶酪乳糖较低，极少量偶尔可用作训练奖励。',
+    messageEn: 'High in fat and sodium — excess causes diarrhea or pancreatitis. Hard cheeses have lower lactose; tiny amounts occasionally ok as training treats.',
+    pancreatitisWarning:   '高脂，胰腺炎禁止',
+    pancreatitisWarningEn: 'High fat — forbidden for pancreatitis.',
+    kidneyWarning:   '钠含量高，肾病需严格限制',
+    kidneyWarningEn: 'High sodium — strictly limit for kidney disease.',
+  },
+
+  '蜂蜜': {
+    name: '蜂蜜',
+    aliases: ['honey', 'raw honey', 'miel', 'miel de abeja', 'はちみつ', '꿀'],
+    level: 'caution', title: '慎用（幼崽禁用）', dogSafe: true, catSafe: true,
+    // Source: AVMA — botulism spores; AKC — high sugar
+    message:   '生蜂蜜可能含肉毒杆菌孢子，幼犬/幼猫免疫系统未发育完全，严格禁止。成年健康宠物少量偶尔可用。高糖，糖尿病/肥胖禁用。',
+    messageEn: 'Raw honey may contain Clostridium botulinum spores — strictly forbidden for puppies and kittens with immature immune systems. Healthy adult pets may have tiny amounts. High sugar — avoid for diabetic or obese pets.',
+  },
+
+  '蘑菇': {
+    name: '蘑菇',
+    aliases: ['mushroom', 'mushrooms', 'shiitake', 'oyster mushroom', 'button mushroom',
+              'champignon', 'seta', 'きのこ', '버섯', '香菇', '口蘑', '平菇'],
+    level: 'caution', title: '慎用（仅限超市购买品种）', dogSafe: true, catSafe: true,
+    // Source: ASPCA / AVMA — store-bought safe, wild mushrooms potentially deadly
+    message:   '超市常见品种（香菇、平菇、口蘑等）熟食少量可喂。野生蘑菇含多种剧毒，严禁喂任何来源不明的蘑菇。',
+    messageEn: 'Common store-bought varieties (shiitake, oyster, button) are generally safe cooked in small amounts. Wild mushrooms can be deadly — never feed any mushroom of uncertain origin.',
+  },
+
+  '芒果': {
+    name: '芒果',
+    aliases: ['mango', 'mangoes', 'mangue', 'マンゴー', '망고'],
+    level: 'caution', title: '慎用（去核去皮）', dogSafe: true, catSafe: true,
+    // Source: AKC / ASPCA — flesh safe, pit contains amygdalin (cyanide)
+    message:   '成熟果肉富含维生素，少量可喂。果核含氰苷且有噎喉风险，必须彻底去除。高糖，糖尿病/肥胖需控量。',
+    messageEn: 'Ripe flesh is nutritious and safe in small amounts. Pit contains amygdalin (cyanide) and is a choking hazard — remove completely. High sugar — limit for diabetic or obese pets.',
+  },
+
+  '草莓': {
+    name: '草莓',
+    aliases: ['strawberry', 'strawberries', 'fraise', 'fresa', 'いちご', '딸기'],
+    level: 'caution', title: '慎用（限少量）', dogSafe: true, catSafe: true,
+    // Source: AKC / AVMA — safe in moderation, high sugar
+    message:   '少量新鲜草莓对宠物安全，含天然糖分，过量引发消化不适。糖尿病/肥胖宠物需严格控量。',
+    messageEn: 'Small amounts of fresh strawberries are safe. Contains natural sugars — excess causes GI upset. Limit strictly for diabetic or obese pets.',
+  },
+
+  '梨': {
+    name: '梨',
+    aliases: ['pear', 'pears', 'asian pear', 'nashi pear', 'poire', 'pera', '白梨', '배'],
+    level: 'caution', title: '慎用（去核去籽）', dogSafe: true, catSafe: true,
+    // Source: AKC — seeds contain amygdalin (cyanide)
+    message:   '果肉少量可喂；果核和种子含氰苷，必须彻底去除。糖分较高，糖尿病宠物控量。',
+    messageEn: 'Flesh is safe in small amounts. Core and seeds contain amygdalin (cyanide) — remove completely. Moderate sugar — limit for diabetic pets.',
+  },
+
+  '橙子': {
+    name: '橙子',
+    aliases: ['orange', 'oranges', 'mandarin', 'tangerine', 'clementine',
+              'オレンジ', '오렌지', '柑橘', '橘子'],
+    level: 'caution', title: '慎用', dogSafe: true, catSafe: false,
+    // Source: ASPCA — citric acid, essential oils (limonene, linalool), psoralen in peel
+    message:   '少量去皮果肉对犬影响较小；果皮精油（柠檬烯）和呋喃香豆素可引发GI不适。猫对柑橘类更敏感，不推荐。',
+    messageEn: 'Small amounts of peeled flesh are tolerated by most dogs. Peel essential oils (limonene) and psoralen can cause GI upset. Cats are more sensitive to citrus — not recommended.',
+  },
+
+  '柠檬': {
+    name: '柠檬',
+    aliases: ['lemon', 'lemons', 'lime', 'limes', 'citron', 'limón', 'レモン', '레몬', '라임', '青柠'],
+    level: 'caution', title: '慎用（避免果皮）', dogSafe: true, catSafe: false,
+    // Source: ASPCA — psoralen and limonene in peel/seeds
+    message:   '果皮和精油含呋喃香豆素、柠檬烯，对猫有毒，犬大量也有害。少量果汁/去皮果肉影响较小，但整体建议避免。',
+    messageEn: 'Peel and essential oils contain psoralen and limonene — toxic to cats, harmful in large amounts for dogs. Small amounts of peeled flesh/juice have less impact, but best avoided.',
+  },
+
+  '椰子': {
+    name: '椰子',
+    aliases: ['coconut', 'coconut meat', 'coconut flesh', 'coconut water',
+              'noix de coco', 'coco', 'ココナッツ', '코코넛'],
+    level: 'caution', title: '慎用（少量）', dogSafe: true, catSafe: true,
+    // Source: ASPCA — fresh flesh ok in small amounts; coconut water high K
+    message:   '少量新鲜椰肉对宠物影响较小；椰子水钾含量极高，肾病禁用；椰子油饱和脂肪高，胰腺炎需避免。',
+    messageEn: 'Small amounts of fresh coconut flesh have minimal impact. Coconut water is very high in potassium — avoid for kidney disease. Coconut oil is high in saturated fat — avoid for pancreatitis.',
+    kidneyWarning:   '椰子水钾含量极高，肾病禁用',
+    kidneyWarningEn: 'Coconut water has very high potassium — forbidden for kidney disease.',
+    pancreatitisWarning:   '椰子油高饱和脂肪，胰腺炎禁止',
+    pancreatitisWarningEn: 'Coconut oil is very high in saturated fat — forbidden for pancreatitis.',
+  },
+
+  '腰果': {
+    name: '腰果',
+    aliases: ['cashew', 'cashews', 'cashew nut', 'noix de cajou', 'anacardo', 'カシューナッツ', '캐슈'],
+    level: 'caution', title: '慎用（少量，无盐）', dogSafe: true, catSafe: true,
+    // Source: AKC — not on ASPCA toxic list, but high fat; risk of pancreatitis
+    message:   '无盐腰果少量急性毒性低，但脂肪含量高，频繁喂食易引发胰腺炎。任何调味/盐腌坚果均禁止。',
+    messageEn: 'Unsalted cashews have low acute toxicity in small amounts. However, high fat content — frequent feeding risks pancreatitis. Never feed salted or seasoned cashews.',
+    pancreatitisWarning:   '高脂，胰腺炎禁止',
+    pancreatitisWarningEn: 'High fat — forbidden for pancreatitis.',
+  },
+
+  '杏仁': {
+    name: '杏仁',
+    aliases: ['almond', 'almonds', 'sweet almond', 'amande', 'almendra', 'アーモンド', '아몬드'],
+    level: 'caution', title: '慎用', dogSafe: true, catSafe: true,
+    // Source: AKC / ASPCA — sweet almonds low acute toxicity; bitter almonds contain amygdalin
+    message:   '市售甜杏仁少量急性毒性较低，但高脂不易消化，多食引发胰腺炎。苦杏仁含氰苷，严格禁止。任何加盐/调味杏仁均禁止。',
+    messageEn: 'Sweet almonds sold in stores have low acute toxicity in small amounts but are high in fat and hard to digest. Bitter almonds contain amygdalin (cyanide) — strictly forbidden. Never feed salted or seasoned almonds.',
+    pancreatitisWarning:   '高脂，胰腺炎禁止',
+    pancreatitisWarningEn: 'High fat — forbidden for pancreatitis.',
+  },
+
+  '豆腐': {
+    name: '豆腐',
+    aliases: ['tofu', 'bean curd', 'silken tofu', 'firm tofu', 'tofu block', '豆腐', '두부'],
+    level: 'caution', title: '慎用（限量）', dogSafe: true, catSafe: true,
+    // Source: AVMA — generally safe; soy isoflavones; moderate phosphorus
+    message:   '原味豆腐少量可喂；大量摄入大豆异黄酮（植物雌激素）可能影响激素平衡；磷含量较高，肾病需控量。',
+    messageEn: 'Plain tofu is ok in small amounts. Large amounts of soy isoflavones (phytoestrogens) may affect hormone balance. Moderate phosphorus — limit for kidney disease.',
+    kidneyWarning:   '磷含量较高，肾病需控量',
+    kidneyWarningEn: 'Moderate phosphorus — limit for kidney disease.',
+  },
+
+  '玉米': {
+    name: '玉米',
+    aliases: ['corn', 'sweet corn', 'maize', 'corn kernel', 'maïs', 'maíz', 'トウモロコシ', '옥수수'],
+    level: 'caution', title: '慎用（玉米芯绝对禁止）', dogSafe: true, catSafe: true,
+    // Source: AKC / AVMA — kernels safe; cob causes intestinal obstruction
+    message:   '玉米粒（熟，无调味）少量安全；玉米芯不可消化，误食可致肠梗阻，需紧急手术，严格禁止整根玉米棒。',
+    messageEn: 'Cooked unseasoned corn kernels are safe in small amounts. Corn cobs are indigestible and cause life-threatening intestinal blockage requiring emergency surgery — never feed a whole cob.',
+  },
+
+  '番茄': {
+    name: '番茄',
+    aliases: ['tomato', 'tomatoes', 'cherry tomato', 'roma tomato', 'tomate', 'トマト', '토마토', '西红柿'],
+    level: 'caution', title: '慎用（仅成熟红色果肉）', dogSafe: true, catSafe: true,
+    // Source: ASPCA — tomatine/solanine in green parts, stems, leaves, unripe fruit
+    message:   '成熟红色果肉少量安全；番茄茎、叶及未成熟青色果实含茄碱（tomatine/solanine），有毒。绝不喂食番茄植株任何绿色部分。',
+    messageEn: 'Ripe red tomato flesh is safe in small amounts. Stems, leaves, and unripe green tomatoes contain tomatine/solanine and are toxic. Never feed any green parts of the tomato plant.',
+  },
+
+  '土豆': {
+    name: '土豆',
+    aliases: ['potato', 'potatoes', 'pomme de terre', 'patata', 'ジャガイモ', '감자', '马铃薯'],
+    level: 'caution', title: '慎用（生/青土豆禁喂）', dogSafe: true, catSafe: true,
+    // Source: ASPCA — solanine in raw/green/sprouted potato
+    message:   '生土豆和青/发芽土豆含茄碱（solanine），有毒禁止。清水煮熟无调味的土豆少量安全；薯片/薯条因高油高盐严格禁止。',
+    messageEn: 'Raw, green, or sprouted potatoes contain solanine — toxic and forbidden. Plain boiled or baked potato (no seasoning) is safe in small amounts. Chips and fries are forbidden due to high fat and salt.',
+  },
+
+  '白菜': {
+    name: '白菜',
+    aliases: ['cabbage', 'chinese cabbage', 'napa cabbage', 'bok choy', 'pak choi',
+              'chou', 'col', 'キャベツ', '양배추', '卷心菜'],
+    level: 'caution', title: '慎用（限量）', dogSafe: true, catSafe: true,
+    // Source: AVMA — goitrogens (isothiocyanates) in large amounts suppress thyroid
+    message:   '少量熟食可喂；大量摄入含异硫氰酸酯（goitrogen），可能抑制甲状腺功能，有甲状腺病史宠物需避免。',
+    messageEn: 'Small cooked amounts are ok. Large amounts contain goitrogens (isothiocyanates) that may suppress thyroid function — avoid for pets with thyroid conditions.',
+  },
+
+  '花椰菜': {
+    name: '花椰菜',
+    aliases: ['cauliflower', 'cauli', 'chou-fleur', 'coliflor', 'カリフラワー', '콜리플라워'],
+    level: 'caution', title: '慎用（限量）', dogSafe: true, catSafe: true,
+    // Source: AKC — isothiocyanates same as broccoli family
+    message:   '与西兰花同属十字花科，少量熟食可喂；过量含异硫氰酸酯，可引发胃肠胀气和不适，建议蒸熟后少量给予。',
+    messageEn: 'Same cruciferous family as broccoli — small cooked amounts are ok. Excess contains isothiocyanates causing gas and GI discomfort. Steam and feed in small quantities only.',
+  },
+
+  '杏': {
+    name: '杏',
+    aliases: ['apricot', 'apricots', 'abricot', 'albaricoque', 'アプリコット', '살구'],
+    level: 'caution', title: '慎用（严禁果核）', dogSafe: true, catSafe: true,
+    // Source: ASPCA — amygdalin in pit/seeds/stems/leaves → cyanide
+    message:   '成熟果肉少量可喂；果核、果柄、叶片含氰苷（amygdalin），代谢产生氰化物，严格禁止。勿喂腌制/含糖杏脯。',
+    messageEn: 'Ripe flesh is safe in small amounts. Pit, stems, and leaves contain amygdalin which releases cyanide — strictly forbidden. Never feed candied or preserved apricots.',
+  },
+
+  '桃': {
+    name: '桃',
+    aliases: ['peach', 'peaches', 'nectarine', 'pêche', 'melocotón', 'モモ', '복숭아'],
+    level: 'caution', title: '慎用（严禁果核）', dogSafe: true, catSafe: true,
+    // Source: ASPCA — amygdalin in pit; also physical blockage hazard
+    message:   '成熟新鲜果肉少量可喂；桃核含氰苷，体积大还可能造成肠梗阻，严格禁止。不可喂含糖罐头桃。',
+    messageEn: 'Ripe fresh flesh is safe in small amounts. The pit contains amygdalin (cyanide) and is also a blockage hazard — strictly forbidden. Avoid sugary canned peaches.',
+  },
+
+  '李子': {
+    name: '李子',
+    aliases: ['plum', 'plums', 'prune', 'pruneaux', 'ciruela', 'スモモ', '자두'],
+    level: 'caution', title: '慎用（严禁果核）', dogSafe: true, catSafe: true,
+    // Source: ASPCA — pit/leaves/stems contain cyanide; fermented plum products contain alcohol
+    message:   '新鲜成熟果肉少量可喂；果核/叶/茎含氰苷，发酵梅制品（梅酒等）含酒精，均严格禁止。',
+    messageEn: 'Fresh ripe flesh is ok in small amounts. Pit, leaves, and stems contain cyanide. Fermented plum products (e.g., plum wine) contain alcohol — all strictly forbidden.',
+  },
+
+  '猕猴桃': {
+    name: '猕猴桃',
+    aliases: ['kiwi', 'kiwifruit', 'kiwi fruit', 'chinese gooseberry', 'キウイ', '키위', '奇异果'],
+    level: 'caution', title: '慎用', dogSafe: true, catSafe: true,
+    // Source: AKC — flesh safe, skin may cause GI upset; high sugar
+    message:   '去皮果肉少量对宠物安全，富含维生素C；果皮可能引发消化不适，高糖，糖尿病宠物控量。',
+    messageEn: 'Peeled kiwi flesh is safe in small amounts and rich in vitamin C. Skin may cause GI upset. High sugar — limit for diabetic pets.',
+  },
+
+  '菠萝': {
+    name: '菠萝',
+    aliases: ['pineapple', 'ananas', 'piña', 'パイナップル', '파인애플'],
+    level: 'caution', title: '慎用（少量新鲜）', dogSafe: true, catSafe: true,
+    // Source: AKC — fresh safe; bromelain irritation; canned with syrup unsafe
+    message:   '新鲜菠萝果肉少量可喂；菠萝蛋白酶大量时刺激口腔；高糖，糖尿病/肥胖禁用；罐头（含糖浆）严格禁止。',
+    messageEn: 'Fresh pineapple flesh is safe in small amounts. Bromelain can irritate the mouth in large quantities. High sugar — avoid for diabetic or obese pets. Never feed canned pineapple in syrup.',
+  },
+
+  '哈密瓜': {
+    name: '哈密瓜',
+    aliases: ['cantaloupe', 'honeydew', 'melon', 'muskmelon', 'cantaloup', 'melón', 'メロン', '멜론', '甜瓜'],
+    level: 'caution', title: '慎用（去皮去籽）', dogSafe: true, catSafe: true,
+    // Source: AKC — flesh safe, rind and seeds removed; moderate sugar
+    message:   '果肉低卡水分足，少量安全；糖分较高，糖尿病/肥胖宠物控量；喂食前去除果皮和种子。',
+    messageEn: 'Flesh is hydrating and low-calorie, safe in small amounts. Moderate sugar — limit for diabetic or obese pets. Remove rind and seeds before feeding.',
+  },
+
+  '海带': {
+    name: '海带',
+    aliases: ['kelp', 'seaweed', 'nori', 'wakame', 'algue', 'alga', 'konbu',
+              '昆布', '海苔', '紫菜', '미역', '김'],
+    level: 'caution', title: '慎用（仅原味，极少量）', dogSafe: true, catSafe: true,
+    // Source: AVMA — high iodine affects thyroid; seasoned products high sodium
+    message:   '无盐原味海带/紫菜极少量可喂；碘含量极高，过量干扰甲状腺。市售调味海苔零食钠含量极高，严格禁止。',
+    messageEn: 'Plain unsalted seaweed/nori is ok in very small amounts. Very high iodine content — excess disrupts thyroid function. Seasoned seaweed snacks are very high in sodium — never feed.',
+    kidneyWarning:   '碘和钠含量高，肾病避免',
+    kidneyWarningEn: 'High iodine and sodium — avoid for kidney disease.',
+  },
+
+  '椰子油': {
+    name: '椰子油',
+    aliases: ['coconut oil', 'virgin coconut oil', 'vco',
+              'huile de coco', 'aceite de coco', 'ココナッツオイル', '코코넛 오일'],
+    level: 'caution', title: '慎用（高脂）', dogSafe: true, catSafe: true,
+    // Source: AKC / AVMA — ~90% saturated fat; pancreatitis risk
+    message:   '极少量可润滑肠道，但饱和脂肪含量约90%，过量引发体重增加和腹泻，胰腺炎宠物严格禁止。',
+    messageEn: 'Tiny amounts may aid digestion, but ~90% saturated fat — excess causes weight gain and diarrhea. Strictly forbidden for pets with pancreatitis.',
+    pancreatitisWarning:   '高饱和脂肪，胰腺炎严格禁止',
+    pancreatitisWarningEn: 'Very high saturated fat — strictly forbidden for pancreatitis.',
+  },
+
+  '生肉': {
+    name: '生肉',
+    aliases: ['raw meat', 'raw food', 'raw diet', 'raw chicken', 'raw beef', 'raw turkey',
+              'viande crue', 'carne cruda', '날고기', '날음식'],
+    level: 'caution', title: '慎用（AVMA官方不推荐）', dogSafe: true, catSafe: true,
+    // Source: AVMA official position on raw pet food diets (2012, reaffirmed 2023)
+    message:   'AVMA官方不推荐：生肉可能携带沙门氏菌、空肠弯曲菌、大肠杆菌、李斯特菌，对宠物和人均有交叉污染风险。若坚持，需严格冷链管理。',
+    messageEn: 'AVMA officially advises against raw diets: raw meat may carry Salmonella, Campylobacter, E. coli, and Listeria — cross-contamination risk for both pets and humans. If feeding raw, strict cold-chain and hygiene protocols are essential.',
+  },
+
+  '猪肝': {
+    name: '猪肝',
+    aliases: ['pork liver', 'pig liver', 'foie de porc', 'hígado de cerdo', '豚レバー', '돼지 간'],
+    level: 'caution', title: '慎用（限量）', dogSafe: true, catSafe: true,
+    // Source: AVMA / NRC — extremely high vitamin A; same risk profile as chicken liver
+    message:   '维生素A含量极高，过量导致骨骼异常和中毒。每周用量不超过总食材5%，肾病因磷/铜含量高需严格限制。',
+    messageEn: 'Extremely high in vitamin A — excess causes bone abnormalities and toxicity. No more than 5% of weekly diet total. Kidney disease: strictly limit due to high phosphorus and copper.',
+    kidneyWarning:   '磷和铜过高，肾病严格限制',
+    kidneyWarningEn: 'High phosphorus and copper — strictly limited for kidney disease.',
+    pancreatitisWarning:   '脂肪和铜较高，胰腺炎慎用',
+    pancreatitisWarningEn: 'Higher fat and copper — use with caution in pancreatitis.',
+  },
+
+  '无花果': {
+    name: '无花果',
+    aliases: ['fig', 'figs', 'dried fig', 'figue', 'higo', 'イチジク', '무화과'],
+    level: 'caution', title: '慎用', dogSafe: true, catSafe: true,
+    // Source: ASPCA — Ficus (fig plant) leaves/stems toxic; fruit may cause GI reaction
+    message:   '无花果植株（叶/茎）含佛手柑素，对猫狗有毒；成熟果实本身刺激性较小，但某些宠物会出现GI过敏，初次喂食极少量观察反应。',
+    messageEn: 'Fig plant leaves and stems contain furocoumarins — toxic. The ripe fruit is less dangerous but may cause allergic GI reactions in sensitive pets. Introduce in very small amounts and observe.',
+  },
+
+  '熟猪肉': {
+    name: '熟猪肉',
+    aliases: ['cooked pork', 'pork', 'lean pork', 'porc cuit', 'cerdo cocido', '豚肉', '돼지고기'],
+    level: 'caution', title: '慎用（瘦肉，无调味）', dogSafe: true, catSafe: true,
+    // Source: AVMA — plain cooked lean pork acceptable; high fat; processed pork dangerous
+    message:   '纯水煮瘦猪肉少量可喂；猪肉脂肪偏高，需去除肥膘；火腿/香肠/培根含高盐/亚硝酸盐/香料，严格禁止。',
+    messageEn: 'Plain boiled lean pork is ok in small amounts. Remove all fat. Never feed ham, sausage, or bacon — all contain harmful levels of salt, nitrates, and spices.',
+    pancreatitisWarning:   '猪肉脂肪较高，需选极瘦肉并控量',
+    pancreatitisWarningEn: 'Pork fat content is significant — choose very lean cuts only and limit quantity for pancreatitis.',
+  },
+
+  /* ─── SAFE (新增) ──────────────────────────────────────────────────────── */
+
+  '黄瓜': {
+    name: '黄瓜',
+    aliases: ['cucumber', 'cucumbers', 'english cucumber', 'concombre', 'pepino', 'キュウリ', '오이'],
+    level: 'safe', title: '安全可喂食', dogSafe: true, catSafe: true,
+    // Source: AKC — safe, low calorie, hydrating
+    message:   '低热量高水分，适合减重宠物作零食。洗净去皮后生食或少量熟食均可，不可调味。',
+    messageEn: 'Low-calorie, hydrating treat — great for overweight pets. Wash and peel if preferred; serve raw or lightly cooked without any seasoning.',
+  },
+
+  '芹菜': {
+    name: '芹菜',
+    aliases: ['celery', 'celery stalk', 'céleri', 'apio', 'セロリ', '셀러리'],
+    level: 'safe', title: '安全可喂食', dogSafe: true, catSafe: true,
+    // Source: AKC — safe, high fiber, vitamins A/C/K, may freshen breath
+    message:   '低热量，富含纤维及维生素A/C/K，有助清新口气。切成小段防噎喉，不可调味。',
+    messageEn: 'Low-calorie, rich in fiber and vitamins A/C/K. May help freshen breath. Cut into small pieces to prevent choking. No seasoning.',
+  },
+
+  '西葫芦': {
+    name: '西葫芦',
+    aliases: ['zucchini', 'courgette', 'summer squash', 'calabacín', 'ズッキーニ', '주키니'],
+    level: 'safe', title: '安全可喂食', dogSafe: true, catSafe: true,
+    // Source: AKC — safe, very low calorie, good fiber
+    message:   '低热量蔬菜，富含纤维和矿物质，生食或熟食均可（无调味）。适合需要控制体重的宠物。',
+    messageEn: 'Very low-calorie vegetable rich in fiber and minerals. Safe raw or cooked without seasoning. Good choice for weight-management diets.',
+  },
+
+  '四季豆': {
+    name: '四季豆',
+    aliases: ['green bean', 'green beans', 'string bean', 'french bean',
+              'haricot vert', 'judía verde', 'インゲン', '강낭콩', '豆角'],
+    level: 'safe', title: '安全可喂食', dogSafe: true, catSafe: true,
+    // Source: AKC / AVMA — safe, high fiber, low calorie; avoid canned with salt
+    message:   '低热量高纤维，新鲜/冷冻/熟食均可（无盐无调味）。常用于宠物减重计划中替换部分主食以降低热量。',
+    messageEn: 'Low-calorie, high-fiber treat — fresh, frozen, or cooked (no salt or seasoning). Often used in weight-loss plans to replace a portion of regular food.',
+  },
+
+  '鸭肉': {
+    name: '鸭肉',
+    aliases: ['duck', 'duck meat', 'duck breast', 'canard', 'pato', 'アヒル', '오리고기'],
+    level: 'safe', title: '安全可喂食', dogSafe: true, catSafe: true,
+    // Source: AVMA — safe protein, hypoallergenic alternative
+    message:   '优质蛋白，过敏原低，适合对鸡肉/牛肉过敏的宠物。去皮去骨煮熟，不可调味；鸭皮脂肪高，胰腺炎需去除。',
+    messageEn: 'Quality protein source and hypoallergenic — good for pets allergic to chicken or beef. Remove skin and bones, cook thoroughly, no seasoning. Duck skin is high in fat — always remove for pancreatitis.',
+  },
+
+  '火鸡': {
+    name: '火鸡',
+    aliases: ['turkey', 'turkey breast', 'ground turkey', 'dinde', 'pavo', 'ターキー', '칠면조'],
+    level: 'safe', title: '安全可喂食', dogSafe: true, catSafe: true,
+    // Source: AKC / AVMA — lean protein, safe when plain
+    message:   '瘦肉蛋白，去皮去骨煮熟后安全。禁止喂食节日烤火鸡（含大量黄油/盐/香料）。',
+    messageEn: 'Lean protein — safe when skinned, deboned, and cooked plain. Never feed holiday-style roasted turkey seasoned with butter, salt, or spices.',
+  },
+
+  '熟虾': {
+    name: '熟虾',
+    aliases: ['cooked shrimp', 'shrimp', 'prawn', 'boiled shrimp',
+              'crevette', 'gamba', 'エビ', '새우'],
+    level: 'safe', title: '安全可喂食（熟、去壳）', dogSafe: true, catSafe: true,
+    // Source: AKC — safe cooked; remove shell; moderate cholesterol
+    message:   '熟虾去壳去头去虾线后少量可喂，低脂高蛋白；胆固醇偏高不宜频繁；生虾有细菌/寄生虫风险，禁止。',
+    messageEn: 'Cooked shrimp (shelled, deveined) is safe in small amounts — low fat, high protein. Moderate cholesterol — do not feed too frequently. Raw shrimp forbidden due to bacteria and parasite risk.',
+  },
 }
 
 /* ─── Search ─────────────────────────────────────────────────────────────── */
