@@ -396,6 +396,8 @@
     "next_batch": "换一批",
     "no_more": "该食材暂无更多替代选项",
     "no_options_retry": "暂未找到替代选项，点击「换一批」重试",
+    "range_normal": "正常",
+    "range_low": "偏低",
     "all_shown": "已展示全部 {count} 个可用替代食材",
     "regen_hint": "如需更多选择，可尝试重新生成食谱",
     "browse_again": "重新浏览",

@@ -326,14 +326,10 @@ export async function POST(req: NextRequest) {
         // Full validation chain
         const { validation, conditionOk } = runValidationChain(newIngredients, petParams, conditions, species)
 
-        // After nutrition (per 1000 kcal)
+        // After nutrition (absolute grams — consistent with recipe bottom panel)
         const afterCalories = Math.round(validation.actualCalories)
-        const afterProtein  = validation.actualCalories > 0
-          ? Math.round(validation.nutrients.protein * 1000 / validation.actualCalories * 10) / 10
-          : 0
-        const afterFat      = validation.actualCalories > 0
-          ? Math.round(validation.nutrients.fat * 1000 / validation.actualCalories * 10) / 10
-          : 0
+        const afterProtein  = Math.round(validation.nutrients.protein * 10) / 10
+        const afterFat      = Math.round(validation.nutrients.fat      * 10) / 10
 
         // Supplement changes (before vs after)
         const afterSupplements: Record<string, { name: string; amountG: number }> = {}
@@ -373,10 +369,12 @@ export async function POST(req: NextRequest) {
           emoji:       CATEGORY_EMOJI[food.category] || '🍽️',
           amountG,
           nutritionDelta: {
-            calories: { before: beforeCalories,  after: afterCalories },
-            protein:  { before: beforeProtein,   after: afterProtein  },
-            fat:      { before: beforeFat,        after: afterFat      },
+            calories: { before: beforeCalories, after: afterCalories },
+            protein:  { before: storedProteinG, after: afterProtein  },
+            fat:      { before: storedFatG,     after: afterFat      },
           },
+          aafcoProteinOk: aafco.protein.ok,
+          aafcoFatOk:     aafco.fat.ok,
           supplementChanges,
           validationScore,
           conditionOk,

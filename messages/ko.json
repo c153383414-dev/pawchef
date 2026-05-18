@@ -434,7 +434,9 @@
     "all_shown": "[TODO:ko] 已展示全部 {count} 个可用替代食材",
     "regen_hint": "[TODO:ko] 如需更多选择，可尝试重新生成食谱",
     "browse_again": "[TODO:ko] 重新浏览",
-    "no_candidates": "[TODO:ko] 本次食谱暂无符合条件的替代食材，建议重新生成食谱"
+    "no_candidates": "[TODO:ko] 本次食谱暂无符合条件的替代食材，建议重新生成食谱",
+    "range_normal": "[TODO:ko] 正常",
+    "range_low": "[TODO:ko] 偏低"
   },
   "suitable": {
     "healthyAdult": "✓ 건강한 성체",

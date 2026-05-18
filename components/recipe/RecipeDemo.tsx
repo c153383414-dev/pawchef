@@ -23,6 +23,8 @@ interface PoolCandidate {
     protein:  { before: number; after: number }
     fat:      { before: number; after: number }
   }
+  aafcoProteinOk: boolean
+  aafcoFatOk:     boolean
   supplementChanges: Array<{ dbName: string; name: string; before: number; after: number }>
   validationScore: number
   conditionOk: boolean
@@ -984,12 +986,24 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
                                         </button>
                                       </div>
                                       {/* Nutrition delta */}
-                                      <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.6)', lineHeight: 1.6 }}>
-                                        {t('recipe.nutriCalories')} {d.calories.before} → <strong>{d.calories.after}</strong> kcal
+                                      <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.6)', lineHeight: 1.8 }}>
+                                        <span>{t('recipe.nutriCalories')} {d.calories.before} → <strong>{d.calories.after}</strong> kcal</span>
                                         {'  ·  '}
-                                        {t('recipe.nutriProtein')} {d.protein.before} → <strong>{d.protein.after}</strong> g/1000kcal
+                                        <span>
+                                          {t('recipe.nutriProtein')} {d.protein.before}g → <strong>{d.protein.after}g</strong>
+                                          {' '}
+                                          <span style={{ fontSize: 10, fontWeight: 500, color: candidate.aafcoProteinOk ? '#3B6D11' : '#854F0B' }}>
+                                            {candidate.aafcoProteinOk ? t('substitute.range_normal') : t('substitute.range_low')}
+                                          </span>
+                                        </span>
                                         {'  ·  '}
-                                        {t('recipe.nutriFat')} {d.fat.before} → <strong>{d.fat.after}</strong> g/1000kcal
+                                        <span>
+                                          {t('recipe.nutriFat')} {d.fat.before}g → <strong>{d.fat.after}g</strong>
+                                          {' '}
+                                          <span style={{ fontSize: 10, fontWeight: 500, color: candidate.aafcoFatOk ? '#3B6D11' : '#854F0B' }}>
+                                            {candidate.aafcoFatOk ? t('substitute.range_normal') : t('substitute.range_low')}
+                                          </span>
+                                        </span>
                                       </div>
                                       {/* Supplement changes */}
                                       {candidate.supplementChanges.length > 0 && (
