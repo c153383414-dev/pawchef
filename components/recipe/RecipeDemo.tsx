@@ -886,7 +886,7 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
                   {t('recipe.ingredientsLabel')}
                   {user && (
                     <span style={{ fontWeight: 400, marginLeft: 6, color: 'rgba(28,26,22,0.35)' }}>
-                      · {t('substitute.btn')} {t('substitute.needCredits').toLowerCase()}
+                      · {t('substitute.freeToExplore')}
                     </span>
                   )}
                 </div>

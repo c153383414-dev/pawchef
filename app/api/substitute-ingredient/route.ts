@@ -248,7 +248,10 @@ export async function POST(req: NextRequest) {
       50
 
     // ── Compute "before" baseline nutrition ────────────────────────────────────
-    const beforeValidation  = validateRecipe(currentRecipe?.ingredients || [], petParams)
+    // Use runValidationChain (same as "after") so before/after use consistent scaling
+    const { validation: beforeValidation } = runValidationChain(
+      currentRecipe?.ingredients || [], petParams, conditions, species,
+    )
     const beforeCalories    = Math.round(beforeValidation.actualCalories)
     const beforeProtein     = beforeValidation.actualCalories > 0
       ? Math.round(beforeValidation.nutrients.protein * 1000 / beforeValidation.actualCalories * 10) / 10
@@ -262,6 +265,10 @@ export async function POST(req: NextRequest) {
       beforeSupplements[s.dbName]     = s.amountG
       beforeSupplementNames[s.dbName] = s.ingredient
     })
+    // dbNames that are already explicit ingredients in the original recipe
+    const recipeIngDbNames = new Set<string>(
+      (currentRecipe?.ingredients || []).map((ing: any) => ing.dbName).filter(Boolean),
+    )
 
     // ═══════════════════════════════════════════════════════════════════════════
     // POOL ACTION — generate candidate pool, no credit deduction
@@ -370,6 +377,8 @@ Output raw JSON only. No markdown, no explanation:
         ]))
         const supplementChanges: any[] = []
         for (const sDbName of allSupDbNames) {
+          // Skip if already an explicit ingredient — auto-supplement tracking would be misleading
+          if (recipeIngDbNames.has(sDbName)) continue
           const before = beforeSupplements[sDbName] || 0
           const after  = afterSupplements[sDbName]?.amountG || 0
           if (before !== after) {
