@@ -436,7 +436,8 @@
     "browse_again": "[TODO:es] 重新浏览",
     "no_candidates": "[TODO:es] 本次食谱暂无符合条件的替代食材，建议重新生成食谱",
     "range_normal": "[TODO:es] 正常",
-    "range_low": "[TODO:es] 偏低"
+    "range_low": "[TODO:es] 偏低",
+    "range_high": "[TODO:es] 偏高"
   },
   "suitable": {
     "healthyAdult": "✓ Adulto sano",

@@ -419,7 +419,8 @@
     "browse_again": "[TODO:en] 重新浏览",
     "no_candidates": "[TODO:en] 本次食谱暂无符合条件的替代食材，建议重新生成食谱",
     "range_normal": "[TODO:en] 正常",
-    "range_low": "[TODO:en] 偏低"
+    "range_low": "[TODO:en] 偏低",
+    "range_high": "[TODO:en] 偏高"
   },
   "mealPlan": {
     "sectionTitle": "7-Day Meal Plan",

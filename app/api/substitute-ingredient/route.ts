@@ -363,6 +363,15 @@ export async function POST(req: NextRequest) {
            aafco.caPRatio.ok, aafco.omega3.ok, aafco.taurine.ok].filter(Boolean).length +
           (conditionOk ? 1 : 0)
 
+        // Range status for each displayed metric
+        type RangeStatus = 'normal' | 'low' | 'high'
+        const caloriesStatus: RangeStatus =
+          afterCalories < validation.targetCalories.min ? 'low'
+          : afterCalories > validation.targetCalories.max ? 'high'
+          : 'normal'
+        const proteinStatus: RangeStatus = aafco.protein.ok ? 'normal' : 'low'
+        const fatStatus:     RangeStatus = aafco.fat.ok     ? 'normal' : 'low'
+
         pool.push({
           dbName:      food.dbName,
           name:        food.names[0],
@@ -373,8 +382,9 @@ export async function POST(req: NextRequest) {
             protein:  { before: storedProteinG, after: afterProtein  },
             fat:      { before: storedFatG,     after: afterFat      },
           },
-          aafcoProteinOk: aafco.protein.ok,
-          aafcoFatOk:     aafco.fat.ok,
+          caloriesStatus,
+          proteinStatus,
+          fatStatus,
           supplementChanges,
           validationScore,
           conditionOk,

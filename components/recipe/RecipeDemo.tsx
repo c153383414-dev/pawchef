@@ -23,8 +23,9 @@ interface PoolCandidate {
     protein:  { before: number; after: number }
     fat:      { before: number; after: number }
   }
-  aafcoProteinOk: boolean
-  aafcoFatOk:     boolean
+  caloriesStatus: 'normal' | 'low' | 'high'
+  proteinStatus:  'normal' | 'low' | 'high'
+  fatStatus:      'normal' | 'low' | 'high'
   supplementChanges: Array<{ dbName: string; name: string; before: number; after: number }>
   validationScore: number
   conditionOk: boolean
@@ -986,25 +987,28 @@ export default function RecipeDemo({ user, onAuthRequired, locale, t, onCreditsU
                                         </button>
                                       </div>
                                       {/* Nutrition delta */}
-                                      <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.6)', lineHeight: 1.8 }}>
-                                        <span>{t('recipe.nutriCalories')} {d.calories.before} → <strong>{d.calories.after}</strong> kcal</span>
-                                        {'  ·  '}
-                                        <span>
-                                          {t('recipe.nutriProtein')} {d.protein.before}g → <strong>{d.protein.after}g</strong>
-                                          {' '}
-                                          <span style={{ fontSize: 10, fontWeight: 500, color: candidate.aafcoProteinOk ? '#3B6D11' : '#854F0B' }}>
-                                            {candidate.aafcoProteinOk ? t('substitute.range_normal') : t('substitute.range_low')}
+                                      {(() => {
+                                        const statusEmoji = { normal: '🟢', low: '🟡', high: '🟠' }
+                                        const statusColor = { normal: '#3B6D11', low: '#854F0B', high: '#C05A00' }
+                                        const statusLabel = (s: 'normal' | 'low' | 'high') =>
+                                          s === 'normal' ? t('substitute.range_normal')
+                                          : s === 'low'  ? t('substitute.range_low')
+                                          :                t('substitute.range_high')
+                                        const Tag = ({ s }: { s: 'normal' | 'low' | 'high' }) => (
+                                          <span style={{ fontSize: 10, fontWeight: 500, color: statusColor[s], whiteSpace: 'nowrap' }}>
+                                            {statusEmoji[s]} {statusLabel(s)}
                                           </span>
-                                        </span>
-                                        {'  ·  '}
-                                        <span>
-                                          {t('recipe.nutriFat')} {d.fat.before}g → <strong>{d.fat.after}g</strong>
-                                          {' '}
-                                          <span style={{ fontSize: 10, fontWeight: 500, color: candidate.aafcoFatOk ? '#3B6D11' : '#854F0B' }}>
-                                            {candidate.aafcoFatOk ? t('substitute.range_normal') : t('substitute.range_low')}
-                                          </span>
-                                        </span>
-                                      </div>
+                                        )
+                                        return (
+                                          <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.6)', lineHeight: 1.8 }}>
+                                            <span>{t('recipe.nutriCalories')} {d.calories.before} → <strong>{d.calories.after}</strong> kcal{' '}<Tag s={candidate.caloriesStatus} /></span>
+                                            {'  ·  '}
+                                            <span>{t('recipe.nutriProtein')} {d.protein.before}g → <strong>{d.protein.after}g</strong>{' '}<Tag s={candidate.proteinStatus} /></span>
+                                            {'  ·  '}
+                                            <span>{t('recipe.nutriFat')} {d.fat.before}g → <strong>{d.fat.after}g</strong>{' '}<Tag s={candidate.fatStatus} /></span>
+                                          </div>
+                                        )
+                                      })()}
                                       {/* Supplement changes */}
                                       {candidate.supplementChanges.length > 0 && (
                                         <div style={{ fontSize: 11, color: 'rgba(28,26,22,0.45)', marginTop: 2 }}>
